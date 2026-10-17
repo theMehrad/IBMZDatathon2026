@@ -186,6 +186,25 @@ used_test = np.zeros_like(own); used_test[te_all.user.map(U).values, te_all.doma
 still = normal & ACT[:, -30:].any(1)
 stale = own & ~used_test                                                   # access held but not used again: revoke?
 
+# ------------------------------------------------------------------ 6. snooping: computers the recommender would never suggest
+pc_tr, pc_te = pcs[pcs.day < TRAIN_END], pcs[pcs.day >= CUT]
+comps = np.sort(pc_tr.pc.unique()); Cx = {c: j for j, c in enumerate(comps)}
+gp = pc_tr.groupby(["user", "pc"]).day.nunique()
+Xp = np.zeros((len(users), len(comps))); Xp[gp.index.get_level_values(0).map(U), gp.index.get_level_values(1).map(Cx)] = np.log1p(gp.values)
+pred_pc = als(Xp, rank=16, alpha=10.0, reg=0.1)                                   # study's computer setting
+tu_, tc_ = pc_te.user.map(U).values, pc_te.pc.map(Cx).fillna(-1).astype(int).values
+new_pc = np.where(tc_ >= 0, Xp[tu_, np.maximum(tc_, 0)] == 0, True)
+surprise = np.where(tc_ >= 0, 1 - np.clip(pred_pc[tu_, np.maximum(tc_, 0)], 0, 1), 1.0)
+main_pc = pc_tr.groupby(["user", "pc"]).size().reset_index().sort_values(0, ascending=False).drop_duplicates("user").set_index("user").pc
+roam = (pc_tr.pc != pc_tr.user.map(main_pc)).groupby(pc_tr.user).mean()          # training share of logins away from one's main PC
+def weekly_count(flag):                                                           # weeks with a flagged login, discounted for roamers
+    wk = pc_te.assign(f=flag, week=pc_te.day.dt.to_period("W").dt.start_time).groupby(["user", "week"]).f.any()
+    return (wk.groupby(level=0).sum() / (1 + 50 * roam.reindex(wk.groupby(level=0).sum().index).fillna(0))).reindex(users).fillna(0)
+def top100(score, scen, k=100):
+    who = set(ins.index[ins.scenario == scen]); s = score + np.random.default_rng(2).random(len(users)) * 1e-9
+    return sum(u in who for u in users[np.argsort(-s.values)[:k]]), len(who)
+snoop = {"recommender would never suggest": weekly_count(new_pc & (surprise >= 0.5)), "any computer new to the person": weekly_count(new_pc)}
+
 # ------------------------------------------------------------------ 5. block sites nobody here visited in training
 mal_sites = [(r.scenario, DOMRE.match(e[5]).group(1).lower()) for u, r in ins.iterrows() for e in EVENTS[u]
              if e[0] == "http" and DOMRE.match(e[5])]
@@ -210,5 +229,10 @@ print("4  access requests per person-month: " + ", ".join(f"{k} {v:.2f}" for k, 
 print("   malicious web visits that would need approval (static coverage): " + ", ".join(f"{k} {v:.1%}" for k, v in coverage.items()))
 print(f"   end-of-period access-review proxy: {stale[still].sum() / own[still].sum():.1%} of training person-site pairs not revisited "
       f"({stale[still].sum(1).mean():.1f} per person; {(stale[still].sum(1) > 0).mean():.0%} of people have at least one)")
+if (ins.scenario == 4).any():
+    print("6  snooping, weekly logins to computers outside the person's profile (snoopers in the top 100): "
+          + ", ".join(f"{k} {top100(v, 4)[0]}/{top100(v, 4)[1]} (top 20: {top100(v, 4, 20)[0]} snoopers)" for k, v in snoop.items()))
+else:
+    print("6  snooping view: this release has no snoopers (scenario 4 exists only in r5.2)")
 print(f"5  new-to-company rule blocks wikileaks {blocked[1]:.0%} and keylogger sites {blocked[3]:.0%}; "
       f"cost {len(nov[['user', 'day']].drop_duplicates())} normal person-days")

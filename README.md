@@ -19,6 +19,7 @@ OutOfRole spots insiders while they are still active, explains each alert with c
 | Same, 28-day personal baseline on the same 20-name list | 59 | 40 |
 | Insiders flagged in time with a real malicious event in their top 3 evidence items (evidence up to the flag day) | 64% | 85% |
 | Recommender recall of next new websites, top 20 (popularity) | 21% (14.5%) | 19% (13%) |
+| Snoopers in the top 100 of the recommender's "never suggested" computer-login view | no snoopers | 27 of 30 |
 
 ## What's in this repo
 

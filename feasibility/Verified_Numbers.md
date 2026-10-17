@@ -173,7 +173,7 @@ The review is in `feasibility/codex_review/round4_review.md`. These are the chan
 
 ## 10. The whole system in one file (`feasibility/reference/outofrole_minimal.py`)
 
-The file is 214 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
+The file is 238 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
 
 | Result | r4.2 | r5.2 |
 |---|---|---|
@@ -192,6 +192,7 @@ The file is 214 lines and runs in about 20 seconds per release on a laptop. It u
 | Same rule, insiders at their graded in-time day | 53% | 72% |
 | Share of the recommender's extra grants later used | 0.28 | 0.42 |
 | New-to-company rule: wikileaks and keylogger visits blocked; normal person-days affected | 100%, 100%; 8 | 100%, 100%; 0 |
+| Snooping view (section 6): snoopers in the top 100 (top 20) of weekly logins to computers the recommender would never suggest (new to the person and ALS surprise of 0.5 or more; ALS rank 16, alpha 10, reg 0.1; roamers discounted) vs any computer new to the person | no snoopers in r4.2 | 27 / 30 (14) vs 26 / 30 (13) |
 
 Notes:
 
@@ -222,3 +223,5 @@ None of these changes moved the headline numbers.
 - Evidence strength is decided on the raw share, before rounding.
 - First alerts and case evidence start at replay day zero. This moved r4.2's graded C1 hit@3 from 0.66 to 0.64 and its first-alert value from 0.33 to 0.31; r5.2 is unchanged.
 - Evidence strength is now compared at the same stage (first alert) for insiders and normal staff.
+
+**Added after Codex round 8 (proposal fit):** section 6 of `outofrole_minimal.py` ports the v3 Step 13 recommender snooping view. It reproduces 27 of 30 snoopers (v3: 27 of 30 with Spark ALS). The simpler "any new computer" rule gets 26 of 30 here (v3: 27). The recommender ties or slightly beats the simpler rule. It was designed after seeing r5.2, and r4.2 has no snoopers, so it has no untouched test.
