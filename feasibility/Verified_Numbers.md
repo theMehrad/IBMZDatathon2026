@@ -87,9 +87,11 @@ Script: `least_privilege_full.py`.
 
 | Policy | Requests per person-month (r4.2 / r5.2) | Malicious web events needing approval (r4.2 / r5.2) |
 |---|---|---|
-| Own history only | 2.31 / 3.07 | 71.0% / 87.5% |
-| Pre-approve popularity top 20 | 1.97 / 2.67 | 65.5% / 83.7% |
-| Pre-approve ALS top 20 | 1.82 / 2.48 | 69.0% / 86.8% |
+| Own history only | 2.31 / 3.15 | 71.0% / 90.1% |
+| Pre-approve popularity top 20 | 1.97 / 2.74 | 65.5% / 86.2% |
+| Pre-approve ALS top 20 | 1.82 / 2.55 | 69.1% / 89.2% |
+
+These canonical numbers come from `outofrole_minimal.py`, which drops the cutoff week. The full experiment (`least_privilege_full.py`) trains through the day before the cutoff instead, and gives r5.2 3.07 / 2.67 / 2.48 requests and 87.5% / 83.7% / 86.8% coverage; on r4.2 it agrees except for ALS coverage (69.0%). Both are kept. The notebook's Step 17 shows the full-experiment version. Share of the recommender's extra grants later used: 0.28 / 0.42 (0.41 in the full experiment).
 
 **New-to-company site rule** (`org_novel_sites.py`): block any site that nobody visited during training.
 
@@ -142,7 +144,7 @@ Use this table wherever steps are listed: the notebook, the plan, the briefing a
 | 14 | Equal budget, 100 reviews | insiders found, r4.2 / r5.2 | R2 44 / 39 | Stouffer 55 / 43; four queues 42 / 53 | Stouffer +11 / +4 | Fusion as default |
 | 15 | Recommender at its own job (untuned) | MPR, lower is better, r4.2 | Popularity 35.5 | ALS 35.9 | Worse by 0.4 | Superseded by Step 16 |
 | 16 | Recommender, tuned without labels | recall@20 of next new sites, r4.2 / r5.2 | Popularity 0.145 / 0.130; v3 setting 0.126 / 0.121 | 0.211 / 0.190 | +0.066 / +0.060 over popularity (1.45x / 1.46x) | Real job found |
-| 17 | Least-privilege advisor | requests per person-month, r4.2 / r5.2 | Own history 2.31 / 3.07 | ALS top 20: 1.82 / 2.48 (popularity: 1.97 / 2.67) | -21% / -19% at about the same protection (71.0% to 69.0%; 87.5% to 86.8%) | Build (R4) |
+| 17 | Least-privilege advisor | requests per person-month, r4.2 / r5.2 | Own history 2.31 / 3.15 | ALS top 20: 1.82 / 2.55 (popularity: 1.97 / 2.74) | -21% / -19% at about the same static coverage (71.0% to 69.1%; 90.1% to 89.2%) | Build (R4) |
 | 17b | New-to-company site rule | wikileaks + keylogger visits blocked | (none) | 100% (r4.2 and r5.2) | Cost: 8 person-days on r4.2, 0 on r5.2 | Build (R4) |
 | 18 | Evidence ranking for Granite | hit@3, insiders flagged in time, evidence up to the flag day, r4.2 / r5.2 | Global rarity 0.49 / 0.51 | C1 "new to you, rarest first" 0.66 / 0.85 (ALS: 0.75 / 0.46; retrospective top-100 set: C1 0.98 / 0.98) | +0.17 / +0.34 over rarity | Build (R3) |
 | 19 | Early warning, day-by-day replay | insiders listed before last malicious action, r4.2 / r5.2 | R2 at similar churn 59 / 40 (R2 under the same decay rule 33 / 28; random score 10 / 11; chance about 3 / 3) | Percentile 59 / 80 (pre-registered fusion 60 / 54) | 0 / +40 over the fair baseline | Headline (R2 role) |
@@ -164,7 +166,7 @@ The review is in `feasibility/codex_review/round4_review.md`. These are the chan
 - **Evidence as of the alert:** replaced the 98% with 0.66 / 0.85, computed only on evidence up to the flag day (section 2).
 - **Fair baseline:** R2 at similar churn ties on r4.2 (59 vs 59) and is half of ours on r5.2 (40 vs 80). This now leads the comparison.
 - **Leakers:** median delay 0 days is measured from the first labelled day. Only 7 of 30 (r4.2) and 15 of 29 (r5.2) were newly flagged; the rest were already on the list.
-- **Least privilege:** say "suggests which access to pre-approve". Only 28% and 41% of the 20 extra grants were later used. At matched cost, ALS covers 68.7% vs 60.4% for popularity (r4.2), and 85.9% vs 81.5% (r5.2); these are interpolated values from `matched_disruption_dom.csv`.
+- **Least privilege:** say "suggests which access to pre-approve". Only 28% and 42% of the 20 extra grants were later used. At matched cost, ALS covers 68.7% vs 60.4% for popularity (r4.2), and 85.9% vs 81.5% (r5.2); these are interpolated values from `matched_disruption_dom.csv`.
 - **Hidden job-hunters:** frozen fusion places 19 of 30 in the top 100, against 22 for feedback re-weighting and 4 to 7 for trained combiners.
 - **Answer parsers:** `early_warning_simple.py` and `org_novel_sites.py` now read only each insider's own answer rows. All their numbers are unchanged after re-running (0.54 / 0.48; 8 person-days; 100%).
 - **Pivot from the abstract:** must be stated. Recommender-based detection was promised; own-history baselines detect better, so the recommender moved to access advice.
@@ -183,6 +185,10 @@ The file is 178 lines and runs in about 20 seconds per release on a laptop. It u
 | Evidence top 3 holds a malicious item (in-time insiders, evidence up to the flag day): C1 vs rarity | 0.66 vs 0.49 | 0.85 vs 0.51 |
 | Next new sites caught by the top 20: recommender vs popularity | 0.211 vs 0.145 | 0.190 vs 0.130 |
 | Access requests per person-month: own history / popularity top 20 / recommender top 20 | 2.31 / 1.97 / 1.82 | 3.15 / 2.74 / 2.55 |
+| Malicious web visits that would need approval (static coverage): own history / popularity / recommender | 71.0% / 65.5% / 69.1% | 90.1% / 86.2% / 89.2% |
+| Removal suggestions: share of held sites (used in training) never used again, people still active at the end | 6.0% (7.3 per person; 99% have at least one) | 3.6% (3.9 per person; 96%) |
+| Evidence at each insider's first alert, hit@3 (first alerts before labelled onset) | 0.33 (44%) | 0.62 (31%) |
+| Label-free evidence strength (an item new to the person and used by under 1% of staff): in-time insiders vs normal staff at first alert | 53% vs 18% | 72% vs 30% |
 | Share of the recommender's extra grants later used | 0.28 | 0.42 |
 | New-to-company rule: wikileaks and keylogger visits blocked; normal person-days affected | 100%, 100%; 8 | 100%, 100%; 0 |
 
@@ -190,3 +196,13 @@ Notes:
 
 - **r5.2 requests.** They differ slightly from section 4 (3.07 / 2.67 / 2.48), because section 4's script trained through the day before the cutoff instead of dropping the cutoff week. The reduction is the same (-19%). Both results are kept, with their protocol named.
 - **Share on later days.** "Over all insiders" is the conservative figure; "over flagged insiders" describes the people the list actually caught.
+
+**Code changes after Codex round 5:**
+
+- Activity now means any daily record, matching the full replay.
+- The top-20 grant is masked so that owned sites are never re-granted.
+- Assertions check unique keys and that every attack starts after the cutoff.
+- A label-free `case_items(user, day)` path builds the evidence for every listed person.
+- `case_file.py` (61 lines) builds the evidence pack, the Granite prompt, the number checker and the fallback. Its self-test passes.
+
+None of these changes moved the headline numbers.

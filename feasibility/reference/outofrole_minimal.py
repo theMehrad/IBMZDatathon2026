@@ -24,13 +24,16 @@ dom = pd.read_parquet(f"{WORK}/dom_pairs"); dom["day"] = pd.to_datetime(dom.day)
 ins = pd.read_csv(f"{ANS}/insiders.csv"); ins = ins[ins.dataset.astype(str) == REL].set_index("user")
 users = np.sort(daily.user.unique()); U = {u: i for i, u in enumerate(users)}; normal = ~np.isin(users, ins.index)
 days = pd.date_range(daily.day.min(), daily.day.max()); t0 = days.get_loc(CUT); T = len(days) - t0
+ACT = np.zeros((len(users), len(days)), bool); ACT[daily.user.map(U).values, (daily.day - days[0]).dt.days.values] = True
+assert not daily.duplicated(['user', 'day']).any() and not pcs.duplicated(['user', 'day', 'pc']).any()
+assert ins.index.isin(users).all() and (pd.to_datetime(ins.start) >= CUT).all(), 'every insider present, every attack after the cutoff'
 
 # ------------------------------------------------------------------ 1. early warning: own-history weekly percentile
 X = daily.set_index(["user", "day"])[F9].unstack("day").reindex(index=users)
 X = np.stack([X[f].reindex(columns=days).fillna(0).values for f in F9], -1)             # person x day x activity
 week = np.array([(d - pd.Timestamp("2009-12-28")).days // 7 for d in days])
 ref = [w for w in np.unique(week) if days[week == w].max() < TRAIN_END]                  # full training weeks only
-W = np.stack([X[:, week == w].sum(1) for w in ref], 1); Wact = np.stack([X[:, week == w, 0].sum(1) > 0 for w in ref], 1)
+W = np.stack([X[:, week == w].sum(1) for w in ref], 1); Wact = np.stack([ACT[:, week == w].any(1) for w in ref], 1)
 cs = np.concatenate([np.zeros((len(users), 1, 9)), X.cumsum(1)], 1)
 last7 = np.stack([cs[:, t + 1] - cs[:, max(0, t - 6)] for t in range(t0, len(days))], 1)  # trailing 7 days, past only
 pct_score = np.zeros((len(users), T))
@@ -42,7 +45,7 @@ for i in range(len(users)):
 
 def r2_score():                                                                         # baseline: 28-day personal window
     idx = [F9.index(f) for f in ["n_usb", "n_file", "n_logon_ah", "n_usb_ah", "n_http_ah"]]
-    act = X[:, :, 0] > 0; ntr = act[:, :(TRAIN_END - days[0]).days].sum(1).clip(min=1)
+    act = ACT; ntr = act[:, :(TRAIN_END - days[0]).days].sum(1).clip(min=1)
     rate = X[:, :(TRAIN_END - days[0]).days][:, :, idx].sum(1) / ntr[:, None]
     c = np.concatenate([np.zeros((len(users), 1, len(idx))), X[:, :, idx].cumsum(1)], 1)
     ca = np.concatenate([np.zeros((len(users), 1)), act.cumsum(1)], 1)
@@ -92,38 +95,55 @@ for u, evs in EVENTS.items():
         elif e[0] == "http" and (m := DOMRE.match(e[5])): mal.add((u, d, "dom", m.group(1).lower()))
         elif e[0] == "device": mal.add((u, d, "usb", "USB"))
 
-def items(df, kind, col):
-    return df[["user", "day", col]].rename(columns={col: "item"}).assign(kind=kind)
-tr_d = daily[daily.day < TRAIN_END]
-train_items = pd.concat([items(pcs[pcs.day < TRAIN_END], "pc", "pc"), items(dom[dom.day < TRAIN_END], "dom", "domain"),
-                         tr_d[tr_d.n_usb > 0].assign(item="USB", kind="usb")[["user", "day", "item", "kind"]],
-                         tr_d[tr_d.n_logon_ah > 0].assign(item="AH", kind="ah")[["user", "day", "item", "kind"]]])
-space = lambda k: "dom" if k == "dom" else "pc"                                          # USB / after-hours live with computers
-train_items["sp"] = train_items.kind.map(space)
-used = set(zip(train_items.user, train_items.sp, train_items.item))
-share = train_items.drop_duplicates(["user", "sp", "item"]).groupby(["sp", "item"]).size() / len(users)
-
-def evidence_hit3(rule):
-    te_d = daily[daily.day >= TEST_START]; hits = []
-    for u, fd in FLAG.items():
-        day_f = CUT + pd.Timedelta(days=int(fd)); keep = lambda df: df[(df.user == u) & (df.day >= TEST_START) & (df.day <= day_f)]
-        it = pd.concat([items(keep(pcs), "pc", "pc"), items(keep(dom), "dom", "domain"),
-                        keep(te_d)[keep(te_d).n_usb > 0].assign(item="USB", kind="usb")[["user", "day", "item", "kind"]],
-                        keep(te_d)[keep(te_d).n_logon_ah > 0].assign(item="AH", kind="ah")[["user", "day", "item", "kind"]]]).drop_duplicates()
-        if not len(it): hits.append(0.0); continue
-        sp = it.kind.map(space).values
-        rare = 1 - np.array([share.get((s, i), 0.0) for s, i in zip(sp, it.item)])
-        new = np.array([(u, s, i) not in used for s, i in zip(sp, it.item)], float)
-        s = 2 * new + rare if rule == "C1" else rare
-        m = np.array([(u, d, k, i) in mal for d, k, i in zip(it.day, it.kind, it.item)])
-        hits.append(hit_at(s, m, 3))
-    return np.mean(hits)
-
 def hit_at(s, m, k):                                       # P(a malicious item in the top k), ties in random order
     k = min(k, len(s)); kth = np.sort(s)[::-1][k - 1]
     if m[s > kth].any(): return 1.0
     tie = s == kth; r, n, g = k - (s > kth).sum(), tie.sum(), m[tie].sum()
     return 0.0 if g == 0 else 1.0 if n - g < r else 1 - np.prod([(n - g - j) / (n - j) for j in range(r)])
+
+def items(df, kind, col):
+    return df[["user", "day", col]].rename(columns={col: "item"}).assign(kind=kind)
+def usb_ah(d):
+    return pd.concat([d[d.n_usb > 0].assign(item="USB", kind="usb"), d[d.n_logon_ah > 0].assign(item="AH", kind="ah")])[["user", "day", "item", "kind"]]
+space = {"pc": "pc", "usb": "pc", "ah": "pc", "dom": "dom"}                              # USB / after-hours live with computers
+train_items = pd.concat([items(pcs[pcs.day < TRAIN_END], "pc", "pc"), items(dom[dom.day < TRAIN_END], "dom", "domain"),
+                         usb_ah(daily[daily.day < TRAIN_END])])
+train_items["sp"] = train_items.kind.map(space)
+used = set(zip(train_items.user, train_items.sp, train_items.item))
+share = (train_items.drop_duplicates(["user", "sp", "item"]).groupby(["sp", "item"]).size() / len(users)).to_dict()
+
+listed = set(users[on_pct.any(1)])                                     # everyone who ever reaches the daily list
+keep = lambda df: df[df.user.isin(listed) & (df.day >= TEST_START)]
+CASE = pd.concat([items(keep(pcs), "pc", "pc"), items(keep(dom), "dom", "domain"), usb_ah(keep(daily))]).drop_duplicates()
+CASE["sp"] = CASE.kind.map(space)
+CASE["new"] = [(u, s, i) not in used for u, s, i in zip(CASE.user, CASE.sp, CASE.item)]
+CASE["share"] = [share.get((s, i), 0.0) for s, i in zip(CASE.sp, CASE.item)]
+CASE["score"] = 2 * CASE.new + (1 - CASE.share)                       # C1: new to this person first, then rarest
+CASE = dict(tuple(CASE.groupby("user")))
+
+def case_items(u, t):                                                  # label-free: what the analyst sees for u on day t
+    it = CASE.get(u)
+    return it[it.day <= CUT + pd.Timedelta(days=int(t))] if it is not None else None
+
+def hit3(u, t, col="score", rare_only=False):
+    it = case_items(u, t)
+    if it is None or not len(it): return 0.0
+    s = (1 - it.share.values) if rare_only else it[col].values
+    m = np.array([(u, d, k, i) in mal for d, k, i in zip(it.day, it.kind, it.item)])
+    return hit_at(s, m, 3)
+
+def strong(u, t):                                                      # label-free evidence strength
+    it = case_items(u, t)
+    return bool(it is not None and (it.new & (it.share < 0.01)).any())
+
+ts0 = (TEST_START - CUT).days
+first = {u: ts0 + int(np.argmax(on_pct[U[u], ts0:])) for u in listed if on_pct[U[u], ts0:].any()}
+ev_graded = (np.mean([hit3(u, t) for u, t in FLAG.items()]), np.mean([hit3(u, t, rare_only=True) for u, t in FLAG.items()]))
+ins_first = {u: t for u, t in first.items() if u in ins.index}
+pre_onset = np.mean([t < (pd.Timestamp(ins.loc[u, "start"]).normalize() - CUT).days for u, t in ins_first.items()])
+ev_first = np.mean([hit3(u, t) for u, t in ins_first.items()])
+strong_ins = np.mean([strong(u, t) for u, t in FLAG.items()])
+strong_nrm = np.mean([strong(u, t) for u, t in first.items() if u not in ins.index])
 
 # ------------------------------------------------------------------ 3 and 4. recommender: predict next sites, pre-approve them
 def als(Xc, rank=64, alpha=0.5, reg=1.0, iters=12, seed=0):                      # Hu-Koren-Volinsky implicit ALS
@@ -144,7 +164,7 @@ Xs = np.zeros((len(users), len(sites))); Xs[g.index.get_level_values(0).map(U), 
 own = Xs > 0
 def top20(score):
     s = np.where(own, -np.inf, score + np.random.default_rng(1).random(score.shape) * 1e-9)
-    return (-s).argsort(1).argsort(1) < 20
+    return ((-s).argsort(1).argsort(1) < 20) & ~own
 grant = {"popularity": top20(np.tile(own.sum(0).astype(float), (len(users), 1))), "recommender": top20(als(Xs))}
 te = dom[dom.day >= CUT][["user", "domain"]].drop_duplicates()
 te = te[te.user.isin(users[normal])]; tu, ti = te.user.map(U).values, te.domain.map(S).fillna(-1).astype(int).values
@@ -156,6 +176,15 @@ recall = {k: (allowed(A) & new_pair).sum() / n_new for k, A in grant.items()}
 requests = {"own history": (~allowed(own)).sum() / normal.sum() / months}
 requests.update({k: (~allowed(own | A)).sum() / normal.sum() / months for k, A in grant.items()})
 used_share = {k: (allowed(A) & new_pair).sum() / A[normal].sum() for k, A in grant.items()}
+mal_web = [(U[u], DOMRE.match(e[5]).group(1).lower()) for u in ins.index for e in EVENTS[u] if e[0] == "http" and DOMRE.match(e[5])]
+held = lambda A: np.mean([not (d in S and A[i, S[d]]) for i, d in mal_web])                 # malicious visits needing approval
+coverage = {"own history": held(own), **{k: held(own | A) for k, A in grant.items()}}
+
+te_all = dom[dom.day >= CUT][["user", "domain"]].drop_duplicates()
+te_all = te_all[te_all.domain.isin(S)]
+used_test = np.zeros_like(own); used_test[te_all.user.map(U).values, te_all.domain.map(S).values] = True
+still = normal & ACT[:, -30:].any(1)
+stale = own & ~used_test                                                   # access held but not used again: revoke?
 
 # ------------------------------------------------------------------ 5. block sites nobody here visited in training
 mal_sites = [(r.scenario, DOMRE.match(e[5]).group(1).lower()) for u, r in ins.iterrows() for e in EVENTS[u]
@@ -171,9 +200,15 @@ print(f"1  early warning, 20 names/day: {len(FLAG)}/{n} insiders listed before t
 print(f"   share of each insider's malicious events on later days: {sum(after.values()) / n:.2f} averaged over all insiders "
       f"(missed = 0), {np.mean(list(after.values())):.2f} over those flagged in time; "
       f"normal staff ever listed {(on_pct.any(1) & normal).sum()} ({(on_pct.any(1) & normal).sum() / (T / 7):.1f} per week)")
-print(f"2  evidence, in-time insiders, top 3 holds a malicious item: C1 {evidence_hit3('C1'):.2f} vs rarity {evidence_hit3('rare'):.2f}")
+print(f"2  evidence top 3 holds a malicious item: C1 {ev_graded[0]:.2f} vs rarity {ev_graded[1]:.2f} (in-time insiders, evidence up to the "
+      f"graded flag day); at each insider's first alert {ev_first:.2f} ({pre_onset:.0%} of first alerts come before labelled onset)")
+print(f"   label-free evidence strength (an item new to the person and used by under 1% of staff): in-time insiders {strong_ins:.0%}, "
+      f"normal staff at their first alert {strong_nrm:.0%}")
 print(f"3  next new sites caught by top 20: recommender {recall['recommender']:.3f} vs popularity {recall['popularity']:.3f}")
 print("4  access requests per person-month: " + ", ".join(f"{k} {v:.2f}" for k, v in requests.items())
       + f"; share of the recommender's extra grants later used {used_share['recommender']:.2f}")
+print("   malicious web visits that would need approval (static coverage): " + ", ".join(f"{k} {v:.1%}" for k, v in coverage.items()))
+print(f"   revocation suggestions: {stale[still].sum() / own[still].sum():.1%} of sites people hold go unused afterwards "
+      f"({stale[still].sum(1).mean():.1f} per person; {(stale[still].sum(1) > 0).mean():.0%} of people have at least one)")
 print(f"5  new-to-company rule blocks wikileaks {blocked[1]:.0%} and keylogger sites {blocked[3]:.0%}; "
       f"cost {len(nov[['user', 'day']].drop_duplicates())} normal person-days")

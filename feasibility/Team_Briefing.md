@@ -19,7 +19,7 @@ include-before: |
 - **Three parts.**
   1. **Early warning.** Every day, compare each person with their own normal weeks and put the 20 most unusual people on a review list.
   2. **Granite case files.** For each person on the list, code picks the evidence and IBM's Granite language model writes a short explanation citing it. Code checks every number Granite writes.
-  3. **Least-privilege advisor.** A recommender suggests which websites to pre-approve for each person: the sites they are most likely to visit next. Anything else needs a request; sites nobody in the company has ever visited are blocked.
+  3. **Least-privilege advisor.** A recommender suggests which websites to pre-approve for each person: the sites they are most likely to visit next. Anything else needs a request; sites no one in the company visited during the training months are blocked.
 - **The pivot, said openly.** Our abstract promised recommender-based detection. Our tests showed that comparing people with their own history detects better, so the recommender moved to access advice. As a detector it was no better than guessing popular sites.
 - **The data.** The CMU CERT Insider Threat dataset: computer-generated activity logs for a fake company, with an answer key listing the insiders. r4.2 has 1,000 staff and 70 insiders; r5.2 has 2,000 staff and 99 insiders.
 - **The headline.** Replaying the logs day by day, our list caught **80 of 99** r5.2 insiders before their last malicious action. A fair 28-day baseline, at similar list churn, caught 40: half as many. On r4.2 it ties us (59 of 70 each). Random lists caught between about 3 and 11.4.
@@ -174,7 +174,7 @@ A **recommender system** is what Netflix uses to suggest shows: it learns each p
 - **How ALS works.** Picture a table with one row per person and one column per website; each cell holds log(1 + days visited) in training, and most cells are empty. ALS gives each person and each site 64 hidden "taste" numbers, and a person's predicted interest in a site is how well the two lists match. It alternates between solving for people and for sites until the numbers settle.
 - **Settings.** Rank 64 (the number of taste numbers), alpha 0.5 (how much extra trust repeated visits get) and regularization 1.0 (keeps the numbers small so the model does not just memorize). They were picked **without labels**: on the last training month, we chose the setting that best predicted the next month's new sites. Use the numpy version in `reference/recommender_als_simple.py`; Spark's ALS scales regularization differently, so if you use it, re-tune the same way.
 - **Its job: suggest which access to pre-approve.** Each person keeps their own history and gets their **top 20 predicted new sites pre-approved**. Anything else needs a request. A separate rule blocks any site that **nobody in the company** visited during training.
-- **How well it does.** **Recall@20** is the share of the new sites normal staff actually visited later that were in their top 20. ALS gets 0.211 vs 0.145 for "guess the popular sites" on r4.2, and 0.190 vs 0.130 on r5.2: about 1.45 times as many. Access requests per person per month drop from 2.31 to 1.82 (r4.2) and from 3.07 to 2.48 (r5.2). But only 28% (r4.2) and 41% (r5.2) of the 20 extra grants were later used, so this is a suggestion list, not a measure of what anyone needs. In **static coverage** (would the policy have required approval?), the new-to-company rule covers 100% of the wikileaks and keylogger-site visits, at a cost of 8 person-days for normal staff on r4.2 and none on r5.2. Static coverage is not prevention. It does not touch job-hunters' job sites, because someone visited those during training.
+- **How well it does.** **Recall@20** is the share of the new sites normal staff actually visited later that were in their top 20. ALS gets 0.211 vs 0.145 for "guess the popular sites" on r4.2, and 0.190 vs 0.130 on r5.2: about 1.45 times as many. Access requests per person per month drop from 2.31 to 1.82 (r4.2) and from 3.15 to 2.55 (r5.2). But only 28% (r4.2) and 42% (r5.2) of the 20 extra grants were later used, so this is a suggestion list, not a measure of what anyone needs. In **static coverage** (would the policy have required approval?), the new-to-company rule covers 100% of the wikileaks and keylogger-site visits, at a cost of 8 person-days for normal staff on r4.2 and none on r5.2. Static coverage is not prevention. It does not touch job-hunters' job sites, because someone visited those during training.
 - **What it is not.** It is not a detector: tested that way, it was no better than popularity, even tuned. For computers it does not help: 99.5% (r4.2) and 98.8% (r5.2) of new computers are someone else's personal PC. Microsoft Entra and SailPoint make similar approve-or-deny suggestions (`../Research_Findings.md`, Section 2).
 
 ## Granite and the case files (R3)
@@ -219,7 +219,7 @@ We replay the test period one day at a time; each day's list uses only data up t
 | Share of list slots held by normal staff | 60% | 63% |
 | Case files: malicious item in the top 3 (insiders flagged in time) | 66% | 85% |
 | Same, ranked by global rarity only | 49% | 51% |
-| Access requests per person-month, before and after the advisor | 2.31 to 1.82 | 3.07 to 2.48 |
+| Access requests per person-month, before and after the advisor | 2.31 to 1.82 | 3.15 to 2.55 |
 
 ## By attack type
 
@@ -236,7 +236,7 @@ Leakers' 0-day median counts from the first labelled malicious day and is mostly
 
 - **It is a replay, not a live system.** We replay past logs; we have not run it on live data. On average about half of each insider's labelled malicious actions (54% / 48%) came on later days than the flag: that is remaining opportunity, not prevention.
 - **The fair baseline ties us on r4.2.** Our clear gain is on r5.2 (80 vs 40).
-- **The advisor only suggests.** Only 28% / 41% of its extra grants were later used, and its coverage figures are static, not prevention.
+- **The advisor only suggests.** Only 28% / 42% of its extra grants were later used, and its coverage figures are static, not prevention.
 - **Two-day sysadmin sabotage is mostly missed** (4 of 10 and 2 of 10).
 - **Slow attacks are caught late:** job-hunters and snoopers after 1.5 to 3 weeks.
 - **Most list slots go to normal staff** (60% and 63%), so case files matter.
@@ -294,7 +294,7 @@ Each row is one step: the number before, the number after, and what it means. "F
 | 14 | Same budget: 100 reviews | Baseline 44 / 39 to fusion 55 / 43 | With the same review budget, fusion beat the baseline on both datasets. |
 | 15 | Recommender's own job, first settings | Popularity 35.5 to recommender 35.9 (lower is better) | With untuned settings it predicted new sites no better than popularity; Step 16 replaced this. |
 | 16 | Tuned recommender | Recall@20 0.145 / 0.130 to 0.211 / 0.190 | Tuned, it catches about 1.45 times as many next new sites as popularity: it has a real job. |
-| 17 | Least-privilege advisor | Requests per month 2.31 / 3.07 to 1.82 / 2.48 | Pre-approving its top 20 cuts requests by 21% and 19% at almost the same static coverage. |
+| 17 | Least-privilege advisor | Requests per month 2.31 / 3.15 to 1.82 / 2.55 | Pre-approving its top 20 cuts requests by 21% and 19% at almost the same static coverage. |
 | 17b | New-to-company rule | 100% of wikileaks and keylogger visits covered | Blocking sites nobody in the company used covers the loudest attacks for 8 person-days of hassle (r4.2). |
 | 18 | Evidence ranking | Top-3 hit at flag time: rarity 0.49 / 0.51 to 0.66 / 0.85 | "New to you, rarest first" beats plain rarity, using only what was known on the flag day. |
 | 19 | Early warning | Fair baseline 59 / 40 to 59 / 80 (same decay rule: 33 / 28) | A fair baseline ties us on r4.2; on r5.2 our list catches twice as many insiders while they are still active. |
