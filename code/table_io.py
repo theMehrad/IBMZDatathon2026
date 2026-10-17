@@ -1,6 +1,8 @@
 """Portable reads of the existing Spark tables; no changes to feature values."""
 import os
 from pathlib import Path
+from typing import Any
+from collections.abc import Hashable
 import pandas as pd
 
 
@@ -14,5 +16,7 @@ def read_table(work, name):
         if not (folder / '_SUCCESS').is_file() or not parts:
             raise ValueError(f'Incomplete CSV export: {folder}')
         print(f'Loading {name} from CSV', flush=True)
-        return pd.concat([pd.read_csv(p) for p in parts], ignore_index=True)
+        identifiers: dict[Hashable, Any] = {column: 'str' for column in ('user', 'pc', 'domain', 'day')}
+        return pd.concat([pd.read_csv(p, dtype=identifiers, keep_default_na=False)
+                          for p in parts], ignore_index=True)
     return pd.read_parquet(Path(work) / name)

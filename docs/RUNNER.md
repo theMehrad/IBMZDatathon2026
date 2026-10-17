@@ -62,6 +62,7 @@ The command prints an exact run directory under `data/runs/`. Each run is new; a
 <run>/
   scoring.log               Original scorer's report and errors
   packs.json                Original ranks, scores, pseudonymized packs, code hashes
+  preparation.json          Digest of the prepared packs and source-code hashes
   attempts/<timestamp>/
     config.json             Model SHA-256, path, runtime identity, generation settings
     granite.log             Runtime diagnostics, separate from analyst case text
@@ -70,7 +71,7 @@ The command prints an exact run directory under `data/runs/`. Each run is new; a
     summary.json            Accepted/fallback counts; no claimed semantic accuracy
 ```
 
-Outputs use restrictive new-file permissions and stay under git-ignored data by default. Do not commit or redistribute them. Raw model text is retained for debugging but is never used as the rendered analyst narrative.
+Outputs use restrictive new-file permissions and stay under git-ignored data by default. The preparation digest detects accidental edits to packs; it is not a signature or protection against someone who can rewrite both packs and manifest. CSV readers preserve user/computer/domain identifier text across parts, including leading zeros and strings such as NA. Dates before the known replay cutoff fail before scoring; the actual upper bound is checked after the reference scorer loads the data. Do not commit or redistribute outputs. Raw model text is retained for debugging but is never used as the rendered analyst narrative.
 
 - Exit **0**: every case was accepted (or there were no cases); this is not a classification-accuracy score.
 - Exit **2**: the run completed with explicit safe fallbacks. Inspect `summary.json`, the per-case problems and `granite.log`.

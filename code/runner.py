@@ -92,12 +92,18 @@ def prepare_child(args):
         bundle['versions'] = dict(python=sys.version, numpy=version('numpy'), pandas=version('pandas'))
         bundle['created_at'] = datetime.now(timezone.utc).isoformat()
         write_json(args.run_dir / 'packs.json', bundle)
+        write_json(args.run_dir / 'preparation.json', dict(
+            packs_sha256=file_hash(args.run_dir / 'packs.json'),
+            code_sha256=bundle['code_sha256'], created_at=bundle['created_at']))
         print(f'Exported {len(bundle["cases"])} cases for {args.day}', flush=True)
     finally:
         sys.argv = old
 
 
 def prepare(args):
+    cutoff = {'4.2': date(2010, 6, 1), '5.2': date(2010, 4, 1)}[args.release]
+    if date.fromisoformat(args.day) < cutoff:
+        raise ValueError(f'Requested day is before the replay cutoff {cutoff}')
     if args.run_dir is None:
         stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
         args.run_dir = ROOT / 'data' / 'runs' / f'r{args.release}-{args.day}-{stamp}'
@@ -218,7 +224,12 @@ class JsonWorker:
 
 def infer(args):
     import time
+    manifest = json.loads((args.run_dir / 'preparation.json').read_text())
+    if file_hash(args.run_dir / 'packs.json') != manifest['packs_sha256']:
+        raise ValueError('Pack digest mismatch: evidence export changed since preparation')
     bundle = json.loads((args.run_dir / 'packs.json').read_text())
+    if bundle['code_sha256'] != manifest['code_sha256']:
+        raise ValueError('Preparation provenance disagrees with pack export')
     if bundle['code_sha256'] != code_hashes():
         raise ValueError('Code changed since pack export; prepare a fresh run with this revision')
     cases = bundle['cases']

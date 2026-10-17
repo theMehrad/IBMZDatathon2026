@@ -22,6 +22,32 @@ def test_csv_cache_reads_all_parts_and_rejects_partial_export(tmp_path):
     assert result.n_usb.tolist() == [1, 2]
 
 
+def test_csv_identifier_text_is_preserved_across_parts(tmp_path):
+    from table_io import read_table
+    folder = tmp_path / 'r4.2_csv' / 'pc_pairs'
+    folder.mkdir(parents=True)
+    (folder / '_SUCCESS').touch()
+    (folder / 'part-000.csv').write_text('user,day,pc\n001,2010-06-01,00123\nNA,2010-06-01,123\n')
+    (folder / 'part-001.csv').write_text('user,day,pc\n002,2010-06-01,PC-1\n003,2010-06-01,123\n')
+    rows = read_table(tmp_path / 'r4.2', 'pc_pairs')
+    assert rows.user.tolist() == ['001', 'NA', '002', '003']
+    assert rows.pc.tolist() == ['00123', '123', 'PC-1', '123']
+
+
+def test_parquet_fallback_and_explicit_override(tmp_path, monkeypatch):
+    pytest.importorskip('pyarrow')
+    from table_io import read_table
+    work = tmp_path / 'r4.2'
+    (work / 'daily').mkdir(parents=True)
+    expected = pd.DataFrame({'user': ['A'], 'day': ['2010-06-01'], 'n_usb': [3]})
+    expected.to_parquet(work / 'daily' / 'part.parquet', index=False)
+    pd.testing.assert_frame_equal(read_table(work, 'daily'), expected)
+    csv_folder = tmp_path / 'r4.2_csv' / 'daily'
+    csv_folder.mkdir(parents=True)  # Deliberately incomplete.
+    monkeypatch.setenv('OUTOFROLE_TABLE_FORMAT', 'parquet')
+    pd.testing.assert_frame_equal(read_table(work, 'daily'), expected)
+
+
 def test_review_export_preserves_reference_list_and_uses_past_only_evidence():
     import ast
     import numpy as np
@@ -49,6 +75,13 @@ def test_review_export_preserves_reference_list_and_uses_past_only_evidence():
     assert len(review['cases']) == 20
     expected_people = {f'U-{i+1:04d}' for i in np.flatnonzero(ns['on_pct'][:, 1])}
     assert {r['pack']['person'] for r in review['cases']} == expected_people
+    remaining = scores.copy()
+    expected_order = []
+    for _ in range(20):
+        winner = np.flatnonzero(ns['daily_lists'](remaining, decay=True, k=1)[:, 1])[0]
+        expected_order.append(f'U-{winner+1:04d}')
+        remaining[winner, :] = 0
+    assert [r['pack']['person'] for r in review['cases']] == expected_order
     assert [r['rank'] for r in review['cases']] == list(range(1, 21))
     assert review['cases'][0]['running_score'] >= review['cases'][-1]['running_score']
     assert all(f['date'] <= '2010-06-02' for r in review['cases'] for f in r['pack']['facts'])

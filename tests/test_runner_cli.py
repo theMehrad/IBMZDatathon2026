@@ -83,6 +83,21 @@ def test_prepare_executes_reference_scorer_and_missing_model_preserves_every_cas
     again = command(root, 'prepare', '--release', '4.2', '--day', '2010-06-02', '--run-dir', str(run))
     assert again.returncode == 1
     assert (run / 'packs.json').read_bytes() == before
+    edited = json.loads((run / 'packs.json').read_text())
+    edited['cases'][0]['pack']['facts'][0]['item'] = 'edited.example'
+    (run / 'packs.json').write_text(json.dumps(edited))
+    modified = command(root, 'infer', '--run-dir', str(run), '--model', str(root / 'missing.gguf'))
+    assert modified.returncode == 1
+    assert 'Pack digest mismatch' in modified.stderr
+
+
+def test_date_before_cutoff_fails_before_creating_run_directory(synthetic_repo):
+    root = synthetic_repo
+    run = root / 'data/runs/invalid-date'
+    result = command(root, 'prepare', '--release', '4.2', '--day', '2010-05-31', '--run-dir', str(run))
+    assert result.returncode == 1
+    assert 'before the replay cutoff' in result.stderr
+    assert not run.exists()
 
 
 def test_whole_run_uses_simulated_adapter_and_saves_all_outputs(synthetic_repo):
