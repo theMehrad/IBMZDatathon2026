@@ -60,6 +60,32 @@ The same kind of recommender learns which websites each person uses and predicts
 
 Visits to websites no one in the company had used during training are flagged. In CERT, this catches every wikileaks and keylogger-site visit. For a real company, the practical version is to hold **uploads** to never-seen or newly registered sites, not to block browsing (see "Is it practical?").
 
+# Which method we use at each step, and what it buys us
+
+The build uses two kinds of machine learning plus one language model. All of it is **unsupervised**: nothing learns from the answer key, because a real company never has a list of its insiders. We tried supervised models and they failed on attacks they had not seen (see the second table).
+
+| Step | Method (what kind of ML) | What it learns, from what | What it outputs | What it buys us (r4.2 / r5.2) |
+|---|---|---|---|---|
+| 0. Data tables | **Spark** distributed processing (not ML) | Nothing; it aggregates 15 to 37 GB of raw logs | Three tables per person per day: activity counts, computers used, websites visited | Everything after this runs in about 20 seconds per release |
+| 1. Daily review list | **Unsupervised anomaly detection, one model per person:** an empirical percentile test ("is this week above every one of my normal weeks?") on 9 activity counts, with a score that halves every 7 days | Each person's own distribution of weekly activity, learned from their training weeks | A daily score per person; the top 20 form the list | Caught in time: 59 / 80, against 59 / 40 for the baseline. An active insider is on the list 64x / 82x as often as a normal employee |
+| 2. Snooping review | **Collaborative filtering:** implicit-feedback ALS matrix factorization (the Netflix-style recommender), on the person-by-computer usage matrix | Which computers "people like you" log into | For each login, how unexpected it is for that person; weeks with unexpected logins are counted, discounting people who always roam | 27 of 30 snoopers in the top 100 (26 without the recommender), r5.2 only |
+| 3. Evidence ranking | **Frequency statistics:** novelty (not in this person's history) and rarity (share of staff who used it), no training | How common each computer, website, USB or after-hours action is, from training | The top items for each flagged person, each with an ID | A real malicious action in the top 3 for 64% / 85% of insiders caught in time, against 49% / 51% for rarity alone |
+| 4. Case file | **Large language model (IBM Granite), used as a constrained classifier:** it picks an attack-type label from a fixed list and the IDs of the supporting facts | Nothing new; it reads the evidence pack | A label plus fact IDs; code writes every sentence | A readable case file for analysts and auditors that cannot contain invented facts; label accuracy is measured at the event |
+| 5. Access advice | **Collaborative filtering again:** ALS matrix factorization on the person-by-website matrix, used as a top-20 recommender | Which websites people with similar habits use | Each person's 20 most likely next websites (pre-approve) and websites they stopped using (review) | Predicts 21% / 19% of next new websites, against 14.5% / 13% for popularity; access requests down 21% / 19%, 28% with monthly retraining |
+| 6. New-site rule | **A simple rule** (not ML): never used by anyone in training | The set of websites seen in training | Flags for first-seen sites | All wikileaks and keylogger-site visits flagged; for a real company, flag uploads only |
+
+**The baseline we beat** is also unsupervised and per person. It compares the last 28 days of five activity counts with what the person's own training-period daily rates predict, using a standardized excess: (observed minus expected) divided by the square root of (expected plus 1).
+
+**Methods we tried and dropped**, all in the study notebook:
+
+| Method | Kind | Why we tried it | What happened |
+|---|---|---|---|
+| Logistic regression, gradient boosting | Supervised classifiers trained on labelled insiders | Usually the strongest when labels exist | Strong on known attacks (up to 60 of 70), but with job-hunters hidden from training they found only 4 to 7 of 30: they memorize attack types |
+| Isolation Forest, LOF, autoencoder | Unsupervised outlier detectors on daily and weekly behaviour | Standard in published work on this dataset | Weekly LOF was best at slow job-hunter drift (12 to 13 of 30); none beat the per-person percentile on its own |
+| Fusion of several signals (Stouffer, Fisher, Cauchy) | Statistical combination of signal scores | Combine strengths without labels | 55 / 43 insiders in the top 100 reviewed, against 44 / 39 for the baseline; kept as a comparison, not in the build |
+| Active learning from analyst verdicts (AAD) | Semi-supervised re-weighting after each review round | Learn from analysts without overfitting | 57 / 42 against 55 / 43: no real gain |
+| Item-kNN, user-kNN, Markov chains, richer recommender items | Other recommender and sequence models | Give the recommender more context | Better predictions of normal use, but no gain at spotting insiders over simple popularity |
+
 # The baseline: what we compare against
 
 **What it is.** The standard "is this person acting unusually compared with their own habits?" check that a basic monitoring tool would run. We call it the 28-day personal baseline.
@@ -234,6 +260,12 @@ Full detail, hour by hour, is in `Build_Plan.pdf`.
 Freeze the detector settings by hour 12. If something is behind, the build plan's cut rules say what to drop.
 
 # Questions you may have
+
+**Which parts are machine learning?**
+Two parts learn from data without labels: the per-person "normal weeks" model behind the daily list, and the ALS recommender behind the snooping review and access advice. Granite is a large language model used as a constrained labeller. Spark, the evidence statistics and the new-site rule are data processing and simple statistics. See "Which method we use at each step".
+
+**Why no supervised model, when they score higher in the study?**
+They need a list of known insiders, which a real company does not have, and they memorize the attack types they were trained on. With job-hunters hidden from training, they found only 4 to 7 of 30; our label-free approach found 16.
 
 **What exactly is "in time"?**
 The insider appears on the daily list at least once between their first and last malicious action, so there is still something to stop.
