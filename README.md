@@ -6,7 +6,8 @@ OutOfRole spots insiders while they are still active, explains each alert with c
 
 ## Start here
 
-0. **[`OutOfRole_In_Plain_Words.md`](OutOfRole_In_Plain_Words.md)** (also as a PDF): the whole project in three pages, in plain words.
+0. **[`Team_Guide.md`](Team_Guide.md)** (also as a PDF): the teammate guide: what we built, results backed by data, how we checked them, and a FAQ.
+1. **[`OutOfRole_In_Plain_Words.md`](OutOfRole_In_Plain_Words.md)** (also as a PDF): the whole project in three pages, in plain words.
 1. **[`Build_Plan.md`](Build_Plan.md)** (also as a PDF): what each person builds, in what order, the cut rules, the demo, and the verified numbers.
 2. **[`feasibility/Verified_Numbers.md`](feasibility/Verified_Numbers.md)**: the only source for numbers in any slide, doc or video.
 3. **[`Data_Access_Guide.md`](Data_Access_Guide.md)**: how to download CERT r4.2 and r5.2 onto the VM.

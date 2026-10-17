@@ -1,0 +1,1280 @@
+<title>OutOfRole Team Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a 780px reading column with a sticky contents rail on wide screens; the ask box sits at the top. */
+:root {
+  --bg: #f6f7f8; --surface: #ffffff; --fg: #1c2328; --muted: #5b6770; --line: #d9dee2;
+  --accent: #0f6e7a; --accent-soft: #e2f1f2; --warn: #9a5b00; --warn-soft: #fbf0dd;
+  --font-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12171a; --surface: #1a2125; --fg: #e4e9ec; --muted: #9aa7af; --line: #2c363c;
+  --accent: #5cc3cf; --accent-soft: #163135; --warn: #e8b25c; --warn-soft: #33281a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --fg: #e4e9ec; --muted: #9aa7af; --line: #2c363c;
+  --accent: #5cc3cf; --accent-soft: #163135; --warn: #e8b25c; --warn-soft: #33281a; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 15.5px/1.6 var(--font-body); }
+.shell { max-width: 1120px; margin: 0 auto; padding-block: 36px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; grid-template-columns: 220px minmax(0, 780px); gap: 40px; justify-content: center; }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start; font-size: 13.5px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+nav.toc a { color: var(--muted); text-decoration: none; } nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+nav.toc .lbl { font: 600 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; display: block; }
+main { min-width: 0; display: grid; gap: 8px; }
+header.top { display: grid; gap: 8px; grid-column: 1 / -1; max-width: 780px; justify-self: end; width: 100%; }
+@media (max-width: 900px) { header.top { justify-self: start; } }
+.eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 34px; line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-size: 23px; margin: 34px 0 6px; text-wrap: balance; padding-top: 14px; border-top: 1px solid var(--line); }
+h3 { font-size: 17px; margin: 18px 0 2px; }
+p, li { max-width: 70ch; } p { margin: 8px 0; } ul, ol { padding-left: 22px; }
+code { font: 13px var(--font-mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.scroll { overflow-x: auto; margin: 10px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--surface); }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+td { font-variant-numeric: tabular-nums; }
+.ask { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 16px; display: grid; gap: 10px; margin: 8px 0 4px; }
+.ask h2 { border: 0; margin: 0; padding: 0; font-size: 18px; }
+.ask p { margin: 0; color: var(--muted); font-size: 14px; }
+.ask form { display: flex; gap: 8px; flex-wrap: wrap; }
+.ask input { flex: 1 1 260px; min-width: 0; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); }
+.ask button { font: 600 14px var(--font-body); padding: 10px 16px; border-radius: 8px; border: 0; background: var(--accent); color: var(--surface); cursor: pointer; }
+.ask button:disabled { opacity: .6; cursor: default; }
+.ask input:focus-visible, .ask button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { background: var(--accent-soft); color: var(--accent); font-weight: 500; font-size: 13px; padding: 6px 10px; }
+.answer { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 12px; font-size: 14.5px; }
+.note { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 900px) { .shell { grid-template-columns: minmax(0, 1fr); gap: 16px; } nav.toc { position: static; } nav.toc ol { grid-template-columns: 1fr 1fr; } h1 { font-size: 28px; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+<div class="shell">
+<header class="top">
+  <div class="eyebrow">The Debugging Table · IBM Z Datathon 2026</div>
+  <h1>OutOfRole team guide</h1>
+  <p>What we built, what the data shows, and answers to the questions you are likely to have. Every number traces to <code>feasibility/Verified_Numbers.md</code> in the repo.</p>
+</header>
+<nav class="toc" aria-label="Contents"><span class="lbl">Contents</span><ol><li><a href="#the-project-in-one-minute">The project in one minute</a></li><li><a href="#the-data-we-test-on">The data we test on</a></li><li><a href="#what-we-built-part-by-part">What we built, part by part</a></li><li><a href="#the-baseline-what-we-compare-against">The baseline: what we compare against</a></li><li><a href="#results-backed-by-data">Results, backed by data</a></li><li><a href="#how-we-got-here-the-main-improvements">How we got here: the main improvements</a></li><li><a href="#how-we-know-the-results-are-real">How we know the results are real</a></li><li><a href="#is-it-practical-for-a-real-company">Is it practical for a real company?</a></li><li><a href="#how-we-use-the-llm-granite">How we use the LLM (Granite)</a></li><li><a href="#how-it-connects-to-our-proposal">How it connects to our proposal</a></li><li><a href="#what-we-say-openly">What we say openly</a></li><li><a href="#who-builds-what-at-the-event">Who builds what at the event</a></li><li><a href="#questions-you-may-have">Questions you may have</a></li><li><a href="#glossary">Glossary</a></li><li><a href="#where-to-find-everything">Where to find everything</a></li></ol></nav>
+<main>
+
+<section class="ask" id="ask" hidden>
+  <h2>Ask a question about the project</h2>
+  <p>Answers come only from this guide. If it is not covered here, the answer says so.</p>
+  <div class="chips" role="group" aria-label="Example questions">
+    <button type="button" data-q="What is the baseline and how do we beat it?">What is the baseline?</button>
+    <button type="button" data-q="Do innocent people appear on the list as often as insiders?">Do innocent people show up too?</button>
+    <button type="button" data-q="What exactly does Granite do, and can it invent facts?">What does Granite do?</button>
+    <button type="button" data-q="What do I build at the event if I am R3?">What does R3 build?</button>
+  </div>
+  <form id="askForm"><label for="q" class="note" style="flex-basis:100%">Your question</label>
+    <input id="q" name="q" autocomplete="off" placeholder="e.g. Why did the recommender stop being the main detector?">
+    <button type="submit" id="askBtn">Ask</button></form>
+  <div class="answer" id="answer" aria-live="polite" hidden></div>
+</section>
+<section id="the-project-in-one-minute" class="level1">
+<h2>The project in one minute</h2>
+<p>Some employees misuse access they legitimately have. They copy files
+to a USB stick before quitting, upload documents to a leak site, or log
+into colleagues’ computers to snoop. Their logins are valid, so simple
+rules either miss them or bury analysts in alerts.</p>
+<p><strong>OutOfRole</strong> helps a security team catch these people
+while they are still active:</p>
+<ul>
+<li><strong>Watch.</strong> Every day, it compares each employee’s last
+week with their own normal weeks. The 20 most unusual people form that
+day’s review list.</li>
+<li><strong>Snooping review.</strong> A Netflix-style recommender learns
+which computers each person normally uses. A periodic review flags
+people who keep logging into computers outside their profile.</li>
+<li><strong>Explain.</strong> For each flagged person, code ranks the
+evidence. IBM Granite picks a label and the supporting facts, and code
+writes every sentence, so the AI cannot make things up.</li>
+<li><strong>Advise on access.</strong> The recommender predicts which
+websites each person will use next, so routine access can be
+pre-approved, and websites people stopped using become access-review
+suggestions.</li>
+</ul>
+<p>Everything runs on one IBM LinuxONE server, and people appear only as
+pseudonyms (U-017).</p>
+<p><strong>Headline:</strong> in a day-by-day replay of 2,000 employees’
+logs, our 20-name daily list caught <strong>80 of 99 insiders while they
+were still active</strong>, twice the 40 caught by a standard baseline
+with the same 20-name list. The baseline is explained in its own section
+below.</p>
+</section>
+<section id="the-data-we-test-on" class="level1">
+<h2>The data we test on</h2>
+<p>We use the <strong>CERT Insider Threat dataset</strong> from Carnegie
+Mellon, the standard benchmark for this problem. It is synthetic:
+generated logs of a fake company, with a separate answer key listing who
+the insiders are and what they did.</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Release</th>
+<th>Staff</th>
+<th>Insiders</th>
+<th>Months of logs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r4.2</td>
+<td>1,000</td>
+<td>70</td>
+<td>about 17</td>
+</tr>
+<tr>
+<td>r5.2</td>
+<td>2,000</td>
+<td>99</td>
+<td>about 17</td>
+</tr>
+</tbody>
+</table></div>
+<p>The logs cover logons (when, which computer), USB use, file copies,
+web browsing and email. The insiders follow four attack patterns:</p>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Attack type</th>
+<th>What they do</th>
+<th>In</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Leakers</td>
+<td>Start working after hours, use USB sticks, upload data to
+wikileaks.org</td>
+<td>both</td>
+</tr>
+<tr>
+<td>Job-hunters</td>
+<td>Browse job sites, then copy data to USB at a higher rate than
+before, then leave</td>
+<td>both</td>
+</tr>
+<tr>
+<td>Disgruntled sysadmins</td>
+<td>Download a keylogger, plant it on a supervisor’s computer, use the
+stolen login</td>
+<td>both</td>
+</tr>
+<tr>
+<td>Snoopers</td>
+<td>Log into colleagues’ computers, search for files, email them home,
+more and more often</td>
+<td>r5.2 only</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>How we use it.</strong> The early months are “training”: we
+learn what normal looks like for each person. Then we replay the later
+months one day at a time, as if live, and only use the past on each day.
+The answer key is used only to grade the results, never to build or tune
+the detector. We fixed every setting on r4.2, then ran r5.2 unchanged,
+so r5.2 is the fairer test.</p>
+</section>
+<section id="what-we-built-part-by-part" class="level1">
+<h2>What we built, part by part</h2>
+<section id="the-daily-review-list-the-main-detector" class="level2">
+<h3>1. The daily review list (the main detector)</h2>
+<p>For each person and each day, we take their last 7 days of activity:
+logons, after-hours logons, USB use, after-hours USB use, file copies,
+after-hours file copies, web browsing, after-hours browsing, and the
+number of computers used. We compare each count with <strong>every one
+of that person’s normal weeks</strong> from training. If this week is
+higher than all of them, that activity counts as unusual. The person’s
+score is the number of unusual activities. Scores build up over a week,
+so persistent oddness rises and a one-off spike fades. The 20 highest
+scores form the day’s list.</p>
+</section>
+<section id="the-snooping-review-the-recommenders-detection-job"
+class="level2">
+<h3>2. The snooping review (the recommender’s detection job)</h2>
+<p>The recommender (an ALS model, the same kind of collaborative
+filtering Netflix-style systems use) learns which computers each person
+normally logs into. A login to a computer that is new to the person and
+that the recommender scores as unlikely for them is flagged. The review
+counts the weeks with such logins and discounts people who always move
+between computers anyway, such as IT staff.</p>
+</section>
+<section id="the-case-file-where-granite-comes-in" class="level2">
+<h3>3. The case file (where Granite comes in)</h2>
+<p>For each flagged person, code ranks what they did: things not seen in
+their training history first, then the rarest in the company. The top
+items become an evidence pack, with an ID for each fact (E1, E2, …).
+Granite replies with only two things: a label from a fixed list
+(“possible data theft”, “possible data leak”, “possible snooping”,
+“unusual after-hours activity”, “weak evidence”) and the IDs of the
+supporting facts. Code writes every sentence from the evidence pack and
+always shows the top 3 items. Any other reply is rejected and replaced
+by a fixed fallback. That is how we guarantee the AI cannot invent a
+fact.</p>
+</section>
+<section id="access-advice-the-recommenders-second-job" class="level2">
+<h3>4. Access advice (the recommender’s second job)</h2>
+<p>The same kind of recommender learns which websites each person uses
+and predicts which new ones they will use next. Those can be
+pre-approved, so reviewers see fewer routine requests. Websites a person
+used in training but not since become suggestions for removing
+access.</p>
+</section>
+<section id="new-site-rule" class="level2">
+<h3>5. New-site rule</h2>
+<p>Visits to websites no one in the company had used during training are
+flagged. In CERT, this catches every wikileaks and keylogger-site visit.
+For a real company, the practical version is to hold
+<strong>uploads</strong> to never-seen or newly registered sites, not to
+block browsing (see “Is it practical?”).</p>
+</section>
+</section>
+<section id="the-baseline-what-we-compare-against" class="level1">
+<h2>The baseline: what we compare against</h2>
+<p><strong>What it is.</strong> The standard “is this person acting
+unusually compared with their own habits?” check that a basic monitoring
+tool would run. We call it the 28-day personal baseline.</p>
+<p><strong>How it works.</strong> For each person, take the last 28 days
+and count five things: USB use, file copies, after-hours logins,
+after-hours USB use and after-hours web browsing. Compare each count
+with what that person’s own training-period habits predict for 28 days.
+The bigger the excess, the higher the score. The 20 highest scores form
+its daily list.</p>
+<p><strong>How we measure both.</strong> We replay the test months day
+by day with only past data. Both methods get the same 20-name daily
+list. An insider counts as <strong>caught in time</strong> if they
+appear on the list at least once between their first and last malicious
+action. We also compare against chance (random lists), which catches
+about 3 insiders.</p>
+<p><strong>What we do differently to beat it.</strong></p>
+<ol type="1">
+<li>“Higher than every normal week” instead of “higher than average”:
+averages are thrown off by people who are naturally bursty.</li>
+<li>More signals, including the number of computers used, which is how
+snooping shows up.</li>
+<li>A score that builds up over a week, so persistent behaviour stands
+out.</li>
+</ol>
+<p><strong>Where each one wins</strong> (insiders caught in time, r4.2 /
+r5.2):</p>
+<div class="scroll"><table>
+<thead>
+<tr>
+<th>Attack type</th>
+<th>Our daily list</th>
+<th>Baseline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Leakers</td>
+<td>25/30 / 26/29</td>
+<td>25/30 / 23/29</td>
+</tr>
+<tr>
+<td>Job-hunters</td>
+<td><strong>30/30 / 27/30</strong></td>
+<td>25/30 / 7/30</td>
+</tr>
+<tr>
+<td>Snoopers (r5.2 only)</td>
+<td><strong>25/30</strong></td>
+<td>2/30</td>
+</tr>
+<tr>
+<td>Disgruntled sysadmins</td>
+<td>4/10 / 2/10</td>
+<td><strong>9/10 / 8/10</strong></td>
+</tr>
+<tr>
+<td><strong>All insiders</strong></td>
+<td><strong>59/70 / 80/99</strong></td>
+<td>59/70 / 40/99</td>
+</tr>
+</tbody>
+</table></div>
+<p>That is why r5.2 shows twice the catches (it has snoopers and harder
+job-hunters) while r4.2 ties. The baseline is clearly better on the
+two-day sysadmin sabotage.</p>
+</section>
+<section id="results-backed-by-data" class="level1">
+<h2>Results, backed by data</h2>
+<p>All numbers below come from one program,
+<code>feasibility/reference/outofrole_minimal.py</code>, and are listed
+with their sources in <code>feasibility/Verified_Numbers.md</code>.</p>
+<section id="catching-insiders-in-time" class="level2">
+<h3>Catching insiders in time</h2>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Result</th>
+<th>r4.2</th>
+<th>r5.2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insiders on our daily list before their last malicious action</td>
+<td>59 of 70</td>
+<td><strong>80 of 99</strong></td>
+</tr>
+<tr>
+<td>Same, 28-day baseline with the same 20-name list</td>
+<td>59</td>
+<td>40</td>
+</tr>
+<tr>
+<td>Same, random score with the same list size</td>
+<td>10</td>
+<td>11</td>
+</tr>
+<tr>
+<td>Average share of each insider’s malicious actions that come after we
+flag them</td>
+<td>54%</td>
+<td>48%</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section id="do-insiders-just-appear-or-appear-more-often"
+class="level2">
+<h3>Do insiders just appear, or appear more often?</h2>
+<p>Much more often. This matters: if innocent people appeared as often,
+the list would be useless.</p>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>On a given day</th>
+<th>r4.2</th>
+<th>r5.2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A normal employee is on our list</td>
+<td>1.3% of days</td>
+<td>0.7% of days</td>
+</tr>
+<tr>
+<td>An insider, during their attack, is on our list</td>
+<td>82% of days</td>
+<td>54% of days</td>
+</tr>
+<tr>
+<td>So an active insider is on the list</td>
+<td><strong>64x as often</strong></td>
+<td><strong>82x as often</strong></td>
+</tr>
+<tr>
+<td>Same comparison for the baseline</td>
+<td>39x</td>
+<td>47x</td>
+</tr>
+<tr>
+<td>Insiders’ share of list slots (their share of staff)</td>
+<td>40% (7%)</td>
+<td>37% (5%)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The honest trade-off: over a whole year, 25% (r4.2) and 15% (r5.2) of
+normal staff appear on our list at least once, usually briefly (median 9
+to 10 days in the whole year). The baseline puts fewer different people
+on its list but keeps them there about twice as long.</p>
+</section>
+<section id="evidence-for-the-case-files-before-granite" class="level2">
+<h3>Evidence for the case files (before Granite)</h2>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Result</th>
+<th>r4.2</th>
+<th>r5.2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insiders caught in time whose top 3 evidence items include a real
+malicious action</td>
+<td>64%</td>
+<td>85%</td>
+</tr>
+<tr>
+<td>Same, ranking by rarity alone</td>
+<td>49%</td>
+<td>51%</td>
+</tr>
+<tr>
+<td>“Strong evidence” at first alert: insiders vs normal staff (no
+labels used)</td>
+<td>29% vs 18%</td>
+<td>65% vs 31%</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section id="the-recommender" class="level2">
+<h3>The recommender</h2>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Result</th>
+<th>r4.2</th>
+<th>r5.2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Next new websites caught by its top 20 guesses (popularity in
+brackets)</td>
+<td>21% (14.5%)</td>
+<td>19% (13%)</td>
+</tr>
+<tr>
+<td>Access requests per person per month: history only, then with the
+recommender</td>
+<td>2.31 to 1.82</td>
+<td>3.15 to 2.55</td>
+</tr>
+<tr>
+<td>Same, retrained monthly with approvals kept: history only / trained
+once / retrained monthly</td>
+<td>2.24 / 1.76 / 1.61</td>
+<td>3.08 / 2.50 / 2.21</td>
+</tr>
+<tr>
+<td>Websites used in training but not again (access-review
+suggestions)</td>
+<td>6.0%</td>
+<td>3.6%</td>
+</tr>
+<tr>
+<td>Snooping review: snoopers in its top 100 (without the
+recommender)</td>
+<td>no snoopers</td>
+<td>27 of 30 (26)</td>
+</tr>
+<tr>
+<td>Same review as a live 10-name daily list: snoopers caught in
+time</td>
+<td>no snoopers</td>
+<td>9 of 30</td>
+</tr>
+<tr>
+<td>Wikileaks and keylogger-site visits caught by the new-site rule</td>
+<td>100%</td>
+<td>100%</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+</section>
+<section id="how-we-got-here-the-main-improvements" class="level1">
+<h2>How we got here: the main improvements</h2>
+<p>We tested about 20 ideas in order. Each one either earned its place
+or was dropped with evidence.</p>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Step</th>
+<th>What we tried</th>
+<th>Before</th>
+<th>After</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Baseline</td>
+<td>28-day personal baseline</td>
+<td>(none)</td>
+<td>44 / 39 insiders in the top 100 reviewed people</td>
+<td>the bar to beat</td>
+</tr>
+<tr>
+<td>Trained models</td>
+<td>Learn from labelled insiders</td>
+<td>39 found</td>
+<td>45 to 60 found</td>
+<td>dropped: with an attack type hidden from training they found only 4
+to 7 of 30 job-hunters</td>
+</tr>
+<tr>
+<td>Label-free scoring</td>
+<td>No labels at all</td>
+<td>trained: 4 to 7</td>
+<td>16 of 30 hidden job-hunters</td>
+<td>kept</td>
+</tr>
+<tr>
+<td>Own-history percentile</td>
+<td>“Higher than every normal week”</td>
+<td>18 of top 20 real insiders (r5.2)</td>
+<td>20 of 20 on both releases</td>
+<td>core of the daily list</td>
+</tr>
+<tr>
+<td>Combined signals</td>
+<td>Fuse several label-free signals</td>
+<td>44 / 39 in the top 100</td>
+<td>55 / 43</td>
+<td>kept as a comparison</td>
+</tr>
+<tr>
+<td>Recommender as detector</td>
+<td>Flag surprising websites</td>
+<td>popularity</td>
+<td>no gain on any item type</td>
+<td>moved to other jobs</td>
+</tr>
+<tr>
+<td>Recommender tuned properly</td>
+<td>Settings chosen without labels</td>
+<td>popularity 14.5%</td>
+<td>21.1% next-site recall</td>
+<td>real job: access advice</td>
+</tr>
+<tr>
+<td>Learning from analyst verdicts</td>
+<td>Re-weight after each review round</td>
+<td>55 / 43</td>
+<td>57 / 42</td>
+<td>dropped: noise</td>
+</tr>
+<tr>
+<td>Day-by-day replay</td>
+<td>The daily list</td>
+<td>baseline 59 / 40 caught in time</td>
+<td>59 / 80</td>
+<td>the headline</td>
+</tr>
+<tr>
+<td>Evidence ranking</td>
+<td>“New to you, rarest first”</td>
+<td>rarity 49% / 51%</td>
+<td>64% / 85%</td>
+<td>used for case files</td>
+</tr>
+<tr>
+<td>Recommender snooping review</td>
+<td>Computers outside the profile</td>
+<td>any new computer: 26 of 30</td>
+<td>27 of 30</td>
+<td>kept as a periodic review</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section id="how-we-know-the-results-are-real" class="level1">
+<h2>How we know the results are real</h2>
+<ul>
+<li><strong>Strict time split.</strong> Training months come first, then
+the replay, and on each day only the past is used.</li>
+<li><strong>Labels only for grading.</strong> No setting was fitted to
+the answer key.</li>
+<li><strong>Frozen settings.</strong> Everything was fixed on r4.2, then
+run unchanged on r5.2.</li>
+<li><strong>Unseen attacks.</strong> Hiding an attack type from trained
+models showed they overfit (4 to 7 of 30), which is why the final system
+uses no labels.</li>
+<li><strong>Resampling.</strong> Over 5,000 resamples of the insiders,
+our lead on r5.2 stays between +27 and +52 and is never zero or
+negative. On r4.2 it is a genuine tie (-6 to +6).</li>
+<li><strong>Controls.</strong> A random score with the same list size
+catches 10 and 11. Moving the training cutoff a month later changes
+nothing.</li>
+<li><strong>Independent checking.</strong> A separate validator re-ran
+every script and found no use of future data or answer-key leakage. One
+mislabelled number was corrected.</li>
+<li><strong>Outside review.</strong> Codex reviewed the work in 11
+rounds; its final verdict on simple, impressive and connected to the
+proposal was “yes” on all three.</li>
+<li><strong>Reproducible.</strong> One 253-line program rebuilds every
+headline number in about 20 seconds per release.</li>
+</ul>
+<p><strong>What remains a risk:</strong> a few choices were made after
+seeing results (the daily-list method, the snooping review, the training
+cutoff date). The fix is a dataset we have never looked at, which is why
+we are adding the LANL dataset (see the FAQ).</p>
+</section>
+<section id="is-it-practical-for-a-real-company" class="level1">
+<h2>Is it practical for a real company?</h2>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Part</th>
+<th>Practical?</th>
+<th>How to present it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Daily list and case files</td>
+<td>Yes. This is how commercial insider-risk tools work (Microsoft
+Purview Insider Risk, Sentinel UEBA).</td>
+<td>A triage aid for analysts, not an accusation tool. In a real company
+insiders are far rarer than CERT’s 5 to 7%, so most names will be
+innocent.</td>
+</tr>
+<tr>
+<td>Snooping review</td>
+<td>Yes, as a monthly report.</td>
+<td>“Who keeps logging into computers outside their role?”</td>
+</tr>
+<tr>
+<td>Case files with Granite</td>
+<td>Yes. The constrained design suits compliance and audits.</td>
+<td>Granite labels and picks facts; code writes the text.</td>
+</tr>
+<tr>
+<td>Access advice</td>
+<td>Yes, but for applications, shared drives and groups. Companies do
+not manage website access per person.</td>
+<td>An access-review assistant. CERT has no permission lists, so
+websites stand in.</td>
+</tr>
+<tr>
+<td>New-site rule</td>
+<td>Not as built: blocking every never-seen site is excessive. It only
+works because CERT has about 470 websites in total.</td>
+<td>Hold or flag uploads to never-seen or newly registered sites.</td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section id="keeping-it-relevant-as-people-and-roles-change"
+class="level1">
+<h2>Keeping it relevant as people and roles change</h2>
+<ul>
+<li><strong>CERT never changes anyone’s role</strong> (0 role changes),
+though 14 to 30 people change department and 126 to 213 change team. So
+we tested the general fix: let each person’s “normal” roll forward,
+using their last 26 weeks and skipping the most recent 4 so a slow
+attack cannot become the new normal.</li>
+<li><strong>Detection held:</strong> 59 of 70 and 84 of 99, against 59
+and 80 with frozen normal weeks. The cost is that more innocent people
+appear on the list at some point (274 vs 230, and 374 vs 291).</li>
+<li><strong>Retrain the recommender monthly.</strong> It trains in
+seconds. Monthly retraining cuts access requests 28% below own history
+alone, against about 21% when trained once.</li>
+<li><strong>For a real deployment:</strong>
+<ul>
+<li>update each person’s normal weekly</li>
+<li>when HR records a role or department change, compare the person with
+their new team for a few weeks and note the change in the case file</li>
+<li>keep confirmed incidents out of anyone’s “normal”</li>
+<li>retrain the recommender monthly</li>
+</ul></li>
+</ul>
+</section>
+<section id="how-we-use-the-llm-granite" class="level1">
+<h2>How we use the LLM (Granite)</h2>
+<p><strong>Now:</strong> Granite labels each case and chooses the
+supporting facts from the evidence pack; code writes every sentence and
+rejects anything else. A self-test sends 12 bad replies (made-up names
+and quantities, unknown facts, broken JSON) and all of them fall back
+safely.</p>
+<p><strong>Planned for the event, in order of value:</strong></p>
+<ol type="1">
+<li><strong>Measure its labels.</strong> Compare Granite’s attack-type
+label with the answer key; chance is 1 in 4 on r5.2. This turns “AI
+explains” into a measured number.</li>
+<li><strong>Daily briefing.</strong> Granite summarizes the day’s list
+(who is new, who escalated, which pattern), using the same
+labels-and-IDs approach.</li>
+<li><strong>“Ask your logs.”</strong> An analyst types a question in
+plain English; Granite picks one of a fixed set of queries and fills in
+the details; code runs it. A strong live demo on LinuxONE.</li>
+<li><strong>Access-review notes.</strong> Granite drafts the reason
+behind each removal or pre-approval suggestion from the facts.</li>
+</ol>
+</section>
+<section id="how-it-connects-to-our-proposal" class="level1">
+<h2>How it connects to our proposal</h2>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>We promised</th>
+<th>We deliver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>“A recommender that catches insider snooping” (our title)</td>
+<td>The recommender’s snooping review finds 27 of 30 snoopers; live, the
+daily list catches 25 of 30 in time</td>
+</tr>
+<tr>
+<td>“Learns which files and machines each employee normally uses”</td>
+<td>Computers and websites. File identities were not modelled: 100%
+(r4.2) and 94% (r5.2) of CERT file names belong to one person, which
+leaves nothing to learn</td>
+</tr>
+<tr>
+<td>“Access it would never suggest is flagged”</td>
+<td>Snooping review for computers; pre-approval and review for
+websites</td>
+</tr>
+<tr>
+<td>“An AI on the same server explains why”</td>
+<td>Granite case files on LinuxONE</td>
+</tr>
+<tr>
+<td>Analysts, compliance officers, access admins</td>
+<td>Daily list; dated, cited case files; access suggestions</td>
+</tr>
+<tr>
+<td>Data never leaves the platform</td>
+<td>One server, pseudonyms only</td>
+</tr>
+<tr>
+<td>Spark, ALS on early months, later months replayed live</td>
+<td>Exactly that</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What changed:</strong> each person’s own history catches
+insiders better than the recommender does, so it drives the broad daily
+list. The recommender does two jobs where it measurably helps: the
+snooping review and access advice.</p>
+</section>
+<section id="what-we-say-openly" class="level1">
+<h2>What we say openly</h2>
+<ul>
+<li>CERT is synthetic data; these are replay results, not a live
+deployment.</li>
+<li>The daily-list method was chosen after seeing results. The method we
+had named in advance also beat the baseline (54 vs 28 of 99).</li>
+<li>Two-day sysadmin sabotage is mostly missed; the baseline does better
+there.</li>
+<li>The snooping review was designed after looking at r5.2; as a live
+list it catches only 9 of 30 snoopers in time.</li>
+<li>Most leakers were already doing suspicious USB copying before the
+answer key’s start date, so “caught the same day” partly means “already
+on the list”.</li>
+<li>Granite and the LinuxONE run are built at the event; the code they
+plug into is tested here.</li>
+</ul>
+</section>
+<section id="who-builds-what-at-the-event" class="level1">
+<h2>Who builds what at the event</h2>
+<p>Full detail, hour by hour, is in <code>Build_Plan.pdf</code>.</p>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Role</th>
+<th>Builds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1, data and platform</td>
+<td>VM setup (Java 17, PySpark, Docker), download CERT, Spark builds the
+three tables, container and repo</td>
+</tr>
+<tr>
+<td>R2, detection</td>
+<td>Port the daily list from <code>outofrole_minimal.py</code>, run r4.2
+then r5.2, results table</td>
+</tr>
+<tr>
+<td>R3, Granite</td>
+<td>Both IBM labs, then port <code>case_file.py</code>: evidence pack,
+Granite prompt, reply check, fallback</td>
+</tr>
+<tr>
+<td>R4, recommender and demo</td>
+<td>Port the recommender parts (snooping review, access advice, new-site
+rule), dashboard, video</td>
+</tr>
+</tbody>
+</table></div>
+<p>Freeze the detector settings by hour 12. If something is behind, the
+build plan’s cut rules say what to drop.</p>
+</section>
+<section id="questions-you-may-have" class="level1">
+<h2>Questions you may have</h2>
+<p><strong>What exactly is “in time”?</strong> The insider appears on
+the daily list at least once between their first and last malicious
+action, so there is still something to stop.</p>
+<p><strong>If innocent people appear on the list too, did we achieve
+anything?</strong> Yes. On a given day, an insider in the middle of an
+attack is 64 to 82 times as likely to be on the list as a normal
+employee. Insiders hold 37 to 40% of list slots while being 5 to 7% of
+staff; a random list would give them 5 to 7%.</p>
+<p><strong>Why not just use the baseline?</strong> On r5.2 it catches 40
+insiders in time against our 80, and misses almost all snoopers (2 of
+30) and most job-hunters (7 of 30). It is better on sysadmins, which
+suggests combining the two lists; we have not tested that yet.</p>
+<p><strong>Why did the recommender stop being the main
+detector?</strong> We tested it on websites, computers, website-by-hour,
+email recipients and browsing order. It never beat simple popularity at
+spotting insiders, because most attacks either use sites nobody visits
+(popularity already catches those) or sites that look normal for the
+person. It is genuinely better at predicting what people will use next,
+so it moved to access advice and the snooping review.</p>
+<p><strong>Can Granite invent facts in a case file?</strong> No. Granite
+returns only a label from a fixed list and fact IDs. Code writes every
+sentence from the evidence pack. Any other reply is rejected and
+replaced by a fixed fallback; the self-test proves this with 12 bad
+replies.</p>
+<p><strong>What if Granite does not work at the event?</strong> The
+fallback case file is fully deterministic and still shows the ranked
+evidence. The demo works without Granite; Granite adds the label.</p>
+<p><strong>Did we overfit?</strong> We guarded against it at every step
+(see “How we know the results are real”). The remaining risk is choices
+made after seeing results; the LANL test addresses it.</p>
+<p><strong>What is the LANL dataset, and why add it?</strong> Los Alamos
+National Laboratory published 58 days of real (not synthetic) login
+records from its network: 12,425 users, about 1 billion login events,
+plus a list of 749 red-team attack logins. Using it tests our ideas on
+data we have never seen. Its attacks are outside intruders moving
+between computers with stolen accounts, so the snooping review (logins
+outside a person’s normal computers) is the closest fit. We requested
+the data and are downloading it now.</p>
+<p><strong>Do we need to retrain when roles change?</strong> Yes,
+cheaply: roll each person’s normal forward weekly, treat a role change
+as a reason to compare with the new team for a few weeks, and retrain
+the recommender monthly. Our tests show detection holds with a rolling
+normal and monthly retraining cuts more requests.</p>
+<p><strong>Is it impressive?</strong> On r5.2, yes: twice the baseline,
+robust to resampling, with 54 to 48% of each insider’s malicious actions
+still ahead when we flag them. On r4.2 it ties the baseline. The rigor
+is our main differentiator: independent validation, 11 review rounds,
+and one short program that reproduces everything.</p>
+<p><strong>Why 20 names a day?</strong> A small team can review 20
+people a day. It also makes the comparison fair, since every method gets
+the same list size.</p>
+<p><strong>How much code is the build?</strong> Two files: 253 lines for
+scoring and 85 lines for case files, on top of the three tables Spark
+builds. About 20 seconds per release on a laptop.</p>
+<p><strong>What runs on LinuxONE?</strong> Everything: Spark builds the
+tables, Python scores and ranks, Granite labels the case files, and the
+dashboard shows the list. Nothing leaves the server.</p>
+<p><strong>What should I say to judges in one sentence?</strong> “In a
+day-by-day replay of 2,000 employees’ logs, OutOfRole put 80 of 99
+insiders on a 20-name daily review list while their attacks were under
+way, twice a standard baseline; Granite labels each case from checked
+evidence; and a recommender handles snooping reviews and access
+advice.”</p>
+</section>
+<section id="glossary" class="level1">
+<h2>Glossary</h2>
+<ul>
+<li><strong>Insider:</strong> an employee who misuses legitimate
+access.</li>
+<li><strong>Baseline:</strong> the simple standard method we must beat
+(here, the 28-day personal check).</li>
+<li><strong>Caught in time:</strong> listed before the insider’s last
+malicious action.</li>
+<li><strong>Recommender / ALS:</strong> a model that learns “people like
+you use these things”, as in Netflix recommendations.</li>
+<li><strong>Popularity:</strong> the simplest recommender: guess what
+most people use.</li>
+<li><strong>Evidence pack:</strong> the top-ranked facts for one person,
+each with an ID.</li>
+<li><strong>Fail closed:</strong> when a check fails, show the safe
+fallback instead of the risky output.</li>
+<li><strong>Synthetic data:</strong> generated data that imitates real
+logs; it has an answer key.</li>
+<li><strong>Overfitting:</strong> a method that looks good on the data
+it was tuned on but fails on new data.</li>
+</ul>
+</section>
+<section id="where-to-find-everything" class="level1">
+<h2>Where to find everything</h2>
+<ul>
+<li><code>OutOfRole_In_Plain_Words.pdf</code>: the three-page
+summary.</li>
+<li><code>Build_Plan.pdf</code>: who builds what, hour by hour, and the
+cut rules.</li>
+<li><code>feasibility/Verified_Numbers.md</code>: every number with the
+script that produced it.</li>
+<li><code>feasibility/reference/outofrole_minimal.py</code> and
+<code>case_file.py</code>: the code to port.</li>
+<li><code>feasibility/OutOfRole_Feasibility.ipynb</code>: the full study
+with code and explanations.</li>
+<li><code>feasibility/codex_review/</code>: all 11 review rounds.</li>
+</ul>
+</section>
+
+</main>
+</div>
+<script type="text/plain" id="guide-src">
+# The project in one minute
+
+Some employees misuse access they legitimately have. They copy files to a USB stick before quitting, upload documents to a leak site, or log into colleagues&#x27; computers to snoop. Their logins are valid, so simple rules either miss them or bury analysts in alerts.
+
+**OutOfRole** helps a security team catch these people while they are still active:
+
+- **Watch.** Every day, it compares each employee&#x27;s last week with their own normal weeks. The 20 most unusual people form that day&#x27;s review list.
+- **Snooping review.** A Netflix-style recommender learns which computers each person normally uses. A periodic review flags people who keep logging into computers outside their profile.
+- **Explain.** For each flagged person, code ranks the evidence. IBM Granite picks a label and the supporting facts, and code writes every sentence, so the AI cannot make things up.
+- **Advise on access.** The recommender predicts which websites each person will use next, so routine access can be pre-approved, and websites people stopped using become access-review suggestions.
+
+Everything runs on one IBM LinuxONE server, and people appear only as pseudonyms (U-017).
+
+**Headline:** in a day-by-day replay of 2,000 employees&#x27; logs, our 20-name daily list caught **80 of 99 insiders while they were still active**, twice the 40 caught by a standard baseline with the same 20-name list. The baseline is explained in its own section below.
+
+# The data we test on
+
+We use the **CERT Insider Threat dataset** from Carnegie Mellon, the standard benchmark for this problem. It is synthetic: generated logs of a fake company, with a separate answer key listing who the insiders are and what they did.
+
+| Release | Staff | Insiders | Months of logs |
+|---|---|---|---|
+| r4.2 | 1,000 | 70 | about 17 |
+| r5.2 | 2,000 | 99 | about 17 |
+
+The logs cover logons (when, which computer), USB use, file copies, web browsing and email. The insiders follow four attack patterns:
+
+| Attack type | What they do | In |
+|---|---|---|
+| Leakers | Start working after hours, use USB sticks, upload data to wikileaks.org | both |
+| Job-hunters | Browse job sites, then copy data to USB at a higher rate than before, then leave | both |
+| Disgruntled sysadmins | Download a keylogger, plant it on a supervisor&#x27;s computer, use the stolen login | both |
+| Snoopers | Log into colleagues&#x27; computers, search for files, email them home, more and more often | r5.2 only |
+
+**How we use it.** The early months are &quot;training&quot;: we learn what normal looks like for each person. Then we replay the later months one day at a time, as if live, and only use the past on each day. The answer key is used only to grade the results, never to build or tune the detector. We fixed every setting on r4.2, then ran r5.2 unchanged, so r5.2 is the fairer test.
+
+# What we built, part by part
+
+## 1. The daily review list (the main detector)
+
+For each person and each day, we take their last 7 days of activity: logons, after-hours logons, USB use, after-hours USB use, file copies, after-hours file copies, web browsing, after-hours browsing, and the number of computers used. We compare each count with **every one of that person&#x27;s normal weeks** from training. If this week is higher than all of them, that activity counts as unusual. The person&#x27;s score is the number of unusual activities. Scores build up over a week, so persistent oddness rises and a one-off spike fades. The 20 highest scores form the day&#x27;s list.
+
+## 2. The snooping review (the recommender&#x27;s detection job)
+
+The recommender (an ALS model, the same kind of collaborative filtering Netflix-style systems use) learns which computers each person normally logs into. A login to a computer that is new to the person and that the recommender scores as unlikely for them is flagged. The review counts the weeks with such logins and discounts people who always move between computers anyway, such as IT staff.
+
+## 3. The case file (where Granite comes in)
+
+For each flagged person, code ranks what they did: things not seen in their training history first, then the rarest in the company. The top items become an evidence pack, with an ID for each fact (E1, E2, ...). Granite replies with only two things: a label from a fixed list (&quot;possible data theft&quot;, &quot;possible data leak&quot;, &quot;possible snooping&quot;, &quot;unusual after-hours activity&quot;, &quot;weak evidence&quot;) and the IDs of the supporting facts. Code writes every sentence from the evidence pack and always shows the top 3 items. Any other reply is rejected and replaced by a fixed fallback. That is how we guarantee the AI cannot invent a fact.
+
+## 4. Access advice (the recommender&#x27;s second job)
+
+The same kind of recommender learns which websites each person uses and predicts which new ones they will use next. Those can be pre-approved, so reviewers see fewer routine requests. Websites a person used in training but not since become suggestions for removing access.
+
+## 5. New-site rule
+
+Visits to websites no one in the company had used during training are flagged. In CERT, this catches every wikileaks and keylogger-site visit. For a real company, the practical version is to hold **uploads** to never-seen or newly registered sites, not to block browsing (see &quot;Is it practical?&quot;).
+
+# The baseline: what we compare against
+
+**What it is.** The standard &quot;is this person acting unusually compared with their own habits?&quot; check that a basic monitoring tool would run. We call it the 28-day personal baseline.
+
+**How it works.** For each person, take the last 28 days and count five things: USB use, file copies, after-hours logins, after-hours USB use and after-hours web browsing. Compare each count with what that person&#x27;s own training-period habits predict for 28 days. The bigger the excess, the higher the score. The 20 highest scores form its daily list.
+
+**How we measure both.** We replay the test months day by day with only past data. Both methods get the same 20-name daily list. An insider counts as **caught in time** if they appear on the list at least once between their first and last malicious action. We also compare against chance (random lists), which catches about 3 insiders.
+
+**What we do differently to beat it.**
+
+1. &quot;Higher than every normal week&quot; instead of &quot;higher than average&quot;: averages are thrown off by people who are naturally bursty.
+2. More signals, including the number of computers used, which is how snooping shows up.
+3. A score that builds up over a week, so persistent behaviour stands out.
+
+**Where each one wins** (insiders caught in time, r4.2 / r5.2):
+
+| Attack type | Our daily list | Baseline |
+|---|---|---|
+| Leakers | 25/30 / 26/29 | 25/30 / 23/29 |
+| Job-hunters | **30/30 / 27/30** | 25/30 / 7/30 |
+| Snoopers (r5.2 only) | **25/30** | 2/30 |
+| Disgruntled sysadmins | 4/10 / 2/10 | **9/10 / 8/10** |
+| **All insiders** | **59/70 / 80/99** | 59/70 / 40/99 |
+
+That is why r5.2 shows twice the catches (it has snoopers and harder job-hunters) while r4.2 ties. The baseline is clearly better on the two-day sysadmin sabotage.
+
+# Results, backed by data
+
+All numbers below come from one program, `feasibility/reference/outofrole_minimal.py`, and are listed with their sources in `feasibility/Verified_Numbers.md`.
+
+## Catching insiders in time
+
+| Result | r4.2 | r5.2 |
+|---|---|---|
+| Insiders on our daily list before their last malicious action | 59 of 70 | **80 of 99** |
+| Same, 28-day baseline with the same 20-name list | 59 | 40 |
+| Same, random score with the same list size | 10 | 11 |
+| Average share of each insider&#x27;s malicious actions that come after we flag them | 54% | 48% |
+
+## Do insiders just appear, or appear more often?
+
+Much more often. This matters: if innocent people appeared as often, the list would be useless.
+
+| On a given day | r4.2 | r5.2 |
+|---|---|---|
+| A normal employee is on our list | 1.3% of days | 0.7% of days |
+| An insider, during their attack, is on our list | 82% of days | 54% of days |
+| So an active insider is on the list | **64x as often** | **82x as often** |
+| Same comparison for the baseline | 39x | 47x |
+| Insiders&#x27; share of list slots (their share of staff) | 40% (7%) | 37% (5%) |
+
+The honest trade-off: over a whole year, 25% (r4.2) and 15% (r5.2) of normal staff appear on our list at least once, usually briefly (median 9 to 10 days in the whole year). The baseline puts fewer different people on its list but keeps them there about twice as long.
+
+## Evidence for the case files (before Granite)
+
+| Result | r4.2 | r5.2 |
+|---|---|---|
+| Insiders caught in time whose top 3 evidence items include a real malicious action | 64% | 85% |
+| Same, ranking by rarity alone | 49% | 51% |
+| &quot;Strong evidence&quot; at first alert: insiders vs normal staff (no labels used) | 29% vs 18% | 65% vs 31% |
+
+## The recommender
+
+| Result | r4.2 | r5.2 |
+|---|---|---|
+| Next new websites caught by its top 20 guesses (popularity in brackets) | 21% (14.5%) | 19% (13%) |
+| Access requests per person per month: history only, then with the recommender | 2.31 to 1.82 | 3.15 to 2.55 |
+| Same, retrained monthly with approvals kept: history only / trained once / retrained monthly | 2.24 / 1.76 / 1.61 | 3.08 / 2.50 / 2.21 |
+| Websites used in training but not again (access-review suggestions) | 6.0% | 3.6% |
+| Snooping review: snoopers in its top 100 (without the recommender) | no snoopers | 27 of 30 (26) |
+| Same review as a live 10-name daily list: snoopers caught in time | no snoopers | 9 of 30 |
+| Wikileaks and keylogger-site visits caught by the new-site rule | 100% | 100% |
+
+# How we got here: the main improvements
+
+We tested about 20 ideas in order. Each one either earned its place or was dropped with evidence.
+
+| Step | What we tried | Before | After | Verdict |
+|---|---|---|---|---|
+| Baseline | 28-day personal baseline | (none) | 44 / 39 insiders in the top 100 reviewed people | the bar to beat |
+| Trained models | Learn from labelled insiders | 39 found | 45 to 60 found | dropped: with an attack type hidden from training they found only 4 to 7 of 30 job-hunters |
+| Label-free scoring | No labels at all | trained: 4 to 7 | 16 of 30 hidden job-hunters | kept |
+| Own-history percentile | &quot;Higher than every normal week&quot; | 18 of top 20 real insiders (r5.2) | 20 of 20 on both releases | core of the daily list |
+| Combined signals | Fuse several label-free signals | 44 / 39 in the top 100 | 55 / 43 | kept as a comparison |
+| Recommender as detector | Flag surprising websites | popularity | no gain on any item type | moved to other jobs |
+| Recommender tuned properly | Settings chosen without labels | popularity 14.5% | 21.1% next-site recall | real job: access advice |
+| Learning from analyst verdicts | Re-weight after each review round | 55 / 43 | 57 / 42 | dropped: noise |
+| Day-by-day replay | The daily list | baseline 59 / 40 caught in time | 59 / 80 | the headline |
+| Evidence ranking | &quot;New to you, rarest first&quot; | rarity 49% / 51% | 64% / 85% | used for case files |
+| Recommender snooping review | Computers outside the profile | any new computer: 26 of 30 | 27 of 30 | kept as a periodic review |
+
+# How we know the results are real
+
+- **Strict time split.** Training months come first, then the replay, and on each day only the past is used.
+- **Labels only for grading.** No setting was fitted to the answer key.
+- **Frozen settings.** Everything was fixed on r4.2, then run unchanged on r5.2.
+- **Unseen attacks.** Hiding an attack type from trained models showed they overfit (4 to 7 of 30), which is why the final system uses no labels.
+- **Resampling.** Over 5,000 resamples of the insiders, our lead on r5.2 stays between +27 and +52 and is never zero or negative. On r4.2 it is a genuine tie (-6 to +6).
+- **Controls.** A random score with the same list size catches 10 and 11. Moving the training cutoff a month later changes nothing.
+- **Independent checking.** A separate validator re-ran every script and found no use of future data or answer-key leakage. One mislabelled number was corrected.
+- **Outside review.** Codex reviewed the work in 11 rounds; its final verdict on simple, impressive and connected to the proposal was &quot;yes&quot; on all three.
+- **Reproducible.** One 253-line program rebuilds every headline number in about 20 seconds per release.
+
+**What remains a risk:** a few choices were made after seeing results (the daily-list method, the snooping review, the training cutoff date). The fix is a dataset we have never looked at, which is why we are adding the LANL dataset (see the FAQ).
+
+# Is it practical for a real company?
+
+| Part | Practical? | How to present it |
+|---|---|---|
+| Daily list and case files | Yes. This is how commercial insider-risk tools work (Microsoft Purview Insider Risk, Sentinel UEBA). | A triage aid for analysts, not an accusation tool. In a real company insiders are far rarer than CERT&#x27;s 5 to 7%, so most names will be innocent. |
+| Snooping review | Yes, as a monthly report. | &quot;Who keeps logging into computers outside their role?&quot; |
+| Case files with Granite | Yes. The constrained design suits compliance and audits. | Granite labels and picks facts; code writes the text. |
+| Access advice | Yes, but for applications, shared drives and groups. Companies do not manage website access per person. | An access-review assistant. CERT has no permission lists, so websites stand in. |
+| New-site rule | Not as built: blocking every never-seen site is excessive. It only works because CERT has about 470 websites in total. | Hold or flag uploads to never-seen or newly registered sites. |
+
+# Keeping it relevant as people and roles change
+
+- **CERT never changes anyone&#x27;s role** (0 role changes), though 14 to 30 people change department and 126 to 213 change team. So we tested the general fix: let each person&#x27;s &quot;normal&quot; roll forward, using their last 26 weeks and skipping the most recent 4 so a slow attack cannot become the new normal.
+- **Detection held:** 59 of 70 and 84 of 99, against 59 and 80 with frozen normal weeks. The cost is that more innocent people appear on the list at some point (274 vs 230, and 374 vs 291).
+- **Retrain the recommender monthly.** It trains in seconds. Monthly retraining cuts access requests 28% below own history alone, against about 21% when trained once.
+- **For a real deployment:**
+  - update each person&#x27;s normal weekly
+  - when HR records a role or department change, compare the person with their new team for a few weeks and note the change in the case file
+  - keep confirmed incidents out of anyone&#x27;s &quot;normal&quot;
+  - retrain the recommender monthly
+
+# How we use the LLM (Granite)
+
+**Now:** Granite labels each case and chooses the supporting facts from the evidence pack; code writes every sentence and rejects anything else. A self-test sends 12 bad replies (made-up names and quantities, unknown facts, broken JSON) and all of them fall back safely.
+
+**Planned for the event, in order of value:**
+
+1. **Measure its labels.** Compare Granite&#x27;s attack-type label with the answer key; chance is 1 in 4 on r5.2. This turns &quot;AI explains&quot; into a measured number.
+2. **Daily briefing.** Granite summarizes the day&#x27;s list (who is new, who escalated, which pattern), using the same labels-and-IDs approach.
+3. **&quot;Ask your logs.&quot;** An analyst types a question in plain English; Granite picks one of a fixed set of queries and fills in the details; code runs it. A strong live demo on LinuxONE.
+4. **Access-review notes.** Granite drafts the reason behind each removal or pre-approval suggestion from the facts.
+
+# How it connects to our proposal
+
+| We promised | We deliver |
+|---|---|
+| &quot;A recommender that catches insider snooping&quot; (our title) | The recommender&#x27;s snooping review finds 27 of 30 snoopers; live, the daily list catches 25 of 30 in time |
+| &quot;Learns which files and machines each employee normally uses&quot; | Computers and websites. File identities were not modelled: 100% (r4.2) and 94% (r5.2) of CERT file names belong to one person, which leaves nothing to learn |
+| &quot;Access it would never suggest is flagged&quot; | Snooping review for computers; pre-approval and review for websites |
+| &quot;An AI on the same server explains why&quot; | Granite case files on LinuxONE |
+| Analysts, compliance officers, access admins | Daily list; dated, cited case files; access suggestions |
+| Data never leaves the platform | One server, pseudonyms only |
+| Spark, ALS on early months, later months replayed live | Exactly that |
+
+**What changed:** each person&#x27;s own history catches insiders better than the recommender does, so it drives the broad daily list. The recommender does two jobs where it measurably helps: the snooping review and access advice.
+
+# What we say openly
+
+- CERT is synthetic data; these are replay results, not a live deployment.
+- The daily-list method was chosen after seeing results. The method we had named in advance also beat the baseline (54 vs 28 of 99).
+- Two-day sysadmin sabotage is mostly missed; the baseline does better there.
+- The snooping review was designed after looking at r5.2; as a live list it catches only 9 of 30 snoopers in time.
+- Most leakers were already doing suspicious USB copying before the answer key&#x27;s start date, so &quot;caught the same day&quot; partly means &quot;already on the list&quot;.
+- Granite and the LinuxONE run are built at the event; the code they plug into is tested here.
+
+# Who builds what at the event
+
+Full detail, hour by hour, is in `Build_Plan.pdf`.
+
+| Role | Builds |
+|---|---|
+| R1, data and platform | VM setup (Java 17, PySpark, Docker), download CERT, Spark builds the three tables, container and repo |
+| R2, detection | Port the daily list from `outofrole_minimal.py`, run r4.2 then r5.2, results table |
+| R3, Granite | Both IBM labs, then port `case_file.py`: evidence pack, Granite prompt, reply check, fallback |
+| R4, recommender and demo | Port the recommender parts (snooping review, access advice, new-site rule), dashboard, video |
+
+Freeze the detector settings by hour 12. If something is behind, the build plan&#x27;s cut rules say what to drop.
+
+# Questions you may have
+
+**What exactly is &quot;in time&quot;?**
+The insider appears on the daily list at least once between their first and last malicious action, so there is still something to stop.
+
+**If innocent people appear on the list too, did we achieve anything?**
+Yes. On a given day, an insider in the middle of an attack is 64 to 82 times as likely to be on the list as a normal employee. Insiders hold 37 to 40% of list slots while being 5 to 7% of staff; a random list would give them 5 to 7%.
+
+**Why not just use the baseline?**
+On r5.2 it catches 40 insiders in time against our 80, and misses almost all snoopers (2 of 30) and most job-hunters (7 of 30). It is better on sysadmins, which suggests combining the two lists; we have not tested that yet.
+
+**Why did the recommender stop being the main detector?**
+We tested it on websites, computers, website-by-hour, email recipients and browsing order. It never beat simple popularity at spotting insiders, because most attacks either use sites nobody visits (popularity already catches those) or sites that look normal for the person. It is genuinely better at predicting what people will use next, so it moved to access advice and the snooping review.
+
+**Can Granite invent facts in a case file?**
+No. Granite returns only a label from a fixed list and fact IDs. Code writes every sentence from the evidence pack. Any other reply is rejected and replaced by a fixed fallback; the self-test proves this with 12 bad replies.
+
+**What if Granite does not work at the event?**
+The fallback case file is fully deterministic and still shows the ranked evidence. The demo works without Granite; Granite adds the label.
+
+**Did we overfit?**
+We guarded against it at every step (see &quot;How we know the results are real&quot;). The remaining risk is choices made after seeing results; the LANL test addresses it.
+
+**What is the LANL dataset, and why add it?**
+Los Alamos National Laboratory published 58 days of real (not synthetic) login records from its network: 12,425 users, about 1 billion login events, plus a list of 749 red-team attack logins. Using it tests our ideas on data we have never seen. Its attacks are outside intruders moving between computers with stolen accounts, so the snooping review (logins outside a person&#x27;s normal computers) is the closest fit. We requested the data and are downloading it now.
+
+**Do we need to retrain when roles change?**
+Yes, cheaply: roll each person&#x27;s normal forward weekly, treat a role change as a reason to compare with the new team for a few weeks, and retrain the recommender monthly. Our tests show detection holds with a rolling normal and monthly retraining cuts more requests.
+
+**Is it impressive?**
+On r5.2, yes: twice the baseline, robust to resampling, with 54 to 48% of each insider&#x27;s malicious actions still ahead when we flag them. On r4.2 it ties the baseline. The rigor is our main differentiator: independent validation, 11 review rounds, and one short program that reproduces everything.
+
+**Why 20 names a day?**
+A small team can review 20 people a day. It also makes the comparison fair, since every method gets the same list size.
+
+**How much code is the build?**
+Two files: 253 lines for scoring and 85 lines for case files, on top of the three tables Spark builds. About 20 seconds per release on a laptop.
+
+**What runs on LinuxONE?**
+Everything: Spark builds the tables, Python scores and ranks, Granite labels the case files, and the dashboard shows the list. Nothing leaves the server.
+
+**What should I say to judges in one sentence?**
+&quot;In a day-by-day replay of 2,000 employees&#x27; logs, OutOfRole put 80 of 99 insiders on a 20-name daily review list while their attacks were under way, twice a standard baseline; Granite labels each case from checked evidence; and a recommender handles snooping reviews and access advice.&quot;
+
+# Glossary
+
+- **Insider:** an employee who misuses legitimate access.
+- **Baseline:** the simple standard method we must beat (here, the 28-day personal check).
+- **Caught in time:** listed before the insider&#x27;s last malicious action.
+- **Recommender / ALS:** a model that learns &quot;people like you use these things&quot;, as in Netflix recommendations.
+- **Popularity:** the simplest recommender: guess what most people use.
+- **Evidence pack:** the top-ranked facts for one person, each with an ID.
+- **Fail closed:** when a check fails, show the safe fallback instead of the risky output.
+- **Synthetic data:** generated data that imitates real logs; it has an answer key.
+- **Overfitting:** a method that looks good on the data it was tuned on but fails on new data.
+
+# Where to find everything
+
+- `OutOfRole_In_Plain_Words.pdf`: the three-page summary.
+- `Build_Plan.pdf`: who builds what, hour by hour, and the cut rules.
+- `feasibility/Verified_Numbers.md`: every number with the script that produced it.
+- `feasibility/reference/outofrole_minimal.py` and `case_file.py`: the code to port.
+- `feasibility/OutOfRole_Feasibility.ipynb`: the full study with code and explanations.
+- `feasibility/codex_review/`: all 11 review rounds.
+</script>
+<script>
+(async function () {
+  const box = document.getElementById("ask"), form = document.getElementById("askForm"), q = document.getElementById("q");
+  const out = document.getElementById("answer"), btn = document.getElementById("askBtn");
+  const guide = document.getElementById("guide-src").textContent;
+  let sample = null;
+  try { sample = window.claude && window.claude.use ? await window.claude.use("sample") : null; } catch (e) { sample = null; }
+  if (!sample) return;                                        // no Claude here: the guide still reads fine
+  box.hidden = false;
+  let busy = false, ctrl = null;
+  async function ask(question) {
+    question = (question || "").trim();
+    if (!question || busy) return;
+    busy = true; btn.disabled = true; out.hidden = false; out.textContent = "Thinking...";
+    if (ctrl) ctrl.abort(); ctrl = new AbortController();
+    const prompt = "You answer a teammate's question about the OutOfRole project, using ONLY the team guide below. " +
+      "Rules: quote numbers exactly as the guide gives them and never invent or round them differently; if the guide does not cover the question, " +
+      "say so plainly and suggest asking Mehrad; answer in plain language a non-expert can follow, at most 150 words; do not use em dashes; " +
+      "name the guide section you used at the end, like (Section: The baseline).\n\nTEAM GUIDE:\n" + guide + "\n\nQUESTION: " + question;
+    try {
+      const r = await sample(prompt, { signal: ctrl.signal, cache: false, onText: (x) => { out.textContent = x.text || "Thinking..."; } });
+      out.textContent = r.text || "No answer came back. Please try again.";
+    } catch (e) {
+      out.textContent = e && e.code === "rate_limited" ? "Too many questions at once. Please wait a minute and try again."
+        : e && e.code === "not_granted" ? "Asking is not enabled for this page. Read the guide below, or ask Mehrad." : "Something went wrong. Please try again.";
+      if (e && e.code === "not_granted") box.hidden = true;
+    } finally { busy = false; btn.disabled = false; }
+  }
+  form.addEventListener("submit", (ev) => { ev.preventDefault(); ask(q.value); });
+  box.querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", () => { q.value = b.dataset.q; ask(b.dataset.q); }));
+})();
+</script>

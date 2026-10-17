@@ -11,6 +11,8 @@ include-before: |
   ```
 ---
 
+> **Superseded on October 17 by `Team_Guide.md` / `Team_Guide.pdf` at the repo root** (also published as a page with an ask box). Kept for history.
+
 # The short version
 
 **Read this first.** Then read the part for your role (the hour-by-hour tasks are in `Build_Plan.pdf`): R1 Data and platform, Sections 3 and 5.1; R2 Detection, Sections 4, 5.2 and 6; R3 Granite, Section 5.4; R4 Recommender and demo, Sections 5.3 and 7.
