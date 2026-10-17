@@ -47,16 +47,30 @@ def export_review(ns, day, release) -> dict[str, Any]:
                 pseudonyms='sorted staff index + 1, release-local; not full anonymization')
 
 
-def evaluate_reply(case, reply, finish_reason, error=None) -> dict[str, Any]:
+def evaluate_reply(case, reply, finish_reason, error=None, evidence_policy='none') -> dict[str, Any]:
     """Do not accept truncated completions, even when their prefix is valid JSON."""
     from case_file import case_file
     reason = error or (None if finish_reason == 'stop' else f'Generation did not finish cleanly: {finish_reason}')
     rendered, problems = case_file(case['pack'], None if reason else reply)
     if reason:
         problems = [reason] + problems
+    contract_accepted = not problems
+    policy_problems = []
+    policy_accepted = None
+    if evidence_policy not in ('none', 'v2'):
+        raise ValueError(f'Unknown evidence policy: {evidence_policy}')
+    if contract_accepted and evidence_policy == 'v2':
+        from evidence_policy import check_reply
+        policy_problems = check_reply(reply, case['pack'])
+        policy_accepted = not policy_problems
+        if policy_problems:
+            rendered, _ = case_file(case['pack'])
+            problems = problems + policy_problems
     return dict(rank=case['rank'], running_score=case['running_score'],
                 person=case['pack']['person'], raw_reply=reply,
                 finish_reason=finish_reason, accepted=not problems,
+                contract_accepted=contract_accepted, evidence_policy=evidence_policy,
+                policy_accepted=policy_accepted, policy_problems=policy_problems,
                 problems=problems, rendered=rendered)
 
 
@@ -90,7 +104,7 @@ def write_json(path, value):
 
 def code_hashes():
     return {name: file_hash(ROOT / 'code' / name) for name in
-            ('outofrole_minimal.py', 'case_file.py', 'table_io.py', 'runner.py', 'label_guide.py')}
+            ('outofrole_minimal.py', 'case_file.py', 'table_io.py', 'runner.py', 'label_guide.py', 'evidence_policy.py')}
 
 
 def prepare_child(args):
@@ -251,6 +265,8 @@ class JsonWorker:
 
 def infer(args):
     import time
+    from label_guide import guide_version
+    from evidence_policy import POLICY_VERSION
     manifest = json.loads((args.run_dir / 'preparation.json').read_text())
     if file_hash(args.run_dir / 'packs.json') != manifest['packs_sha256']:
         raise ValueError('Pack digest mismatch: evidence export changed since preparation')
@@ -260,7 +276,7 @@ def infer(args):
     current_hashes = code_hashes()
     changed = {name for name in set(bundle['code_sha256']) | set(current_hashes)
                if bundle['code_sha256'].get(name) != current_hashes.get(name)}
-    if changed and not (args.allow_runner_update and changed <= {'runner.py', 'label_guide.py'}):
+    if changed and not (args.allow_runner_update and changed <= {'runner.py', 'label_guide.py', 'evidence_policy.py'}):
         raise ValueError('Code changed since pack export; prepare again or explicitly allow runner/guide updates')
     cases = bundle['cases']
     if [c['rank'] for c in cases] != list(range(1, len(cases) + 1)):
@@ -276,6 +292,9 @@ def infer(args):
                   temperature=0, startup_timeout=args.startup_timeout, case_timeout=args.timeout,
                   structured_output=args.structured_output, max_cases=args.max_cases, model_mode=args.model_mode,
                   label_guide=args.label_guide,
+                  label_guide_version=guide_version(args.label_guide),
+                  evidence_policy=args.evidence_policy,
+                  evidence_policy_version=POLICY_VERSION if args.evidence_policy == 'v2' else 'none',
                   prepared_code_sha256=bundle['code_sha256'],
                   allowed_runner_update=bool(changed),
                   created_at=datetime.now(timezone.utc).isoformat(), code_sha256=current_hashes)
@@ -330,7 +349,7 @@ def infer(args):
                         problem = reason = f'{type(exc).__name__}: {exc}'
                         client.close()
                         client = None
-                result = evaluate_reply(case, reply, finish, reason)
+                result = evaluate_reply(case, reply, finish, reason, args.evidence_policy)
                 result['skipped'] = skipped
                 if args.structured_output and not skipped and case['pack']['facts']:
                     result['response_schema'] = response_schema(case['pack'])
@@ -354,9 +373,11 @@ def infer(args):
     fallback = len(cases) - accepted - skipped
     summary = dict(day=bundle['day'], release=bundle['release'], total=len(cases),
                    accepted=accepted, fallback=fallback, skipped=skipped,
+                   contract_accepted=sum(r['contract_accepted'] for r in results),
+                   policy_rejected=sum(bool(r['policy_problems']) for r in results),
                    elapsed_seconds=round(time.monotonic() - started, 3),
                    status='completed_with_fallbacks' if fallback else 'partial_test' if skipped else 'completed',
-                   semantic_accuracy='not evaluated; acceptance validates the response contract only')
+                   semantic_accuracy='not evaluated; contract/policy acceptance is not model accuracy')
     write_json(attempt / 'summary.json', summary)
     (attempt / 'case_files.txt').write_text('\n\n'.join(
         ('[NOT INFERRED: diagnostic limit]\n' if r['skipped'] else '') + r['rendered']
@@ -395,8 +416,10 @@ def cli():
             sub.add_argument('--model', type=Path, required=True)
             sub.add_argument('--model-mode', choices=('chat', 'completion'), default='chat',
                              help='Explicit plain completion for base models; chat uses embedded template')
-            sub.add_argument('--label-guide', choices=('none', 'v1'), default='none',
+            sub.add_argument('--label-guide', choices=('none', 'v1', 'v2'), default='none',
                              help='Opt-in versioned labeling policy; none preserves the baseline prompt')
+            sub.add_argument('--evidence-policy', choices=('none', 'v2'), default='none',
+                             help='Opt-in minimum-support guard; reject, never repair unsupported labels/citations')
             sub.add_argument('--context', type=positive_int, default=2048)
             sub.add_argument('--threads', type=positive_int, default=2)
             sub.add_argument('--max-tokens', type=positive_int, default=128)
@@ -408,7 +431,7 @@ def cli():
                 sub.add_argument('--max-cases', type=positive_int,
                                  help='Diagnostic limit; retain other names as not inferred')
                 sub.add_argument('--allow-runner-update', action='store_true',
-                                 help='Reuse packs if only runner/label-guide code changed; record both revisions')
+                                 help='Reuse packs if only inference runner/guide/policy changed; record both revisions')
     args = parser.parse_args()
     os.umask(0o077)
     if hasattr(args, 'model'):

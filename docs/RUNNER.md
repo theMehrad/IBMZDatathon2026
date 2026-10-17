@@ -4,7 +4,7 @@
 
 The runner executes the existing full scoring/evaluation script for one release, exports the selected day's original daily review list in its deterministic score/tie-break order, waits for the scoring child to exit, then starts one Granite model worker and labels the exported packs in order. A person is never removed by Granite. The answer key is still required by the existing grading script but is not included in packs or used by the runner to select people or dates.
 
-This is **batch integration**, not a dashboard, monthly retraining, a final-judge reranker or a semantic-accuracy evaluation. It intentionally leaves ALS parameters, labels, prompt and validator unchanged. The current contract has five labels and the previously observed theft/leak ambiguity remains. `ACCEPTED` means response-contract validity, not a correct or justified security classification. Facts are pseudonymized, not fully anonymized: computer and website identifiers remain in evidence.
+This is **batch integration**, not a dashboard, monthly retraining, a final-judge reranker or a semantic-accuracy evaluation. Baseline behavior leaves ALS parameters, labels, prompt and structural validator unchanged; opt-in guide/policy versions are documented below. The contract still has five labels. `ACCEPTED` means contract validity plus any explicitly enabled minimum-evidence policy, not verified accuracy or proof of misconduct. Facts are pseudonymized, not fully anonymized: computer and website identifiers remain in evidence.
 
 ## Getting this branch onto LinuxONE safely
 
@@ -90,7 +90,7 @@ Use the printed run directory:
 python3 code/runner.py infer --run-dir /absolute/container/path/to/run --model /absolute/container/path/to/model.gguf
 ```
 
-Run this inside the same notebook container/environment. Each `infer` creates a separate attempt, preserving old outputs. Source hashes must match the preparation snapshot by default. `--allow-runner-update` explicitly permits **only runner.py and label_guide.py** to differ and records the prepared and current hashes; scorer, table loader and validator changes still require fresh preparation. A model-only retry or generation-limit change does not require scoring again.
+Run this inside the same notebook container/environment. Each `infer` creates a separate attempt, preserving old outputs. Source hashes must match the preparation snapshot by default. `--allow-runner-update` explicitly permits **only runner.py, label_guide.py and evidence_policy.py** to differ and records the prepared and current hashes; scorer, table loader and structural validator changes still require fresh preparation. This includes adding the new inference-only adapter to an older snapshot. The selected policy/guide and their versions are recorded; the saved pack and manifest are never rewritten. A model-only retry or generation-limit change does not require scoring again.
 
 To export packs without starting Granite, use `prepare --release 4.2 --day 2010-08-02`. The CLI requires a model path only for `run` and `infer`.
 
@@ -127,6 +127,14 @@ python3 code/runner.py infer \
 ```
 
 This is a three-case integration check in original ranking order, not a balanced classification-accuracy sample. The standalone native 350M test on U-0296 completed in 11.36 seconds and selected theft rather than the 2B model's leak label. That proves speed and structural validity on one case, not equivalent classification quality. Do not infer semantics from weak-label grammar enforcement. The new runner mode is tested with simulated adapters and still requires its own native run. Preserve both models and old attempts for comparison.
+
+## Structured evidence and minimum-support guard (v2)
+
+Use `--label-guide v2 --evidence-policy v2` together to test the new approach. They are independent opt-ins: the first supplies a compact typed observation view and two contrasting development examples; the second rejects unsupported positive labels, missing primary citations, neutral positive-support citations and repeated/overlong citations. Defaults preserve baseline behavior. See [EVIDENCE_POLICY_V2.md](EVIDENCE_POLICY_V2.md) for the prompt-disjoint synthetic evaluation and native commands.
+
+The adapter derives observations from exact source fact kinds, not the model's assertions. `false` means not observed in this supplied, top-ranked pack, not proof the action never happened. New/rare remains novelty context, not evidence of malice. The small known-leak-domain list is explicit project intelligence, not an inference from site novelty. Existing M3 lacks explicit copy/upload/colleague-ownership/search facts; richer synthetic fixtures do not implement those production capabilities.
+
+The guard never repairs a label, fabricates support, reorders or removes people. Rejected replies retain raw diagnostics but display the existing deterministic fallback and ranked facts. Conservative `weak evidence` remains permissible; it never dismisses a person. The guard enforces minimum support, not the prompt's best-label priority or actual intent. Raw model label/citation quality remains separate from guard/system acceptance, so blocked errors cannot be reported as improved model accuracy. No new labels or detector tuning are included.
 
 ## Verification performed during development
 
