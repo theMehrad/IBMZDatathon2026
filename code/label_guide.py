@@ -12,6 +12,7 @@ These labels describe suspicions, never proven wrongdoing. Use only stated obser
 - weak evidence: no specific pattern is supported. New/rare does not itself mean malicious; a strong novelty pack may still warrant this label.
 When multiple patterns are supported, prefer leak over theft, then snooping, then after-hours. This is a triage tie-break, not proof of wrongdoing. Weak packs must still receive weak evidence.
 Cite only 1 or 2 directly relevant fact IDs. Exclude familiar-computer and other neutral distractors; do not cite every fact. For weak evidence, cite the limited observations being reviewed.
+Do not repeat IDs. A mixed case may cite a secondary supported pattern, but must cite the primary label's supporting observation too; the secondary fact alone does not establish the primary pattern.
 '''
 
 

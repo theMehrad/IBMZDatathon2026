@@ -11,6 +11,7 @@ def grade_reply(fixture, reply, finish_reason, error=None):
     cited = set(parsed.get('facts', []))
     label_match = result['accepted'] and label == fixture['expected_label']
     citation_match = (result['accepted']
+                      and len(parsed.get('facts', [])) == len(cited)
                       and set(fixture['required_fact_ids']).issubset(cited)
                       and not set(fixture['forbidden_fact_ids']).intersection(cited)
                       and len(cited) <= fixture['max_cited_facts'])
@@ -52,7 +53,7 @@ def main():
     from datetime import datetime, timezone
     import os
     from pathlib import Path
-    import subprocess
+
     import sys
     import time
     from runner import ROOT, JsonWorker, code_hashes, file_hash, positive_int, write_json

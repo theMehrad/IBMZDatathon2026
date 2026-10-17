@@ -37,6 +37,9 @@ def test_quality_grading_separates_valid_json_from_label_and_citation_quality():
     assert not malformed['accepted'] and not malformed['quality_pass']
     truncated = grade_reply(fixture, '{"label":"possible data leak","facts":["E1"]}', 'length')
     assert not truncated['accepted'] and not truncated['quality_pass']
+    repeated = grade_reply(fixture, '{"label":"possible data leak","facts":["E1","E1","E1"]}', 'stop')
+    assert repeated['accepted'] and not repeated['quality_pass']
+    assert not repeated['citation_match']
 
 
 def test_frozen_suite_uses_neutral_ids_and_nonforced_weak_expectations():

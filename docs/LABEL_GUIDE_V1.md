@@ -37,6 +37,8 @@ Ask for **one or two directly supporting fact IDs**, not every fact. Neutral, fa
 
 All packs satisfy the existing **strong** novelty/rarity rule. Consequently, weak labels in examples 2 and 5 are real choices among all allowed labels, not grammar-forced answers.
 
+In mixed example 6, the leak-site observation E1 is mandatory; E2 (explicit copying) is permitted as secondary, competing-pattern context. Each cited fact need not independently establish the chosen pattern. Copying alone does not establish external disclosure. The neutral computer observation E3 is forbidden. Repeated IDs fail the citation gate even if the existing validator accepts/deduplicates them.
+
 **Evidence limitations:** examples 3 and 6 deliberately contain synthetic, explicit file-copy observations. Current `case_items()` produces computer, website, USB-use and after-hours facts; this change does not add a production file-copy fact type. Passing those fixtures would show response to richer supplied evidence, not establish that the current exporter supplies it. The after-hours fixture uses a made-up organization where that action is rare, not CERT's measured staff share. There is no positive snooping fixture or sabotage fixture in this first suite, so it does not validate every attack class.
 
 ## Three separate gates
@@ -85,7 +87,7 @@ If the initial native result is acceptable, repeat with `--limit 6` for the full
 
 ## Outputs / interpretation
 
-Each invocation creates a new restricted folder under `data/quality_runs/` with config, exact suite snapshot, source/model/fixture hashes, runtime log, incremental `results.jsonl` and `summary.json`. Expected answers stay outside model inputs. Existing output directories are never overwritten.
+By default, each invocation creates a new restricted folder under the ignored `data/quality_runs/` directory with config, exact suite snapshot, source/model/fixture hashes, runtime log, incremental `results.jsonl` and `summary.json`. Explicit `--output PATH` overrides that location: choose a private, untracked directory and do not commit its contents. Expected answers stay outside model inputs. Existing output directories are never overwritten.
 
 Summary fields separate `contract_accepted`, `label_matches`, `citation_matches`, `quality_passed` and `quality_failed`. `selected` and `suite_total` prevent a passing subset from being presented as a full-suite result; `complete_suite` and `partial_quality_check` make that distinction explicit. Exit 0 means every selected case passed; exit 2 means at least one selected quality failure; exit 1 is a configuration or other fatal error. CLI argument errors also use exit 2 before an output summary exists.
 
