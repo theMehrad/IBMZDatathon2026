@@ -1,0 +1,265 @@
+OutOfRole LANL transfer test: all numbers. PREREG.txt sha256 10f549756835c7a121d1630c0d406a60aa762b72c00aba2d5c4678563ecb97c5 (hashed before redteam.txt.gz was opened).
+
+####################################################################################################
+# 1. Table build (lanl_tables.py, label-free)
+####################################################################################################
+lanl_tables.py: finished 2026-10-17 12:18:22
+person rows (src_user ~ ^U\d+@DOM\d+$): 331,505,551; people 16,759; computers 16,884
+dst_pairs 5,577,395 rows; src_pairs 3,878,146; daily 461,865; hourly 6,960,396
+sum n over dst_pairs 331,505,551 (must equal person rows); days 0..57
+runtime 12.5 min
+
+####################################################################################################
+# 2. Label-free checks (lanl_snooping.py check, run before hashing)
+####################################################################################################
+lanl_snooping.py check, 2026-10-17 12:19:11
+(a) sparse ALS vs outofrole_minimal.als (rank 16, alpha 10, reg 0.1, 12 iterations, seed 0)
+    300x200, density 0.05: max |difference| 6.33e-15, surprise>=0.5 flips 0
+    500x120, density 0.02: max |difference| 4.61e-15, surprise>=0.5 flips 0
+    80x400, density 0.1: max |difference| 9.10e-15, surprise>=0.5 flips 0
+
+tables: 16,759 people, 16,884 computers, 5,577,395 person x destination x day rows, days 0..57
+
+(b) label-free sanity check: train days 0-6, predict new computers in days 7-13; people with a training row only;
+    a new computer = a (person, computer) pair in days 7-13 not seen in days 0-6; computers unseen in days 0-6 count as misses
+    logon rows: 9,367 people, 4,190 computers, 10,882 new pairs (89.9% on computers seen in days 0-6); ALS fit 0.8s
+        popularity           R@5 0.587  R@20 0.698  R@50 0.740
+        ALS r16 a10 reg0.1   R@5 0.558  R@20 0.661  R@50 0.717
+    all   rows: 12,065 people, 11,305 computers, 31,997 new pairs (93.9% on computers seen in days 0-6); ALS fit 1.3s
+        popularity           R@5 0.280  R@20 0.461  R@50 0.681
+        ALS r16 a10 reg0.1   R@5 0.328  R@20 0.548  R@50 0.629
+
+(c) after-hours window (M3), training days < 14: busiest 12 hours start at hour 6; after hours = [0, 1, 2, 3, 4, 5, 18, 19, 20, 21, 22, 23]
+    person events by hour of day (training days): 2305k 2335k 2318k 2241k 2241k 2269k 2735k 3882k 4572k 4685k 4639k 4473k 4377k 4502k 4528k 4428k 3918k 3078k 2625k 2492k 2452k 2453k 2429k 2394k
+
+####################################################################################################
+# 3. Matching red-team rows to auth rows (lanl_snooping.py match, after hashing)
+####################################################################################################
+[match_attempt1_FAILED.txt]
+lanl_snooping.py match, attempt 1, started 2026-10-17 12:19 CDT
+Method: gzcat auth.txt.gz | LC_ALL=C grep -F -f redteam_patterns.txt (715 "time,user," patterns)
+Result: FAILED. BSD grep -F with 715 patterns ran at about 1 CPU minute per few MB (gzcat had used 0.12 s of CPU after 8.5 min);
+killed after 8.7 min, no output written. Replaced by a block search of the time-sorted stream (same matching rule).
+
+[match_attempt2.txt]
+  block 100 (64 MB each), time 544,427, 11,235 lines at red-team seconds, 5s
+  block 200 (64 MB each), time 1,030,232, 73,543 lines at red-team seconds, 15s
+  block 300 (64 MB each), time 1,475,521, 170,902 lines at red-team seconds, 24s
+  block 400 (64 MB each), time 2,006,710, 172,522 lines at red-team seconds, 28s
+  block 500 (64 MB each), time 2,501,743, 183,030 lines at red-team seconds, 32s
+  block 600 (64 MB each), time 2,991,788, 185,021 lines at red-team seconds, 36s
+  block 700 (64 MB each), time 3,451,346, 185,021 lines at red-team seconds, 40s
+  block 800 (64 MB each), time 3,810,057, 185,021 lines at red-team seconds, 43s
+  block 900 (64 MB each), time 4,239,109, 185,021 lines at red-team seconds, 47s
+  block 1000 (64 MB each), time 4,655,300, 185,021 lines at red-team seconds, 51s
+match: 749 red-team rows (715 distinct keys), 185,021 candidate auth lines, 1,126 at an exact (time, user); 702 auth rows at a full key; red-team rows with >=1 auth row 735; 55s
+
+####################################################################################################
+# 4. PRE-REGISTERED ANALYSIS (lanl_snooping.py run)
+####################################################################################################
+LANL transfer test, run 2026-10-17 12:34:12; PREREG sha256 10f549756835c7a121d1630c0d406a60aa762b72c00aba2d5c4678563ecb97c5
+universe: 16,759 people (src_user ~ ^U\d+@DOM\d+$), 16,884 computers
+red team: 749 rows, 104 accounts, days 1..29; rows whose account is in the person universe 722 (92 accounts); outside it: 27 rows from 12 accounts, all U-accounts on a computer domain (user@C...): True
+matching to auth rows (time, user, source, destination): 735 of 749 red-team rows matched (34 duplicate red-team rows); 702 matched auth rows; orientation {'LogOn': 702}; auth type {'NTLM': 702}; logon type {'Network': 702}; result {'Success': 701, 'Fail': 1}
+red-team rows by day: {1: 10, 2: 15, 5: 21, 6: 3, 7: 1, 8: 273, 9: 15, 12: 209, 13: 81, 14: 35, 15: 26, 20: 1, 21: 4, 22: 1, 26: 26, 27: 9, 28: 3, 29: 16}
+
+==================== logon rows, train days 0-13, test days 14-57  [PRIMARY]
+ALS: 16,759 x 5,115 matrix, 114,494 nonzeros, fit 0.8s; people with training rows 9,884
+gradable compromised accounts (red-team rows in the test window): 44; of them also red-team in training: 29; red-team only in training (kept in the ranking as non-positives): 48
+people with a test row 10,673; test rows 2,404,104; flagged rows M1 174,524, M2 217,614, B1 130,709; median roam 0.871
+method                                 top20 top50 top100     AP   (positives 44 of 16,759)
+B0 random (mean of 2000 rankings)       0.05  0.13   0.26 0.0032   (analytic top100 0.26; p95 top100 1; chance AP = P/N = 0.0026)
+M1 snooping review (new and surprising)     0     0      0 0.0072   (top100 hypergeometric p vs random 1.0e+00)
+M2 any computer new to the person          0     0      0 0.0056   (top100 hypergeometric p vs random 1.0e+00)
+B1 new and rare (<1% of people)            0     0      1 0.0106   (top100 hypergeometric p vs random 2.3e-01)
+B2 count of distinct new computers         1     3      4 0.0209   (top100 hypergeometric p vs random 1.3e-04)
+red-team test rows whose destination never appears in a person row: 0
+event level: 107 red-team rows in the test window (77 on a computer the account used in training); other person LogOn events in the test window 95,608,185
+    M1: red-team rows flagged 29/107 = 0.271; other events flagged 0.04221; lift 6.4x
+    M2: red-team rows flagged 30/107 = 0.280; other events flagged 0.05145; lift 5.4x
+    B1: red-team rows flagged 30/107 = 0.280; other events flagged 0.03183; lift 8.8x
+    red-team rows: median ALS surprise 0.797; share with surprise >= 0.5 0.589
+DECISION (pre-registered): M1 top100 0 vs random expectation 0.26 (5x = 1.31), p 1.0e+00; M2 top100 0 -> DOES NOT TRANSFER
+M3 daily list (20 a day, 2 reference week(s), after hours = hours [0, 1, 2, 3, 4, 5, 18, 19, 20, 21, 22, 23], busiest 12-hour block starts at 6): on the list between first and last red-team day inclusive 0/44 (random lists 0.08); CERT rule, before the last red-team day 0/44 (random 0.03); distinct people ever listed 121
+
+==================== logon rows, train days 0-6, test days 7-57
+ALS: 16,759 x 4,190 matrix, 100,610 nonzeros, fit 0.8s; people with training rows 9,367
+gradable compromised accounts (red-team rows in the test window): 88; of them also red-team in training: 3; red-team only in training (kept in the ranking as non-positives): 4
+people with a test row 10,880; test rows 2,781,580; flagged rows M1 245,066, M2 381,461, B1 145,541; median roam 0.870
+method                                 top20 top50 top100     AP   (positives 88 of 16,759)
+B0 random (mean of 2000 rankings)       0.11  0.27   0.53 0.0058   (analytic top100 0.53; p95 top100 2; chance AP = P/N = 0.0053)
+M1 snooping review (new and surprising)     0     0      0 0.0124   (top100 hypergeometric p vs random 1.0e+00)
+M2 any computer new to the person          0     0      0 0.0084   (top100 hypergeometric p vs random 1.0e+00)
+B1 new and rare (<1% of people)            0     0      0 0.0191   (top100 hypergeometric p vs random 1.0e+00)
+B2 count of distinct new computers         6    14     24 0.1129   (top100 hypergeometric p vs random 3.7e-34)
+red-team test rows whose destination never appears in a person row: 0
+event level: 673 red-team rows in the test window (212 on a computer the account used in training); other person LogOn events in the test window 110,906,869
+    M1: red-team rows flagged 422/673 = 0.627; other events flagged 0.05352; lift 11.7x
+    M2: red-team rows flagged 461/673 = 0.685; other events flagged 0.07870; lift 8.7x
+    B1: red-team rows flagged 429/673 = 0.637; other events flagged 0.03033; lift 21.0x
+    red-team rows: median ALS surprise 0.931; share with surprise >= 0.5 0.737
+M3 daily list (20 a day, 1 reference week(s), after hours = hours [0, 1, 2, 3, 4, 5, 18, 19, 20, 21, 22, 23], busiest 12-hour block starts at 6): on the list between first and last red-team day inclusive 1/88 (random lists 0.62); CERT rule, before the last red-team day 1/88 (random 0.51); distinct people ever listed 91
+
+==================== logon rows, train days 0-20, test days 21-57
+ALS: 16,759 x 5,624 matrix, 120,726 nonzeros, fit 0.9s; people with training rows 10,131
+gradable compromised accounts (red-team rows in the test window): 23; of them also red-team in training: 21; red-team only in training (kept in the ranking as non-positives): 69
+people with a test row 10,541; test rows 2,068,179; flagged rows M1 151,463, M2 178,215, B1 124,196; median roam 0.874
+method                                 top20 top50 top100     AP   (positives 23 of 16,759)
+B0 random (mean of 2000 rankings)       0.03  0.07   0.14 0.0020   (analytic top100 0.14; p95 top100 1; chance AP = P/N = 0.0014)
+M1 snooping review (new and surprising)     0     0      0 0.0028   (top100 hypergeometric p vs random 1.0e+00)
+M2 any computer new to the person          0     0      0 0.0026   (top100 hypergeometric p vs random 1.0e+00)
+B1 new and rare (<1% of people)            0     0      0 0.0041   (top100 hypergeometric p vs random 1.0e+00)
+B2 count of distinct new computers         1     3      3 0.0203   (top100 hypergeometric p vs random 3.3e-04)
+red-team test rows whose destination never appears in a person row: 0
+event level: 56 red-team rows in the test window (51 on a computer the account used in training); other person LogOn events in the test window 81,969,181
+    M1: red-team rows flagged 4/56 = 0.071; other events flagged 0.03940; lift 1.8x
+    M2: red-team rows flagged 5/56 = 0.089; other events flagged 0.04718; lift 1.9x
+    B1: red-team rows flagged 5/56 = 0.089; other events flagged 0.03212; lift 2.8x
+    red-team rows: median ALS surprise 0.713; share with surprise >= 0.5 0.625
+M3 daily list (20 a day, 3 reference week(s), after hours = hours [0, 1, 2, 3, 4, 5, 18, 19, 20, 21, 22, 23], busiest 12-hour block starts at 6): on the list between first and last red-team day inclusive 0/23 (random lists 0.04); CERT rule, before the last red-team day 0/23 (random 0.02); distinct people ever listed 91
+
+==================== all rows, train days 0-13, test days 14-57
+ALS: 16,759 x 12,683 matrix, 226,227 nonzeros, fit 1.3s; people with training rows 13,374
+gradable compromised accounts (red-team rows in the test window): 44; of them also red-team in training: 29; red-team only in training (kept in the ranking as non-positives): 48
+people with a test row 15,735; test rows 4,303,683; flagged rows M1 427,282, M2 546,349, B1 303,143; median roam 0.910
+method                                 top20 top50 top100     AP   (positives 44 of 16,759)
+B0 random (mean of 2000 rankings)       0.05  0.13   0.26 0.0032   (analytic top100 0.26; p95 top100 1; chance AP = P/N = 0.0026)
+M1 snooping review (new and surprising)     0     0      0 0.0031   (top100 hypergeometric p vs random 1.0e+00)
+M2 any computer new to the person          0     0      0 0.0026   (top100 hypergeometric p vs random 1.0e+00)
+B1 new and rare (<1% of people)            0     0      0 0.0040   (top100 hypergeometric p vs random 1.0e+00)
+B2 count of distinct new computers         1     2      5 0.0246   (top100 hypergeometric p vs random 6.2e-06)
+red-team test rows whose destination never appears in a person row: 0
+event level: 107 red-team rows in the test window (99 on a computer the account used in training); other person events in the test window 253,124,561
+    M1: red-team rows flagged 7/107 = 0.065; other events flagged 0.04278; lift 1.5x
+    M2: red-team rows flagged 8/107 = 0.075; other events flagged 0.05293; lift 1.4x
+    B1: red-team rows flagged 8/107 = 0.075; other events flagged 0.03207; lift 2.3x
+    red-team rows: median ALS surprise 0.775; share with surprise >= 0.5 0.664
+
+==================== all rows, train days 0-6, test days 7-57
+ALS: 16,759 x 11,305 matrix, 185,952 nonzeros, fit 1.2s; people with training rows 12,065
+gradable compromised accounts (red-team rows in the test window): 88; of them also red-team in training: 3; red-team only in training (kept in the ranking as non-positives): 4
+people with a test row 16,257; test rows 4,974,501; flagged rows M1 609,826, M2 852,243, B1 351,711; median roam 0.913
+method                                 top20 top50 top100     AP   (positives 88 of 16,759)
+B0 random (mean of 2000 rankings)       0.11  0.27   0.53 0.0058   (analytic top100 0.53; p95 top100 2; chance AP = P/N = 0.0053)
+M1 snooping review (new and surprising)     0     0      0 0.0051   (top100 hypergeometric p vs random 1.0e+00)
+M2 any computer new to the person          0     0      0 0.0041   (top100 hypergeometric p vs random 1.0e+00)
+B1 new and rare (<1% of people)            0     0      0 0.0067   (top100 hypergeometric p vs random 1.0e+00)
+B2 count of distinct new computers         5    12     20 0.1145   (top100 hypergeometric p vs random 9.7e-27)
+red-team test rows whose destination never appears in a person row: 0
+event level: 673 red-team rows in the test window (301 on a computer the account used in training); other person events in the test window 294,754,022
+    M1: red-team rows flagged 343/673 = 0.510; other events flagged 0.05325; lift 9.6x
+    M2: red-team rows flagged 372/673 = 0.553; other events flagged 0.07854; lift 7.0x
+    B1: red-team rows flagged 330/673 = 0.490; other events flagged 0.03074; lift 15.9x
+    red-team rows: median ALS surprise 0.931; share with surprise >= 0.5 0.758
+
+==================== all rows, train days 0-20, test days 21-57
+ALS: 16,759 x 13,204 matrix, 248,156 nonzeros, fit 1.4s; people with training rows 14,074
+gradable compromised accounts (red-team rows in the test window): 23; of them also red-team in training: 21; red-team only in training (kept in the ranking as non-positives): 69
+people with a test row 15,333; test rows 3,711,268; flagged rows M1 357,210, M2 442,300, B1 282,362; median roam 0.908
+method                                 top20 top50 top100     AP   (positives 23 of 16,759)
+B0 random (mean of 2000 rankings)       0.03  0.07   0.14 0.0020   (analytic top100 0.14; p95 top100 1; chance AP = P/N = 0.0014)
+M1 snooping review (new and surprising)     0     0      0 0.0018   (top100 hypergeometric p vs random 1.0e+00)
+M2 any computer new to the person          0     0      0 0.0015   (top100 hypergeometric p vs random 1.0e+00)
+B1 new and rare (<1% of people)            0     0      0 0.0023   (top100 hypergeometric p vs random 1.0e+00)
+B2 count of distinct new computers         1     3      4 0.0216   (top100 hypergeometric p vs random 9.7e-06)
+red-team test rows whose destination never appears in a person row: 0
+event level: 56 red-team rows in the test window (51 on a computer the account used in training); other person events in the test window 216,783,983
+    M1: red-team rows flagged 1/56 = 0.018; other events flagged 0.03993; lift 0.4x
+    M2: red-team rows flagged 5/56 = 0.089; other events flagged 0.04877; lift 1.8x
+    B1: red-team rows flagged 5/56 = 0.089; other events flagged 0.03290; lift 2.7x
+    red-team rows: median ALS surprise 0.778; share with surprise >= 0.5 0.679
+
+primary verdict: DOES NOT TRANSFER
+runtime 0.2 min
+
+####################################################################################################
+# 5. POST HOC diagnostics (lanl_snooping.py posthoc; NOT pre-registered, change no verdict)
+####################################################################################################
+POST HOC diagnostics, 2026-10-17 12:32:31. Written after the pre-registered run; they explain it and change no verdict.
+
+---- logon rows, train days 0-13 (44 positives of 16,759)
+why M1 fails: its top 100 have mean roam 0.000 (people with one training computer); median roam of positives 0.906 vs other people with a roam above 0 0.871; median M1 rank of positives 2,705 (best 109)
+    M1 test weeks with a flagged login, quartiles: positives [5.75, 6.0, 7.0], other people with any flag [3.0, 4.0, 5.0]; people with any flag 9,922
+    M2 test weeks with a flagged login, quartiles: positives [6.0, 6.0, 7.0], other people with any flag [4.0, 5.0, 6.0]; people with any flag 10,281
+    score                                    top20 top50 top100     AP
+    M1 weeks, no roam discount                   1     2      3 0.0269
+    M2 weeks, no roam discount                   1     1      2 0.0165
+    distinct new computers (= B2)                1     3      4 0.0209
+    distinct new AND surprising computers        1     3      3 0.0203
+    distinct new AND rare computers              1     3      5 0.0426
+    event level with duplicate red-team rows removed: 91 rows; flagged M1 21, M2 22, B1 22
+
+---- logon rows, train days 0-6 (88 positives of 16,759)
+why M1 fails: its top 100 have mean roam 0.000 (people with one training computer); median roam of positives 0.901 vs other people with a roam above 0 0.870; median M1 rank of positives 2,719 (best 381)
+    M1 test weeks with a flagged login, quartiles: positives [6.0, 7.0, 8.0], other people with any flag [4.0, 5.0, 6.0]; people with any flag 10,220
+    M2 test weeks with a flagged login, quartiles: positives [6.0, 7.0, 8.0], other people with any flag [4.0, 6.0, 8.0]; people with any flag 10,551
+    score                                    top20 top50 top100     AP
+    M1 weeks, no roam discount                   1     3      4 0.0363
+    M2 weeks, no roam discount                   1     1      2 0.0150
+    distinct new computers (= B2)                6    14     24 0.1129
+    distinct new AND surprising computers        5    14     23 0.1072
+    distinct new AND rare computers              6    15     26 0.1657
+
+---- logon rows, train days 0-20 (23 positives of 16,759)
+why M1 fails: its top 100 have mean roam 0.000 (people with one training computer); median roam of positives 0.911 vs other people with a roam above 0 0.874; median M1 rank of positives 4,012 (best 1,479)
+    M1 test weeks with a flagged login, quartiles: positives [4.5, 5.0, 6.0], other people with any flag [3.0, 4.0, 5.0]; people with any flag 9,708
+    M2 test weeks with a flagged login, quartiles: positives [5.0, 5.0, 6.0], other people with any flag [3.0, 4.0, 5.0]; people with any flag 10,089
+    score                                    top20 top50 top100     AP
+    M1 weeks, no roam discount                   0     0      2 0.0081
+    M2 weeks, no roam discount                   0     0      1 0.0064
+    distinct new computers (= B2)                1     3      3 0.0203
+    distinct new AND surprising computers        1     3      3 0.0195
+    distinct new AND rare computers              1     3      4 0.0351
+
+---- all rows, train days 0-13 (44 positives of 16,759)
+why M1 fails: its top 100 have mean roam 0.000 (people with one training computer); median roam of positives 0.943 vs other people with a roam above 0 0.910; median M1 rank of positives 5,502 (best 3,819)
+    M1 test weeks with a flagged login, quartiles: positives [5.75, 6.5, 7.0], other people with any flag [2.0, 4.0, 6.0]; people with any flag 14,804
+    M2 test weeks with a flagged login, quartiles: positives [6.0, 7.0, 7.0], other people with any flag [2.0, 5.0, 6.0]; people with any flag 15,324
+    score                                    top20 top50 top100     AP
+    M1 weeks, no roam discount                   1     1      2 0.0130
+    M2 weeks, no roam discount                   1     1      2 0.0094
+    distinct new computers (= B2)                1     2      5 0.0246
+    distinct new AND surprising computers        1     3      6 0.0235
+    distinct new AND rare computers              1     3      6 0.0419
+
+---- all rows, train days 0-6 (88 positives of 16,759)
+why M1 fails: its top 100 have mean roam 0.000 (people with one training computer); median roam of positives 0.940 vs other people with a roam above 0 0.912; median M1 rank of positives 7,282 (best 847)
+    M1 test weeks with a flagged login, quartiles: positives [6.75, 8.0, 8.0], other people with any flag [2.0, 5.0, 7.0]; people with any flag 15,572
+    M2 test weeks with a flagged login, quartiles: positives [7.0, 8.0, 8.0], other people with any flag [2.0, 6.0, 8.0]; people with any flag 15,947
+    score                                    top20 top50 top100     AP
+    M1 weeks, no roam discount                   1     2      4 0.0227
+    M2 weeks, no roam discount                   0     1      2 0.0126
+    distinct new computers (= B2)                5    12     20 0.1145
+    distinct new AND surprising computers        5    12     18 0.1083
+    distinct new AND rare computers              6    11     21 0.1433
+
+---- all rows, train days 0-20 (23 positives of 16,759)
+why M1 fails: its top 100 have mean roam 0.000 (people with one training computer); median roam of positives 0.944 vs other people with a roam above 0 0.908; median M1 rank of positives 5,074 (best 3,555)
+    M1 test weeks with a flagged login, quartiles: positives [5.0, 6.0, 6.0], other people with any flag [2.0, 4.0, 5.0]; people with any flag 14,211
+    M2 test weeks with a flagged login, quartiles: positives [5.5, 6.0, 6.0], other people with any flag [2.0, 4.0, 5.0]; people with any flag 14,826
+    score                                    top20 top50 top100     AP
+    M1 weeks, no roam discount                   0     0      0 0.0061
+    M2 weeks, no roam discount                   0     0      0 0.0043
+    distinct new computers (= B2)                1     3      4 0.0216
+    distinct new AND surprising computers        1     3      4 0.0210
+    distinct new AND rare computers              1     3      5 0.0321
+
+####################################################################################################
+# 6. Deviations and run log
+####################################################################################################
+Deviations from PREREG.txt: none in the split, person filter, login definition, methods, constants, metrics,
+matching rule or decision rule.
+Run log (every run kept in evidence/LANL/runs/):
+- lanl_tables.py: one full pass, 12.5 min, no failures (a 20M-row test pass ran first and its files were deleted).
+- check: run once before hashing (12:19 CDT); ALS equivalence and the recall@K sanity check above.
+- match attempt 1 FAILED: `grep -F -f` with 715 patterns stalled (BSD grep) and was killed after 8.7 min, no output.
+  Attempt 2 searched the time-sorted stream block by block for the same keys (same matching rule), 55 s.
+- run 1 (12:30 CDT) gave every number in section 4. Two print-only edits followed (the M3 line listed its after-hours
+  hours wrongly as "0..23 wrapped"; the B0 line now also prints the analytic expectation); run 2 regenerated this file
+  with identical numbers. A third print-only edit (account names outside the person filter replaced by counts) first
+  failed with a SyntaxError before anything ran; after the fix, run 3 regenerated this file, numbers unchanged.
+- posthoc: written after run 1 and labelled as such.
+Notes, all as pre-registered: 34 of the 749 red-team rows are exact duplicates (715 distinct keys) and each row counts
+as a login; 14 red-team rows have no auth row at their full key and still count (a flag depends only on the account
+and the destination); 27 red-team rows from 12 accounts on local computer domains (user@C...) fall outside the person
+filter and are not gradable (account names are not printed). Every matched auth row is a successful or failed NTLM network LogOn.

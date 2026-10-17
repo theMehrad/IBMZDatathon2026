@@ -1,0 +1,150 @@
+OutOfRole: LANL transfer test, pre-registration
+================================================
+
+Written on 2026-10-17, before data/lanl/redteam.txt.gz was opened. The label file has not been read,
+decompressed or parsed in any way; only its size (4,846 bytes) has been seen in a directory listing.
+Prepared by an analysis agent for Mehrad Jahani (IBM Z Datathon 2026 project OutOfRole).
+
+Code: code/experiments/lanl_tables.py (label-free tables; already run, see section 1) and
+code/experiments/lanl_snooping.py (modes: check = label-free, run before hashing; match and run = after
+hashing, they refuse to start unless PREREG.txt matches PREREG.sha256).
+
+
+0. Question
+-----------
+Do OutOfRole's methods, with every setting frozen on CERT's synthetic data, find compromised accounts in
+LANL's real authentication logs (58 days)? The red team's "user" is an account whose credentials someone
+else used, so its red-team logins are logins outside that person's normal computers: the case the snooping
+review (code/outofrole_minimal.py section 1b) was built for. Nothing below is tuned on LANL labels.
+
+
+1. Data, person filter and tables (fixed and applied before any label was read)
+---------------------------------------------------------------------------------
+- Source: data/lanl/auth.txt.gz, streamed once through `gzcat | grep`; never decompressed to disk.
+  Fields: time, src_user@domain, dst_user@domain, src_computer, dst_computer, auth_type, logon_type,
+  auth_orientation, success_or_failure.
+- Person: the SOURCE user field matches ^U\d+@DOM\d+$. The account string (user@domain) is the person key,
+  as in the red-team file. Dropped: computer accounts (C123$@DOM1), ANONYMOUS LOGON, SYSTEM, LOCAL SERVICE,
+  NETWORK SERVICE and other named service accounts, and U-accounts on a local or unknown domain (U12@C345,
+  U12@?; 0.4% of rows in a 20M-row sample). Decided from a 20M-row sample of auth.txt.gz only.
+- Universe: every account that passes the filter anywhere in the 58 days (as CERT's users = everyone in the
+  daily table, including people first seen in the test period).
+- Login (primary): an auth row with auth_orientation = LogOn, because CERT's person x computer table
+  (build_tables.py, pc_pairs) keeps only Logon activity. Secondary: every auth row of the person (any
+  orientation, success or failure).
+- Destination computer = dst_computer. Day = time // 86400 (days 0 to 57). Week = day // 7 (LANL has no
+  calendar; week 0 = days 0 to 6). Hour = (time % 86400) // 3600; the clock offset is unknown.
+- Tables in data/cache/lanl/ (git-ignored): person x destination x day (events, LogOn events, failures),
+  person x source x day, person x day activity counts, person x day x hour counts. Build (12.5 min, label-free): 331,505,551 person
+  rows; 16,759 people; 16,884 computers; 5,577,395 person x destination x day rows; days 0 to 57; the sum of
+  events over the pair table equals the person row count (checked by an assertion).
+
+
+2. Split (chosen without labels)
+--------------------------------
+- Primary: train on days 0 to 13 (two full weeks), test on days 14 to 57.
+- Sensitivity: train 0 to 6 / test 7 to 57; train 0 to 20 / test 21 to 57.
+- No gap between training and test. (CERT dropped the partial cutoff week because its cutoff date fell
+  mid-week; here every cutoff is a week boundary.)
+- Red-team activity inside the training window: all training data are kept, as an unsupervised system would
+  keep them. Graded positives = accounts in the person universe with at least one red-team row on a test
+  day. Accounts with red-team rows only in training stay in the ranking as non-positives (conservative) and
+  are counted. Reported: how many positives also have red-team rows in training.
+- Red-team rows whose account is not in the person universe are not gradable; they are counted and
+  reported, never silently dropped.
+
+
+3. Methods (CERT's frozen settings, unchanged)
+----------------------------------------------
+Every method is scored on each (person, destination, day) row of the test period; rows are distinct
+(person, computer, day) triples, exactly like CERT's pc_te.
+
+M1  Snooping review (outofrole_minimal.py section 1b, unchanged):
+    - X = person x computer matrix over training rows, value log1p(distinct training days with that pair);
+      columns = computers seen in training; rows = the whole universe.
+    - Implicit ALS (Hu, Koren, Volinsky), rank 16, alpha 10, reg 0.1, 12 iterations, seed 0, same random
+      initialisation and normal equations as als() in outofrole_minimal.py.
+    - A test row is flagged when the computer is new to the person (no training row for the pair; a computer
+      unseen in training counts as new) AND surprise = 1 - clip(prediction, 0, 1) >= 0.5 (surprise = 1 for a
+      computer unseen in training).
+    - roam = the person's share of training rows whose computer is not their main computer (the one with the
+      most training rows); people without training rows get roam 0.
+    - Person score = number of test weeks with at least one flagged row / (1 + 50 x roam).
+M2  Any computer new to the person: M1 without the ALS condition (flag = new), same weekly count and
+    roamer discount.
+B0  Random: chance. Mean of 2000 random rankings (seed 7) and the analytic expectation k x P / N.
+B1  Computer rarity: flag = new to the person AND the destination was used by under 1% of the people with
+    training rows (CERT's label-free "evidence strength" rule; a computer unseen in training has share 0);
+    same weekly count and roamer discount as M1. B1 differs from M1 only in using rarity instead of the ALS
+    surprise.
+B2  Raw count of distinct destinations new to the person in the test period (no weeks, no discount).
+M3  (secondary, optional) Early-warning daily list, CERT section 1 unchanged: for each person and test day,
+    the trailing 7-day totals of 9 activity counts are compared with each of the person's active training
+    weeks (full weeks only: 2 at the primary cutoff, 1 at day 7, 3 at day 21; a thin reference, which is a
+    known weakness of this test); score = number of counts above every reference week (p >= 0.99) + 0.01 x
+    sum of percentiles; running score halving every 7 days; the 20 highest running scores (candidates with a
+    positive score, ties broken by seed-0 jitter) form each day's list. The 9 LANL counts mirror CERT's
+    where an analog exists: LogOn events, after-hours LogOn events, all events, after-hours events,
+    failures, events with source != destination, distinct LogOn destinations (CERT's n_pcs), distinct
+    destinations, distinct source computers. After hours = the 12 clock hours outside the busiest 12
+    consecutive hours (circular) of person events on training days (CERT: 07:00 to 19:00 is the day). Computed label-free in check mode for the
+    primary cutoff: the busiest block starts at hour 6, so after hours = hours 18 to 5; it is recomputed the
+    same way from each cutoff's own training days.
+
+Ties in every ranking are broken by CERT's jitter (seed 2, scale 1e-9), as in outofrole_minimal.top100.
+
+Implementation differences, none of them a change of method:
+- ALS runs on a sparse matrix with the per-row normal equations built by sparse products and solved in one
+  batch; check mode compares it with outofrole_minimal.als() on random matrices (300x200, 500x120 and 80x400: largest
+  difference 9.1e-15, no row changes side of the 0.5 surprise threshold; evidence/LANL/check.txt).
+- The main computer's ties are broken by the lowest computer code (CERT's code used an unstable sort).
+
+
+4. Label-free sanity check of the ALS setting (reported, never used to change M1)
+---------------------------------------------------------------------------------
+Train on days 0 to 6, predict the computers each person uses for the first time in days 7 to 13 (people with
+a training row only; computers unseen in days 0 to 6 count as misses); recall@5/20/50 of ALS (M1's setting)
+vs popularity (number of people using the computer), with owned computers masked, as in
+recommender_als_simple.py. It was run before hashing, on LogOn rows and on all rows (evidence/LANL/check.txt):
+  LogOn rows (9,367 people, 10,882 new pairs): popularity R@20 0.698, ALS 0.661 (R@5 0.587 vs 0.558).
+  All rows (12,065 people, 31,997 new pairs): popularity R@20 0.461, ALS 0.548 (R@50 0.681 vs 0.629).
+So the frozen setting is not broken at LANL scale, but on LogOn rows it does not beat popularity at
+predicting normal new computers. Whatever it shows, M1 keeps CERT's setting.
+
+
+5. Metrics
+----------
+Person level (end-of-period review; every person in the universe is ranked):
+- compromised accounts in the top 20, 50 and 100; average precision over all people (sklearn); chance
+  (B0), plus the one-sided hypergeometric p-value of each method's top-100 count against random.
+Event level (red-team logins):
+- Each red-team row on a test day is one red-team login. Red-team rows are matched to auth rows by (time,
+  source user, source computer, destination computer) in a second streaming pass, done after hashing.
+- A login is flagged by M1 when its (account, destination) pair is new to the account in training and the
+  ALS surprise is >= 0.5; by M2 when it is new; by B1 when it is new and rare.
+- Share of red-team logins flagged vs share of all other person logins on test days flagged (LogOn events
+  for the primary; all events for the secondary), with the auth rows matched to red-team rows removed from
+  the second share. Lift = the ratio. Also reported: how many red-team rows match at least one auth row and
+  the orientations of the matched rows.
+M3: an account is caught when it is on a daily list on any day from its first test-period red-team day
+  through its last red-team day (inclusive); CERT's stricter rule (on a list from the first red-team day up
+  to, not including, the last) is reported too. Chance = the expectation for uniform random 20-name lists.
+
+
+6. Decision rule (primary analysis: LogOn rows, train days 0 to 13)
+--------------------------------------------------------------------
+- TRANSFERS: M1's top-100 count is at least 5 x random's expected count (100 x P / N) AND its one-sided
+  hypergeometric p-value is below 0.001, AND M1's top-100 count is at least M2's.
+- PARTIAL (the novelty signal transfers, the recommender adds nothing): the first two conditions hold but
+  M1's top-100 count is below M2's.
+- DOES NOT TRANSFER: otherwise.
+M1 vs M2 vs B1 (rarity) vs B2 is reported in full either way, together with AP and the event-level lift.
+The sensitivity cutoffs, the all-events secondary and M3 are reported but do not change the verdict.
+
+
+7. Deviations
+-------------
+After hashing, any change to the split, the person filter, the login definition, a method or its
+constants, the metrics, the matching rule or the decision rule is a deviation. A bug fix is allowed only
+when it brings the code in line with this text; each one is logged in results.txt with the numbers before
+and after. Any analysis not listed here is labelled post hoc. Every run, failures included, is kept.

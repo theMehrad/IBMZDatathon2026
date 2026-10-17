@@ -12,8 +12,8 @@ the project in one minute · the data · what we built · which method runs at e
 
 | Folder | What is in it | When to use it |
 |---|---|---|
-| `code/` | `build_tables.py` (Spark: raw logs to three tables), `outofrole_minimal.py` (the whole system, every headline number in about 20 seconds), `case_file.py` (the Granite step), `checks/`, `experiments/` | To run or port the code; run in that order |
-| `evidence/` | `Verified_Numbers.md` (every number with its source), `Study_Notebook.ipynb` (the full study), `Research_Sources.md`, `Proposal_As_Submitted_Oct15.md`, `Reviews/` (11 outside review rounds) | To check a number, show the work, or cite a source |
+| `code/` | `build_tables.py` (Spark: raw logs to three tables), `outofrole_minimal.py` (the whole system, every headline number in 1 to 2 minutes per release), `case_file.py` (the Granite step), `checks/`, `experiments/` | To run or port the code; run in that order |
+| `evidence/` | `Verified_Numbers.md` (every number with its source), `Study_Notebook.ipynb` (the full study), `Research_Sources.md`, `Proposal_As_Submitted_Oct15.md`, `Reviews/` (11 outside review rounds), `LANL/` (pre-registered real-login test: the snooping review did not transfer) | To check a number, show the work, or cite a source |
 | `setup/` | `LinuxONE_Setup_Guide.pdf`, `Data_Download_Guide.pdf`, `IBM_Lab_Materials/` | Before and during the event |
 | `figures/` | The level-by-level visual used in the handbook | Slides and the video |
 | `web/` | Source of the online handbook page | Only to republish the page |

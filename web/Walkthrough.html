@@ -1,0 +1,1095 @@
+<title>OutOfRole Walkthrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: the handbook's 780px reading column with a sticky step rail; each step is one card with two fold-outs. */
+:root {
+  --bg: #f6f7f8; --surface: #ffffff; --fg: #1c2328; --muted: #5b6770; --line: #d9dee2;
+  --accent: #0f6e7a; --accent-soft: #e2f1f2; --base: #8b98a2; --base-soft: #eceff1;
+  --warn: #9a5b00; --warn-soft: #fbf0dd; --ok: #2c7a4b; --ok-soft: #e3f2e8; --ink-on-accent: #ffffff;
+  /* one colour per kind of model: statistics, recommender, language model, rule */
+  --k-stat: #0f6e7a; --k-stat-soft: #e2f1f2; --k-rec: #6447b8; --k-rec-soft: #eeeafb;
+  --k-llm: #b0396d; --k-llm-soft: #fbe9f1; --k-rule: #5b6770; --k-rule-soft: #eceff1;
+  --font-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12171a; --surface: #1a2125; --fg: #e4e9ec; --muted: #9aa7af; --line: #2c363c;
+  --accent: #5cc3cf; --accent-soft: #163135; --base: #6f7d86; --base-soft: #232c31;
+  --warn: #e8b25c; --warn-soft: #33281a; --ok: #6fcf97; --ok-soft: #173023; --ink-on-accent: #0b1a1d;
+  --k-stat: #5cc3cf; --k-stat-soft: #163135; --k-rec: #b3a3f5; --k-rec-soft: #262040; --k-llm: #f28fbd; --k-llm-soft: #3b1f2c; --k-rule: #9aa7af; --k-rule-soft: #232c31; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --fg: #e4e9ec; --muted: #9aa7af; --line: #2c363c;
+  --accent: #5cc3cf; --accent-soft: #163135; --base: #6f7d86; --base-soft: #232c31;
+  --warn: #e8b25c; --warn-soft: #33281a; --ok: #6fcf97; --ok-soft: #173023; --ink-on-accent: #0b1a1d;
+  --k-stat: #5cc3cf; --k-stat-soft: #163135; --k-rec: #b3a3f5; --k-rec-soft: #262040; --k-llm: #f28fbd; --k-llm-soft: #3b1f2c; --k-rule: #9aa7af; --k-rule-soft: #232c31; color-scheme: dark }
+
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--fg); font: 15.5px/1.6 var(--font-body); }
+.shell { max-width: 1120px; margin: 0 auto; padding-block: 36px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; grid-template-columns: 210px minmax(0, 780px); gap: 40px; justify-content: center; }
+nav.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start; font-size: 13.5px; }
+nav.rail .lbl { font: 600 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); display: block; margin: 0 0 10px; }
+nav.rail ol { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 5px; }
+nav.rail a { color: var(--muted); text-decoration: none; display: flex; gap: 8px; align-items: baseline; }
+nav.rail a b { font: 600 11px var(--font-mono); color: var(--accent); min-width: 14px; }
+nav.rail a:hover, nav.rail a:focus-visible { color: var(--accent); }
+main { min-width: 0; display: grid; gap: 14px; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+header.top { display: grid; gap: 10px; padding-bottom: 8px; }
+.eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 36px; line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 17.5px; color: var(--fg); max-width: 62ch; margin: 0; }
+.meta { font-size: 13px; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+h2 { font-size: 24px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-size: 16.5px; margin: 16px 0 4px; }
+p, li { max-width: 68ch; } p { margin: 8px 0; } ul, ol { padding-left: 22px; margin: 6px 0; } li { margin: 3px 0; }
+code { font: 13px var(--font-mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { font: 600 13px var(--font-body); padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--ink-on-accent); }
+
+/* sections */
+section.part { display: grid; gap: 6px; padding-top: 22px; border-top: 1px solid var(--line); scroll-margin-top: 16px; }
+.kicker { font: 600 11.5px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 6px; display: grid; gap: 4px; scroll-margin-top: 16px; }
+.step-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: start; }
+.num { grid-row: span 2; width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: var(--ink-on-accent);
+  font: 700 17px/38px var(--font-mono); text-align: center; }
+.oneline { color: var(--muted); font-size: 14.5px; margin: 0; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 2px; }
+.tag { font: 600 11px/1 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; padding: 5px 8px; border-radius: 999px; background: var(--base-soft); color: var(--muted); }
+.tag.ml { background: var(--accent-soft); color: var(--accent); }
+.why { background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+.why b { color: var(--accent); }
+.caveat { background: var(--warn-soft); border-radius: 10px; padding: 10px 14px; margin: 8px 0; font-size: 14.5px; }
+.caveat b { color: var(--warn); }
+
+/* result tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 10px 0; }
+.tile { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 2px; background: var(--surface); }
+.tile .v { font: 700 24px/1.15 var(--font-body); font-variant-numeric: tabular-nums; color: var(--accent); }
+.tile .v small { font-size: 14px; color: var(--muted); font-weight: 600; }
+.tile .k { font-size: 13px; color: var(--muted); line-height: 1.35; }
+
+/* fold-outs */
+details.fold { border-top: 1px solid var(--line); margin: 0 -20px; }
+details.fold > summary { list-style: none; cursor: pointer; padding: 11px 20px 11px 44px; position: relative; font-weight: 600; font-size: 14.5px; display: flex; gap: 8px; align-items: center; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::before { content: "+"; position: absolute; left: 20px; top: 10px; font: 600 16px var(--font-mono); color: var(--accent); }
+details.fold[open] > summary::before { content: "\2212"; }
+details.fold > summary .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+.foldbody { padding: 0 20px 14px 44px; display: grid; gap: 6px; }
+.foldbody dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; margin: 4px 0; font-size: 14.5px; }
+.foldbody dt { font: 600 12px/1.9 var(--font-mono); text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.foldbody dd { margin: 0; min-width: 0; }
+@media (max-width: 560px) { .foldbody dl { grid-template-columns: minmax(0, 1fr); gap: 2px; } .foldbody dd { margin-bottom: 8px; } .foldbody { padding-left: 20px; } }
+
+/* code blocks with copy */
+.code { position: relative; background: var(--base-soft); border: 1px solid var(--line); border-radius: 8px; margin: 6px 0; }
+.code pre { margin: 0; padding: 10px 12px; overflow-x: auto; font: 12.5px/1.55 var(--font-mono); white-space: pre; }
+.code .copy { position: absolute; top: 6px; right: 6px; font: 600 11px var(--font-mono); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; }
+.code .copy:hover { color: var(--accent); border-color: var(--accent); }
+
+/* tables */
+.scroll { overflow-x: auto; margin: 8px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+td { font-variant-numeric: tabular-nums; }
+td.n, th.n { text-align: right; }
+
+/* flow diagram: a shared trunk, then two tracks that run side by side */
+.flow2 { display: grid; gap: 8px; margin: 10px 0 4px; }
+.trunk, .chain { display: flex; align-items: center; gap: 6px; }
+.trunk > .node, .chain > .node, .chain > .stack { flex: 1 1 0; min-width: 0; }
+.arr { flex: 0 0 auto; text-align: center; color: var(--muted); font: 600 16px var(--font-mono); }
+.fork { color: var(--muted); font-size: 12.5px; text-align: center; }
+.ftrack { border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
+.trk { font: 600 10.5px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.stack { display: grid; gap: 6px; }
+.node { display: grid; gap: 2px; border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; background: var(--surface); color: var(--fg); text-decoration: none; font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+a.node:hover { border-color: var(--accent); }
+.node small { font-weight: 400; color: var(--muted); font-size: 12px; }
+.node i { font-style: normal; font: 600 10px var(--font-mono); text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+.node.end { background: var(--accent-soft); border-color: transparent; }
+.node.raw { background: var(--base-soft); border-color: transparent; }
+@media (max-width: 680px) { .trunk, .chain { flex-direction: column; align-items: stretch; } .trunk > .arr, .chain > .arr { transform: rotate(90deg); align-self: center; } }
+
+/* models: one colour per kind, an ID badge, a strip on each step, cards at a glance */
+.k-stat { --kc: var(--k-stat); --kc-soft: var(--k-stat-soft); } .k-rec { --kc: var(--k-rec); --kc-soft: var(--k-rec-soft); }
+.k-llm { --kc: var(--k-llm); --kc-soft: var(--k-llm-soft); } .k-rule, .k-none { --kc: var(--k-rule); --kc-soft: var(--k-rule-soft); }
+.mb { display: inline-block; font: 700 11.5px/1 var(--font-mono); padding: 4px 7px; border-radius: 6px; background: var(--kc-soft, var(--base-soft)); color: var(--kc, var(--muted)); border: 1px solid var(--kc, var(--line)); white-space: nowrap; }
+.node[class*="k-"] { border-left: 4px solid var(--kc); }
+.nh { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.mstrip { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; background: var(--kc-soft); border-radius: 10px; padding: 9px 12px; margin: 8px 0 4px; font-size: 14px; line-height: 1.45; }
+.mstrip .mb { font-size: 13px; padding: 6px 9px; }
+.mstrip b { color: var(--kc); }
+.klegend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); }
+.klegend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--kc); }
+.models { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin: 8px 0; }
+.mcard { border: 1px solid var(--line); border-top: 4px solid var(--kc); border-radius: 10px; padding: 10px 12px; display: grid; gap: 5px; align-content: start; background: var(--surface); color: var(--fg); text-decoration: none; }
+a.mcard:hover { border-color: var(--kc); }
+.mcard .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; } .mcard .top b { font-size: 14.5px; line-height: 1.25; flex: 1 1 100%; order: 3; }
+.stepno { margin-left: auto; font: 600 11px var(--font-mono); color: var(--muted); }
+.mcard.wide { grid-column: 1 / -1; border-top-style: dashed; }
+.mcard.wide dl { grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr) max-content minmax(0, 1fr); }
+@media (max-width: 700px) { .mcard.wide dl { grid-template-columns: max-content minmax(0, 1fr); } }
+.mcard dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 8px; margin: 0; font-size: 12.5px; line-height: 1.4; }
+.mcard dt { color: var(--muted); } .mcard dd { margin: 0; }
+.howto { margin: 0; padding-left: 20px; font-size: 12.5px; color: var(--muted); } .howto li { margin: 1px 0; }
+/* evidence score bars: the new part and the rarity part stacked */
+.ev { display: grid; gap: 8px; }
+.evrow { display: grid; grid-template-columns: minmax(0, 15em) minmax(0, 1fr) 3.2em; gap: 10px; align-items: center; font-size: 13.5px; }
+.evrow.top3 .evl { font-weight: 600; } .evrow:not(.top3) { opacity: .65; }
+.evbar { display: flex; height: 22px; border-radius: 5px; background: var(--base-soft); overflow: hidden; }
+.seg { width: var(--w); display: flex; align-items: center; padding: 0 6px; font: 600 11px var(--font-mono); white-space: nowrap; overflow: hidden; }
+.seg.new { background: var(--k-stat); color: var(--ink-on-accent); } .seg.rare { background: var(--k-stat-soft); color: var(--k-stat); }
+.evv { font: 700 13px var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .evrow { grid-template-columns: minmax(0, 1fr) 3.2em; } .evrow .evl { grid-column: 1 / -1; } }
+/* week boxes for the snooping review */
+.weeks { display: grid; gap: 10px; }
+.wrow { display: grid; grid-template-columns: minmax(0, 11em) auto minmax(0, 1fr); gap: 10px; align-items: center; font-size: 13.5px; }
+.wbox { display: flex; gap: 4px; } .wbox i { width: 20px; height: 20px; border-radius: 4px; background: var(--base-soft); border: 1px solid var(--line); }
+.wbox i.on { background: var(--k-rec); border-color: var(--k-rec); }
+.wcalc { font: 600 12.5px var(--font-mono); color: var(--muted); } .wcalc b { color: var(--k-rec); }
+@media (max-width: 600px) { .wrow { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+
+/* in-short box and the LLM section */
+.inshort { border: 1px solid var(--accent); border-radius: 10px; padding: 10px 14px; margin: 8px 0; display: grid; gap: 4px; }
+.inshort > span { font: 600 10.5px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.inshort ol, .inshort p { margin: 0; }
+.llm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin: 8px 0; }
+.lbox { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; gap: 4px; align-content: start; background: var(--surface); }
+.lbox b { font-size: 15px; } .lbox > span:last-child { font-size: 14px; color: var(--muted); line-height: 1.45; }
+.st { justify-self: start; font: 600 10.5px/1 var(--font-mono); letter-spacing: .05em; text-transform: uppercase; padding: 5px 8px; border-radius: 999px; }
+.st.now { background: var(--ok-soft); color: var(--ok); } .st.plan { background: var(--warn-soft); color: var(--warn); }
+.judge { display: flex; align-items: center; gap: 6px; margin: 8px 0; }
+.judge > .node { flex: 1 1 0; min-width: 0; }
+.judge > .stack { flex: 1.4 1 0; min-width: 0; }
+@media (max-width: 680px) { .judge { flex-direction: column; align-items: stretch; } .judge > .arr { transform: rotate(90deg); align-self: center; } }
+
+/* timeline */
+.timeline { display: grid; gap: 12px; margin: 10px 0; }
+.tl-row { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; align-items: center; }
+.tl-row > span { font: 600 12px var(--font-mono); color: var(--muted); }
+.tl-bar { display: flex; height: 34px; border-radius: 8px; overflow: hidden; font-size: 12px; font-weight: 600; }
+.tl-train { background: var(--base-soft); color: var(--muted); display: flex; align-items: center; padding: 0 8px; border-right: 3px solid var(--warn); white-space: nowrap; overflow: hidden; }
+.tl-test { background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; padding: 0 10px; flex: 1; white-space: nowrap; overflow: hidden; }
+.tl-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.tl-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+
+/* bar charts (CSS, widths are value / maximum) */
+.chart { display: grid; gap: 8px; margin: 10px 0; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.chart-title { font-weight: 600; font-size: 14.5px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+.bars { display: grid; gap: 10px; }
+.bgroup { display: grid; grid-template-columns: 122px minmax(0, 1fr); gap: 3px 12px; align-items: center; }
+.bars.three .bgroup .bl { grid-row: span 3; }
+.bgroup .bl { grid-row: span 2; font-size: 13.5px; font-weight: 600; line-height: 1.25; }
+.bgroup .bl small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.brow { display: grid; grid-template-columns: minmax(0, 1fr) 76px; gap: 8px; align-items: center; }
+.track { height: 14px; border-radius: 4px; background: var(--base-soft); overflow: hidden; }
+.fill { height: 100%; border-radius: 4px; background: var(--c, var(--accent)); width: var(--w); }
+.bv { font: 600 12.5px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+.bv.hi { color: var(--accent); }
+@media (max-width: 480px) { .bgroup { grid-template-columns: minmax(0, 1fr); } .bgroup .bl { grid-row: auto; } }
+
+/* illustrations */
+figure.ill { margin: 10px 0; border: 1px dashed var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; }
+figure.ill figcaption { font-size: 12.5px; color: var(--muted); }
+.ill-tag { font: 600 10.5px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--warn); }
+.svgwrap { overflow-x: auto; }
+.svgwrap svg { display: block; width: 100%; min-width: 460px; height: auto; }
+svg .t { font: 12px var(--font-body); fill: var(--muted); }
+svg .tb { font: 600 12px var(--font-body); fill: var(--fg); }
+svg .ta { font: 600 12px var(--font-body); fill: var(--accent); }
+svg .tw { font: 600 12px var(--font-body); fill: var(--warn); }
+
+/* ALS matrix */
+.mx { border-collapse: separate; border-spacing: 3px; width: auto; font: 12px var(--font-mono); }
+.mx th, .mx td { border: 0; padding: 0; text-align: center; width: 46px; height: 30px; }
+.mx th { font: 600 11px var(--font-mono); color: var(--muted); text-transform: none; letter-spacing: 0; }
+.mx td { border-radius: 6px; background: var(--base-soft); color: var(--muted); }
+.mx td.u { background: var(--accent); color: var(--ink-on-accent); font-weight: 600; }
+.mx td.p { background: var(--accent-soft); color: var(--accent); }
+.mx td.f { background: var(--warn-soft); color: var(--warn); outline: 2px solid var(--warn); font-weight: 700; }
+
+/* case-file outcome boxes */
+.gbox { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font-size: 13px; line-height: 1.4; display: grid; gap: 2px; min-width: 0; }
+.gbox b { font-size: 13.5px; }
+.gbox.ok { background: var(--ok-soft); border-color: transparent; } .gbox.ok b { color: var(--ok); }
+.gbox.no { background: var(--warn-soft); border-color: transparent; } .gbox.no b { color: var(--warn); }
+
+/* attack cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 8px 0; }
+.card { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); display: grid; gap: 3px; align-content: start; }
+.card b { font-size: 14.5px; } .card span { font-size: 13px; color: var(--muted); line-height: 1.4; }
+.card em { font: 600 10.5px var(--font-mono); font-style: normal; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+
+/* say / not */
+.say { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 14px; }
+.say > div { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.say > div:nth-last-child(-n+2) { border-bottom: 0; }
+.say .h { font: 600 11px var(--font-mono); text-transform: uppercase; letter-spacing: .06em; }
+.say .yes { background: var(--ok-soft); } .say .no { background: var(--warn-soft); }
+.say .yes.h { color: var(--ok); } .say .no.h { color: var(--warn); }
+@media (max-width: 560px) { .say { font-size: 13px; } }
+blockquote.pitch { margin: 8px 0; padding: 12px 16px; border-left: 3px solid var(--accent); background: var(--surface); border-radius: 0 10px 10px 0; font-size: 15.5px; }
+
+/* runbook */
+ol.runbook { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 10px; counter-reset: rb; }
+ol.runbook > li { max-width: none; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; counter-increment: rb; }
+ol.runbook > li > input { grid-row: span 3; width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--accent); cursor: pointer; }
+ol.runbook > li > label { font-weight: 700; cursor: pointer; }
+ol.runbook > li > label::before { content: counter(rb) ". "; color: var(--accent); font-family: var(--font-mono); }
+ol.runbook > li > div { min-width: 0; font-size: 14.5px; }
+ol.runbook > li.done { background: var(--ok-soft); border-color: transparent; }
+ol.runbook > li.done > label { text-decoration: line-through; text-decoration-color: var(--ok); }
+.progress { font: 600 12.5px var(--font-mono); color: var(--muted); }
+.check { color: var(--ok); font-weight: 700; }
+details.gl { border-top: 1px solid var(--line); }
+details.gl > summary { cursor: pointer; padding: 8px 0; font-weight: 600; }
+details.gl > p { margin: 0 0 10px; }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  nav.rail { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); padding-block: 8px; border-bottom: 1px solid var(--line);
+    display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  nav.rail .lbl { display: none; }
+  nav.rail ol { display: flex; gap: 6px; margin: 0; flex: 0 0 auto; }
+  nav.rail a { white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; background: var(--surface); font-size: 12.5px; }
+  h1 { font-size: 29px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+
+<div class="shell">
+<nav class="rail" aria-label="Contents">
+  <span class="lbl">Start here</span>
+  <ol>
+    <li><a href="#goal">The goal</a></li>
+    <li><a href="#data">The data</a></li>
+    <li><a href="#rules">The rules of the test</a></li>
+  </ol>
+  <span class="lbl">The build, step by step</span>
+  <ol>
+    <li><a href="#s1"><b>1</b>Build the tables</a></li>
+    <li><a href="#s2"><b>2</b>Daily review list</a></li>
+    <li><a href="#s3"><b>3</b>Snooping review</a></li>
+    <li><a href="#s4"><b>4</b>Rank the evidence</a></li>
+    <li><a href="#s5"><b>5</b>Granite case file</a></li>
+    <li><a href="#s6"><b>6</b>Access advice</a></li>
+    <li><a href="#s7"><b>7</b>New-site rule</a></li>
+    <li><a href="#s8"><b>8</b>Grade and check</a></li>
+    <li><a href="#llm"><b>+</b>The LLM's role</a></li>
+  </ol>
+  <span class="lbl">Finish</span>
+  <ol>
+    <li><a href="#output">What we deliver</a></li>
+    <li><a href="#present">How to present it</a></li>
+    <li><a href="#runbook">Runbook: LinuxONE</a></li>
+    <li><a href="#glossary">Glossary</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="top">
+  <span class="eyebrow">The Debugging Table · IBM Z Datathon 2026 · AI Secured track</span>
+  <h1>OutOfRole, step by step</h1>
+  <p class="lede">We catch employees who misuse access they legitimately have, while they are still doing it. Every alert comes with checked evidence that IBM Granite labels but cannot make up, and a recommender keeps everyone's access lean. All of it runs on one IBM LinuxONE server.</p>
+  <div class="meta">
+    <span>About 15 minutes to read</span>
+    <div class="controls">
+      <button class="btn" type="button" id="openAll">Open every fold-out</button>
+      <button class="btn" type="button" id="closeAll">Close them all</button>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================ GOAL -->
+<section class="part" id="goal">
+  <span class="kicker">Start here</span>
+  <h2>The goal</h2>
+  <p>Some employees misuse access they are allowed to have. They copy files to a USB stick before quitting, upload documents to a leak site, or log into colleagues' computers to snoop. Their logins are valid, so simple rules either miss them or bury the security team in alerts.</p>
+  <p>We want three things:</p>
+  <ul>
+    <li><b>A short list.</b> Every day, the 20 people most worth a look, small enough for a team to review.</li>
+    <li><b>Early.</b> The person should show up while the attack is still going on, so there is still something to stop. We call this <b>caught in time</b>.</li>
+    <li><b>Explained and safe.</b> Each name comes with the evidence behind it, the AI cannot invent facts, and no data leaves the server.</li>
+  </ul>
+  <div class="tiles">
+    <div class="tile"><span class="v">80 <small>of 99</small></span><span class="k">insiders caught in time on the test release (r5.2)</span></div>
+    <div class="tile"><span class="v">40 <small>of 99</small></span><span class="k">caught by a standard baseline with the same 20-name list</span></div>
+    <div class="tile"><span class="v">82x</span><span class="k">how much more often an active insider is on the list than a normal employee</span></div>
+  </div>
+  <p class="small muted">On the tuning release (r4.2) we tie the baseline at 59 of 70. Step 8 explains why the two releases differ.</p>
+
+  <h3>The whole system on one page</h3>
+  <p>The tables from step 1 feed two tracks that run side by side. Steps are numbered along track A first, then track B; track B never feeds steps 4 and 5. Click any box to jump to its step.</p>
+  <div class="flow2" role="group" aria-label="Pipeline overview">
+    <div class="trunk">
+      <div class="node raw">Raw logs<small>logons, USB, file copies, web visits</small></div>
+      <span class="arr" aria-hidden="true">&rarr;</span>
+      <a class="node k-none" href="#s1"><span class="nh"><i>Step 1</i><span class="mb">no model</span></span>Spark builds three tables<small>daily counts, computers used, websites visited</small></a>
+    </div>
+    <div class="fork" aria-hidden="true">&darr; the same tables feed both tracks &darr;</div>
+    <div class="ftrack">
+      <span class="trk">Track A · find insiders and explain why</span>
+      <div class="chain">
+        <div class="stack">
+          <a class="node k-stat" href="#s2"><span class="nh"><i>Step 2</i><span class="mb">M1</span></span>Daily review list<small>20 names a day</small></a>
+          <a class="node k-rec" href="#s3"><span class="nh"><i>Step 3</i><span class="mb">M2</span></span>Snooping review<small>periodic report</small></a>
+        </div>
+        <span class="arr" aria-hidden="true">&rarr;</span>
+        <a class="node k-stat" href="#s4"><span class="nh"><i>Step 4</i><span class="mb">M3</span></span>Rank the evidence<small>top facts per person</small></a>
+        <span class="arr" aria-hidden="true">&rarr;</span>
+        <a class="node k-llm" href="#s5"><span class="nh"><i>Step 5</i><span class="mb">M4</span></span>Granite case file<small>label + cited facts</small></a>
+        <span class="arr" aria-hidden="true">&rarr;</span>
+        <div class="node end">Security analyst<small>works the list with case files</small></div>
+      </div>
+    </div>
+    <div class="ftrack">
+      <span class="trk">Track B · keep access lean</span>
+      <div class="chain">
+        <div class="stack">
+          <a class="node k-rec" href="#s6"><span class="nh"><i>Step 6</i><span class="mb">M5</span></span>Access advice<small>pre-approve likely sites</small></a>
+          <a class="node k-rule" href="#s7"><span class="nh"><i>Step 7</i><span class="mb">R1</span></span>New-site rule<small>hold never-seen sites</small></a>
+        </div>
+        <span class="arr" aria-hidden="true">&rarr;</span>
+        <div class="node end">Access admin<small>pre-approve, review, hold</small></div>
+      </div>
+    </div>
+    <div class="klegend" aria-label="Colour key"><span class="k-stat">statistics</span><span class="k-rec">recommender (ALS)</span><span class="k-llm">language model (Granite)</span><span class="k-rule">rule or no model</span></div>
+  </div>
+  <p class="small muted">Step 8 (grading) sits outside both tracks: it is how we measured all of this, and the only place the answer key is used.</p>
+
+  <h3 id="models">The models, at a glance</h3>
+  <p>Five models and one rule, each with an ID used everywhere on this page. None of them learns from the answer key.</p>
+  <div class="models">
+    <a class="mcard k-stat" href="#s2"><span class="top"><span class="mb">M1</span><span class="stepno">step 2</span><b>Own-history percentile</b></span><dl><dt>Kind</dt><dd>statistics; one small model per person</dd><dt>Learns</dt><dd>each person's own weekly activity in training</dd><dt>Gives</dt><dd>a daily score; the top 20 are the list</dd></dl></a>
+    <a class="mcard k-rec" href="#s3"><span class="top"><span class="mb">M2</span><span class="stepno">step 3</span><b>Person &times; computer recommender</b></span><dl><dt>Kind</dt><dd>implicit ALS (collaborative filtering)</dd><dt>Learns</dt><dd>who logged into which computer in training</dd><dt>Gives</dt><dd>how unexpected each login is for that person</dd></dl></a>
+    <a class="mcard k-stat" href="#s4"><span class="top"><span class="mb">M3</span><span class="stepno">step 4</span><b>New-to-you, rarest-first scorer</b></span><dl><dt>Kind</dt><dd>frequency statistics; no training</dd><dt>Learns</dt><dd>who did what in training</dd><dt>Gives</dt><dd>the top facts for each flagged person</dd></dl></a>
+    <a class="mcard k-llm" href="#s5"><span class="top"><span class="mb">M4</span><span class="stepno">step 5</span><b>IBM Granite</b></span><dl><dt>Kind</dt><dd>large language model, used as a checked classifier</dd><dt>Learns</dt><dd>nothing from our data; reads one evidence pack</dd><dt>Gives</dt><dd>a label + fact IDs; planned: orders the day's list as final judge</dd></dl></a>
+    <a class="mcard k-rec" href="#s6"><span class="top"><span class="mb">M5</span><span class="stepno">step 6</span><b>Person &times; website recommender</b></span><dl><dt>Kind</dt><dd>implicit ALS; retrained monthly</dd><dt>Learns</dt><dd>who visited which website</dd><dt>Gives</dt><dd>each person's 20 most likely next sites</dd></dl></a>
+    <a class="mcard k-rule" href="#s7"><span class="top"><span class="mb">R1</span><span class="stepno">step 7</span><b>New-site rule</b></span><dl><dt>Kind</dt><dd>a rule, not ML</dd><dt>Learns</dt><dd>the list of sites seen in training</dd><dt>Gives</dt><dd>a hold on never-seen sites</dd></dl></a>
+    <a class="mcard k-rule wide" href="#s8"><span class="top"><span class="mb">B0</span><span class="stepno">step 8</span><b>28-day baseline: the bar to beat, not part of the system</b></span><dl><dt>Kind</dt><dd>statistics; the standard method we must beat</dd><dt>Learns</dt><dd>each person's daily rates in training</dd><dt>Gives</dt><dd>its own 20-name list, for comparison only</dd></dl></a>
+  </div>
+</section>
+
+<!-- ============================================================ DATA -->
+<section class="part" id="data">
+  <span class="kicker">Start here</span>
+  <h2>The data</h2>
+  <p>We use the <b>CERT Insider Threat dataset</b> from Carnegie Mellon, the standard benchmark for this problem. It is synthetic: generated logs of a fake company, plus a separate <b>answer key</b> that names the insiders and lists what they did. We use two releases.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Release</th><th class="n">Staff</th><th class="n">Insiders</th><th>Logs cover</th><th>Our use</th></tr></thead>
+    <tbody>
+      <tr><td><b>r4.2</b></td><td class="n">1,000</td><td class="n">70</td><td>about 17 months</td><td>every setting was chosen here</td></tr>
+      <tr><td><b>r5.2</b></td><td class="n">2,000</td><td class="n">99</td><td>about 17 months</td><td>the test: settings frozen, run unchanged</td></tr>
+    </tbody>
+  </table></div>
+  <h3>The four kinds of insider</h3>
+  <div class="cards">
+    <div class="card"><em>both releases</em><b>Leakers</b><span>Start working after hours, use USB sticks, upload data to wikileaks.org.</span></div>
+    <div class="card"><em>both releases</em><b>Job-hunters</b><span>Browse job sites, copy data to USB more than before, then leave.</span></div>
+    <div class="card"><em>both releases</em><b>Disgruntled sysadmins</b><span>Download a keylogger, plant it on a supervisor's computer, use the stolen login.</span></div>
+    <div class="card"><em>r5.2 only</em><b>Snoopers</b><span>Log into colleagues' computers, search for files, email them home, more and more often.</span></div>
+  </div>
+  <h3>What we read from it</h3>
+  <div class="scroll"><table>
+    <thead><tr><th>File</th><th>Columns we read</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><code>logon.csv</code></td><td>date, user, pc, activity (Logon rows only)</td><td>logons, after-hours logons, which computers</td></tr>
+      <tr><td><code>device.csv</code></td><td>date, user, pc, activity (Connect rows only; r5.2's extra file_tree column is ignored)</td><td>USB use</td></tr>
+      <tr><td><code>file.csv</code></td><td>date, user, pc; in r5.2 also <code>to_removable_media</code> (kept when True)</td><td>file copies to removable media</td></tr>
+      <tr><td><code>http.csv</code></td><td>date, user, pc, url (cut down to the website domain)</td><td>web visits, which websites</td></tr>
+      <tr><td><code>LDAP/</code></td><td>monthly staff lists: role, department, team</td><td>only the role-change check in step 8</td></tr>
+      <tr><td><code>email.csv</code>, <code>psychometric.csv</code></td><td>(not read)</td><td>not used</td></tr>
+      <tr><td><code>answers/</code></td><td><code>insiders.csv</code> (release, scenario, user, start, end) and one event file per insider</td><td><b>grading only</b>, never to build or tune</td></tr>
+    </tbody>
+  </table></div>
+  <h3>The features we compute</h3>
+  <p>For each person and day we count nine activities. These nine numbers are the whole input of the main detector.</p>
+  <div class="tags" aria-label="The nine activities">
+    <span class="tag ml">logons</span><span class="tag ml">after-hours logons</span><span class="tag ml">USB connects</span><span class="tag ml">after-hours USB</span><span class="tag ml">file copies</span><span class="tag ml">after-hours file copies</span><span class="tag ml">web visits</span><span class="tag ml">after-hours web</span><span class="tag ml">distinct computers used</span>
+  </div>
+  <p class="small muted">"After hours" means before 7:00 or from 19:00 on. The recommender steps also use two lists: which computers each person logged into, and which websites each person visited.</p>
+  <div class="caveat"><b>Never commit or share the data.</b> The CERT license forbids redistribution, so <code>data/</code> is git-ignored. Everyone downloads it themselves (runbook step 4). This page shows no real rows; every example below is made up.</div>
+  <p>We also ran our methods on a second, <b>real</b> dataset from Los Alamos National Laboratory (LANL): 58 days of logins by 16,759 people, with 749 logins by a red team that attacked the network on purpose. The result is in step 8.</p>
+</section>
+
+<!-- ============================================================ RULES -->
+<section class="part" id="rules">
+  <span class="kicker">Start here</span>
+  <h2>The rules of the test</h2>
+  <p>A detector is easy to fool yourself with. These rules keep the numbers honest.</p>
+  <div class="timeline" aria-label="Training and replay periods, drawn to scale over 17 months">
+    <div class="tl-row"><span>r4.2</span><div class="tl-bar"><div class="tl-train" style="width:29%">Training: learn normal</div><div class="tl-test">Replay from 1 Jun 2010, one day at a time</div></div></div>
+    <div class="tl-row"><span>r5.2</span><div class="tl-bar"><div class="tl-train" style="width:18%">Training</div><div class="tl-test">Replay from 1 Apr 2010, one day at a time</div></div></div>
+    <div class="tl-legend"><span style="--c: var(--base-soft)">training months (Jan 2010 to the cutoff)</span><span style="--c: var(--warn)">cutoff</span><span style="--c: var(--accent-soft)">replay, as if live, to May 2011</span></div>
+  </div>
+  <ol>
+    <li><b>Time only moves forward.</b> We learn what normal looks like from the training months. Then we replay the later months day by day, and on each day the code may use only the past.</li>
+    <li><b>The answer key is only for grading.</b> Nothing is fitted to it. A real company never has a list of its insiders.</li>
+    <li><b>Tune once, then freeze.</b> Every setting was chosen on r4.2, then run on r5.2 unchanged. That makes r5.2 the fairer test.</li>
+    <li><b>Same budget for everyone.</b> Every method we compare gets the same 20-name daily list.</li>
+    <li><b>"Caught in time"</b> means the insider appears on the list at least once between their first and last malicious action.</li>
+  </ol>
+</section>
+
+<!-- ============================================================ STEP 1 -->
+<section class="part" id="steps">
+  <span class="kicker">The build, step by step</span>
+  <h2>Eight steps, in the order they run</h2>
+  <p>Each step says what it does, why it works and what it achieved. Two fold-outs follow: <b>How we did it</b> (code, columns, settings) and <b>On LinuxONE</b> (what changes on the IBM server).</p>
+</section>
+
+<article class="step" id="s1">
+  <div class="step-head"><span class="num">1</span><h2>Build the tables</h2><p class="oneline">Turn about 15 GB (r4.2) or 31 GB (r5.2) of raw logs into three small tables that everything else reads.</p></div>
+  <div class="mstrip k-none"><span class="mb">no model</span><span><b>Spark</b> data processing: counting and joining; nothing is learned</span></div>
+  <p>Spark reads the four big log files and counts, for every person and every day, the nine activities above. It also writes two lists: who logged into which computer on which day, and who visited which website on which day.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Table</th><th>One row per</th><th>Columns</th></tr></thead>
+    <tbody>
+      <tr><td><code>daily</code></td><td>person, day</td><td>user, day, n_logon, n_logon_ah, n_pcs, n_usb, n_usb_ah, n_file, n_file_ah, n_http, n_http_ah</td></tr>
+      <tr><td><code>pc_pairs</code></td><td>person, day, computer</td><td>user, day, pc</td></tr>
+      <tr><td><code>dom_pairs</code></td><td>person, day, website</td><td>user, day, domain, n (visits)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="why"><b>Why it matters:</b> the raw logs are too big to read again and again. After this step the whole scoring program runs in 1 to 2 minutes per release on a laptop.</div>
+  <details class="fold"><summary>How we did it <span class="hint">code/build_tables.py</span></summary><div class="foldbody">
+    <dl>
+      <dt>Code</dt><dd><code>code/build_tables.py</code> (53 lines; same logic as Step 1 of the study notebook)</dd>
+      <dt>Reads</dt><dd><code>data/r4.2/r4.2/{logon,device,file,http}.csv</code> (or r5.2)</dd>
+      <dt>Writes</dt><dd>Parquet folders <code>data/cache/r4.2/{daily,pc_pairs,dom_pairs}</code></dd>
+      <dt>Rules</dt><dd>Logons: rows with activity = Logon. USB: activity = Connect. Files: every row in r4.2; in r5.2 only rows with <code>to_removable_media</code> = True. Websites: the domain from the URL, lower case, without <code>www.</code>. After hours: hour before 7 or from 19.</dd>
+      <dt>Run</dt><dd><code>python code/build_tables.py 4.2</code>, then the same with <code>5.2</code></dd>
+    </dl>
+  </div></details>
+  <details class="fold"><summary>On LinuxONE <span class="hint">Java 17 + PySpark</span></summary><div class="foldbody" data-l1="s1">
+    <dl>
+      <dt>Install</dt><dd>Java 17 (<code>openjdk-17-jre-headless</code>) and PySpark 3.5.9 in a Python venv. PySpark is pure Python, so it installs on IBM Z.</dd>
+      <dt>Then</dt><dd>Run <code>code/tables_to_csv.py</code> after each build. pandas has no Parquet reader on IBM Z (pyarrow has no s390x build), so Spark also writes a plain CSV copy, and the scoring program reads that copy automatically. We checked that both paths print identical results.</dd>
+      <dt>Memory</dt><dd>The VM has 8 GB, so run with <code>SPARK_DRIVER_MEMORY=4g</code>.</dd>
+      <dt>Disk</dt><dd>The VM has 50 GB. r4.2 needs about 20 GB while extracting. r5.2 does not fit whole: extract it without the web pages' text column (runbook step 9), or build its tables on a laptop and copy the 56 MB result.</dd>
+      <dt>Check</dt><dd>r4.2 should give <code>daily</code> 330,285 rows, <code>pc_pairs</code> 380,476 and <code>dom_pairs</code> 9,043,275.</dd>
+    </dl>
+  </div></details>
+</article>
+
+<!-- ============================================================ STEP 2 -->
+<article class="step" id="s2">
+  <div class="step-head"><span class="num">2</span><h2>The daily review list</h2><p class="oneline">Compare each person's last week with their own normal weeks; list the 20 most unusual people every day.</p></div>
+  <div class="mstrip k-stat"><span class="mb">M1</span><span><b>Own-history percentile model.</b> Statistics, unsupervised, one small model per person. Learns from that person's own training weeks only.</span></div>
+  <div class="inshort"><span>In short</span><ol>
+    <li>From the training months, keep each person's weekly totals of the nine activities: their own "normal weeks".</li>
+    <li>Every day, total each person's last 7 days. An activity counts when it beats <b>every</b> one of their normal weeks.</li>
+    <li>Add the count to a running score that halves each week. The 20 highest scores are that day's list.</li>
+  </ol></div>
+  <p>For every person we keep their weekly totals from the training months, one number per activity per week. Each day of the replay we add up their <b>last 7 days</b>. If an activity is higher than <b>every one</b> of that person's normal weeks, it counts as unusual. The day's score is the number of unusual activities.</p>
+  <figure class="ill">
+    <span class="ill-tag">Illustration, made-up numbers</span>
+    <b>&#9312; Is this week unusual? (one person, one activity)</b>
+    <div class="svgwrap">
+      <svg viewBox="0 0 560 190" role="img" aria-label="Twenty grey dots for normal weeks of USB connects, all at 4 or below; a teal bar for the last 7 days at 9, above the dashed line for the highest normal week">
+        <line x1="40" y1="150" x2="540" y2="150" stroke="var(--line)"/>
+        <line x1="40" y1="20" x2="40" y2="150" stroke="var(--line)"/>
+        <text class="t" x="34" y="154" text-anchor="end">0</text><text class="t" x="34" y="98" text-anchor="end">4</text><text class="t" x="34" y="28" text-anchor="end">9</text>
+        <line x1="40" y1="94" x2="540" y2="94" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text class="tw" x="46" y="87">highest normal week</text>
+        <g fill="var(--base)">
+          <circle cx="58" cy="150" r="5"/><circle cx="76" cy="136" r="5"/><circle cx="94" cy="150" r="5"/><circle cx="112" cy="122" r="5"/><circle cx="130" cy="136" r="5"/>
+          <circle cx="148" cy="150" r="5"/><circle cx="166" cy="108" r="5"/><circle cx="184" cy="136" r="5"/><circle cx="202" cy="122" r="5"/><circle cx="220" cy="150" r="5"/>
+          <circle cx="238" cy="136" r="5"/><circle cx="256" cy="136" r="5"/><circle cx="274" cy="122" r="5"/><circle cx="292" cy="150" r="5"/><circle cx="310" cy="94" r="5"/>
+          <circle cx="328" cy="136" r="5"/><circle cx="346" cy="150" r="5"/><circle cx="364" cy="122" r="5"/><circle cx="382" cy="136" r="5"/><circle cx="400" cy="108" r="5"/>
+        </g>
+        <text class="t" x="229" y="172" text-anchor="middle">20 normal weeks from training (USB connects per week)</text>
+        <rect x="460" y="24" width="44" height="126" rx="4" fill="var(--k-stat)"/>
+        <text class="ta" x="482" y="172" text-anchor="middle">last 7 days</text>
+        <text class="tb" x="482" y="17" text-anchor="middle">9: counts</text>
+      </svg>
+    </div>
+    <ol class="howto"><li>Each grey dot is one normal week of this person.</li><li>The teal bar is their last 7 days.</li><li>It is above every dot, so "USB connects" counts as 1 unusual activity today. The same is checked for all nine activities.</li></ol>
+    <b>&#9313; Does it last? (the running score)</b>
+    <div class="svgwrap">
+      <svg viewBox="0 0 560 205" style="overflow: visible" role="img" aria-label="Over 21 days, the person is unusual on days 5 to 9. The running score climbs above the dashed cut-off on day 7, stays above it to day 14, then fades.">
+        <rect x="182.9" y="20" width="190.5" height="140" fill="var(--k-stat-soft)"/>
+        <text class="ta" x="278.1" y="14" text-anchor="middle">on the list, days 7 to 14</text>
+        <line x1="40" y1="160" x2="540" y2="160" stroke="var(--line)"/>
+        <line x1="40" y1="18" x2="40" y2="160" stroke="var(--line)"/>
+        <text class="t" x="34" y="164" text-anchor="end">0</text><text class="t" x="34" y="100" text-anchor="end">5</text><text class="t" x="34" y="37" text-anchor="end">10</text>
+        <rect x="140.1" y="134.5" width="14" height="25.5" rx="2" fill="var(--base)"/><rect x="164.0" y="134.5" width="14" height="25.5" rx="2" fill="var(--base)"/><rect x="187.8" y="121.8" width="14" height="38.2" rx="2" fill="var(--base)"/><rect x="211.6" y="121.8" width="14" height="38.2" rx="2" fill="var(--base)"/><rect x="235.4" y="134.5" width="14" height="25.5" rx="2" fill="var(--base)"/>
+        <line x1="40" y1="83.6" x2="540" y2="83.6" stroke="var(--warn)" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <text class="tw" x="536" y="77.6" text-anchor="end">cut-off: 20th-highest score today</text>
+        <polyline points="51.9,160.0 75.7,160.0 99.5,160.0 123.3,160.0 147.1,134.5 171.0,111.5 194.8,77.9 218.6,47.4 242.4,32.6 266.2,44.6 290.0,55.5 313.8,65.3 337.6,74.3 361.4,82.4 385.2,89.7 409.0,96.3 432.9,102.3 456.7,107.7 480.5,112.7 504.3,117.1 528.1,121.2" fill="none" stroke="var(--k-stat)" stroke-width="2.5" stroke-linejoin="round"/>
+        <text class="t" x="51.9" y="178" text-anchor="middle">day 1</text><text class="t" x="194.8" y="178" text-anchor="middle">7</text><text class="t" x="361.4" y="178" text-anchor="middle">14</text><text class="t" x="528.1" y="178" text-anchor="middle">21</text>
+        <rect x="60" y="188" width="12" height="10" rx="2" fill="var(--base)"/><text class="t" x="78" y="197">today's count of unusual activities</text>
+        <line x1="300" y1="193" x2="320" y2="193" stroke="var(--k-stat)" stroke-width="2.5"/><text class="t" x="326" y="197">running score</text>
+      </svg>
+    </div>
+    <ol class="howto"><li>Grey bars: on days 5 to 9 the person has 2 or 3 unusual activities.</li><li>Teal line: each day it keeps 91% of yesterday's value (half after 7 days) and adds today's bar.</li><li>While the line is above the dashed cut-off, the person is in today's top 20. A one-day spike would never get there.</li></ol>
+  </figure>
+  <div class="why"><b>Why it works:</b> everyone is compared with themselves, so busy roles do not swamp the list. "Higher than every normal week" ignores people who are bursty by nature, which an average would not. Counting distinct computers is how snooping shows up, and the running score rewards persistence, which slow attacks have.</div>
+  <div class="chart">
+    <div class="chart-head">
+      <span class="chart-title">Insiders caught in time, by attack type <span class="small muted">(longer is better)</span></span>
+      <div class="controls" role="group" aria-label="Release">
+        <button class="btn" type="button" data-rel="r52" aria-pressed="true">r5.2 (test)</button>
+        <button class="btn" type="button" data-rel="r42" aria-pressed="false">r4.2 (tuning)</button>
+      </div>
+    </div>
+    <div class="legend"><span style="--c: var(--accent)">our daily list (M1)</span><span style="--c: var(--base)">28-day baseline (B0), same list size</span></div>
+    <div class="bars" data-rel-panel="r52">
+      <div class="bgroup"><span class="bl">All insiders<small>99</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:80.8%"></div></div><span class="bv hi">80 of 99</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:40.4%; --c: var(--base)"></div></div><span class="bv">40 of 99</span></div></div>
+      <div class="bgroup"><span class="bl">Leakers<small>29</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:89.7%"></div></div><span class="bv hi">26 of 29</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:79.3%; --c: var(--base)"></div></div><span class="bv">23 of 29</span></div></div>
+      <div class="bgroup"><span class="bl">Job-hunters<small>30</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:90%"></div></div><span class="bv hi">27 of 30</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:23.3%; --c: var(--base)"></div></div><span class="bv">7 of 30</span></div></div>
+      <div class="bgroup"><span class="bl">Snoopers<small>30</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:83.3%"></div></div><span class="bv hi">25 of 30</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:6.7%; --c: var(--base)"></div></div><span class="bv">2 of 30</span></div></div>
+      <div class="bgroup"><span class="bl">Sysadmins<small>10</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:20%"></div></div><span class="bv hi">2 of 10</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:80%; --c: var(--base)"></div></div><span class="bv">8 of 10</span></div></div>
+    </div>
+    <div class="bars" data-rel-panel="r42" hidden>
+      <div class="bgroup"><span class="bl">All insiders<small>70</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:84.3%"></div></div><span class="bv hi">59 of 70</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:84.3%; --c: var(--base)"></div></div><span class="bv">59 of 70</span></div></div>
+      <div class="bgroup"><span class="bl">Leakers<small>30</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:83.3%"></div></div><span class="bv hi">25 of 30</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:83.3%; --c: var(--base)"></div></div><span class="bv">25 of 30</span></div></div>
+      <div class="bgroup"><span class="bl">Job-hunters<small>30</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:100%"></div></div><span class="bv hi">30 of 30</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:83.3%; --c: var(--base)"></div></div><span class="bv">25 of 30</span></div></div>
+      <div class="bgroup"><span class="bl">Sysadmins<small>10</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:40%"></div></div><span class="bv hi">4 of 10</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:90%; --c: var(--base)"></div></div><span class="bv">9 of 10</span></div></div>
+      <p class="small muted">r4.2 has no snoopers.</p>
+    </div>
+  </div>
+  <div class="tiles">
+    <div class="tile"><span class="v">64x <small>/ 82x</small></span><span class="k">an active insider is on the list this much more often than a normal employee (r4.2 / r5.2; baseline 39x / 47x)</span></div>
+    <div class="tile"><span class="v">10 <small>/ 11</small></span><span class="k">caught by a random score with the same list size</span></div>
+    <div class="tile"><span class="v">54% <small>/ 48%</small></span><span class="k">of each insider's malicious actions come after we first flag them</span></div>
+  </div>
+  <div class="caveat"><b>The trade-off:</b> over the replay, 230 of 930 (r4.2) and 291 of 1,901 (r5.2) normal employees appear on the list at least once, usually briefly. The baseline is better at the two-day sysadmin sabotage (8 to 9 of 10 against our 2 to 4).</div>
+  <details class="fold"><summary>How we did it <span class="hint">code/outofrole_minimal.py, section 1</span></summary><div class="foldbody">
+    <dl>
+      <dt>Code</dt><dd><code>code/outofrole_minimal.py</code>, section "1. early warning" (lines 48 to 104); the baseline is <code>r2_score()</code> in the same section</dd>
+      <dt>Reads</dt><dd><code>daily</code>: the nine columns n_logon, n_logon_ah, n_usb, n_usb_ah, n_file, n_file_ah, n_http, n_http_ah, n_pcs</dd>
+      <dt>Normal weeks</dt><dd>Monday-to-Sunday weeks before the cutoff week in which the person was active at all</dd>
+      <dt>Unusual</dt><dd>p = share of normal weeks below the last-7-day total (ties count half); unusual when p &ge; 0.99. Day score = number of unusual activities + 0.01 &times; sum of p (a tie-breaker)</dd>
+      <dt>Running score</dt><dd>run = 0.5<sup>1/7</sup> &times; run + day score, so it halves every 7 days</dd>
+      <dt>List</dt><dd>top 20 people with run &gt; 0; ties broken by a fixed random order</dd>
+      <dt>Baseline</dt><dd>last 28 days of five counts (USB, files, after-hours logons, after-hours USB, after-hours web); expected = the person's training rate per active day &times; active days in the window; score = sum of max(0, (observed &minus; expected) / &radic;(expected + 1)); same 20-name list</dd>
+      <dt>Settings</dt><dd>K = 20 names, half-life 7 days, threshold 0.99. Fixed on r4.2; do not change them.</dd>
+    </dl>
+  </div></details>
+  <details class="fold"><summary>On LinuxONE <span class="hint">plain numpy and pandas</span></summary><div class="foldbody">
+    <p>Nothing changes: numpy and pandas from the operating system, the same code, the CSV copy from step 1. The list uses whole-number comparisons and a fixed random seed for ties, so the output should match the laptop line for line.</p>
+  </div></details>
+</article>
+
+<!-- ============================================================ STEP 3 -->
+<article class="step" id="s3">
+  <div class="step-head"><span class="num">3</span><h2>The snooping review</h2><p class="oneline">Flag people who keep logging into computers the recommender would never suggest for them.</p></div>
+  <div class="mstrip k-rec"><span class="mb">M2</span><span><b>Person &times; computer recommender.</b> Implicit ALS (collaborative filtering), unsupervised. Learns from who logged into which computer in training.</span></div>
+  <div class="inshort"><span>In short</span><p>A report, not a daily alarm. It ranks people by <b>how many weeks</b> they logged into computers that are new to them <b>and</b> that the recommender says people like them do not use, with IT staff and other natural roamers discounted. We measured it once, at the end of the replay; in a company it would run every month, and its top names get case files.</p></div>
+  <p>Think of Netflix. It knows what you watched and what people like you watched, and from that it predicts what you might like. Our recommender does the same with <b>people and computers</b>: from who logged into which computer during training, it predicts how likely each person is to use each computer.</p>
+  <figure class="ill">
+    <span class="ill-tag">Illustration, made-up people and computers</span>
+    <div class="scroll"><table class="mx" aria-label="People by computers. Dark cells were used in training; light cells are computers the model predicts as likely; the outlined cell is a login to a computer that is new to the person and that the model scores as unlikely.">
+      <thead><tr><th></th><th>PC-A</th><th>PC-B</th><th>PC-C</th><th>PC-D</th><th>PC-E</th><th>PC-F</th></tr></thead>
+      <tbody>
+        <tr><th>U-101</th><td class="u">used</td><td class="p">0.7</td><td>0.1</td><td>0.0</td><td>0.1</td><td>0.0</td></tr>
+        <tr><th>U-102</th><td class="u">used</td><td class="u">used</td><td>0.1</td><td>0.0</td><td>0.0</td><td>0.1</td></tr>
+        <tr><th>U-103</th><td>0.1</td><td>0.0</td><td class="u">used</td><td class="p">0.6</td><td>0.0</td><td class="f">login!</td></tr>
+        <tr><th>U-104</th><td>0.0</td><td>0.1</td><td class="u">used</td><td class="u">used</td><td>0.1</td><td>0.0</td></tr>
+        <tr><th>U-105</th><td>0.0</td><td>0.0</td><td>0.1</td><td>0.0</td><td class="u">used</td><td class="u">used</td></tr>
+      </tbody>
+    </table></div>
+    <div class="klegend"><span style="--kc: var(--accent)">used in training</span><span style="--kc: var(--accent-soft)">model's guess for an unused computer (0 = unlikely, 1 = likely)</span><span style="--kc: var(--warn)">flagged login</span></div>
+    <ol class="howto"><li>M2 fills every empty cell with a guess from "people like you".</li><li>U-103 logs into PC-F: it is new to them and the guess is 0.0, so the login is flagged.</li><li>A login to PC-D would not be flagged: it is new, but people like U-103 use it (0.6).</li></ol>
+  </figure>
+  <figure class="ill">
+    <span class="ill-tag">Illustration, made-up people</span>
+    <b>From flagged logins to a ranking: count the weeks, discount the roamers</b>
+    <div class="weeks">
+      <div class="wrow"><span><b>U-103</b>, analyst</span><span class="wbox" aria-label="6 of 8 weeks flagged"><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="wcalc">6 weeks &divide; (1 + 50 &times; 0.02) = <b>3.0</b></span></div>
+      <div class="wrow"><span><b>U-210</b>, IT support</span><span class="wbox" aria-label="7 of 8 weeks flagged"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="wcalc">7 weeks &divide; (1 + 50 &times; 0.60) = <b>0.2</b></span></div>
+    </div>
+    <ol class="howto"><li>Each box is one week of the replay; violet means at least one flagged login that week.</li><li>0.02 and 0.60 are each person's "roam" share: how often they logged in away from their main computer during training.</li><li>U-210 always moves between machines, so their flags count for little. U-103 does not, so they rank near the top.</li></ol>
+  </figure>
+  <p>During the replay, each login to a computer that is <b>new to the person</b> and that M2 scores as <b>unlikely</b> is flagged. A person's score is the number of weeks with a flagged login, scaled down for people who always move between computers anyway, such as IT staff.</p>
+  <div class="why"><b>Why it works:</b> snoopers log into colleagues' computers, again and again. One odd login can be innocent; many weeks of logins to machines outside your profile is a pattern. The recommender adds the "people like you" judgment that a plain "new computer" rule lacks.</div>
+  <div class="tiles">
+    <div class="tile"><span class="v">27 <small>of 30</small></span><span class="k">snoopers in the review's top 100 people (r5.2)</span></div>
+    <div class="tile"><span class="v">26 <small>of 30</small></span><span class="k">with a simpler "any new computer" rule, no recommender</span></div>
+    <div class="tile"><span class="v">9 <small>of 30</small></span><span class="k">if run as a live daily list instead, so we use it as a periodic report</span></div>
+  </div>
+  <div class="caveat"><b>Say it straight:</b> the recommender's edge here is small (27 against 26), r4.2 has no snoopers, and this review was designed after looking at r5.2. The daily list of step 2 already catches 25 of 30 snoopers in time. On real LANL logins this review did not transfer (step 8).</div>
+  <details class="fold"><summary>How we did it <span class="hint">code/outofrole_minimal.py, section 1b</span></summary><div class="foldbody">
+    <dl>
+      <dt>Code</dt><dd><code>code/outofrole_minimal.py</code>, section "1b. snooping list" (lines 105 to 131); the model is <code>als()</code> near the top of the file</dd>
+      <dt>Reads</dt><dd><code>pc_pairs</code>: user, day, pc</dd>
+      <dt>Matrix</dt><dd>people &times; computers; each cell = log(1 + number of training days the person used that computer); empty cells are 0</dd>
+      <dt>Model</dt><dd>implicit-feedback ALS (Hu, Koren and Volinsky 2008): rank 16, alpha 10, regularization 0.1, 12 iterations, seed 0</dd>
+      <dt>Flag</dt><dd>a replay login where the computer is new to the person and surprise = 1 &minus; clip(prediction, 0, 1) &ge; 0.5</dd>
+      <dt>Score</dt><dd>weeks with at least one flagged login &divide; (1 + 50 &times; roam), where roam = the person's training share of logins away from their main computer</dd>
+      <dt>Output</dt><dd>people ranked at the end of the period; the top 100 get case files (step 5)</dd>
+    </dl>
+  </div></details>
+  <details class="fold"><summary>On LinuxONE <span class="hint">numpy ALS, no Spark needed</span></summary><div class="foldbody">
+    <p>Same numpy code; no Spark needed. Different processors round the last digit of a number differently, but we measured the closest call in the whole run: no score sits within 0.00001 of the 0.5 cut-off, while rounding moves scores by about 0.00000000000001. So the same logins get flagged.</p>
+  </div></details>
+</article>
+
+<!-- ============================================================ STEP 4 -->
+<article class="step" id="s4">
+  <div class="step-head"><span class="num">4</span><h2>Rank the evidence</h2><p class="oneline">For each flagged person, put the most telling facts on top: new to you first, then rarest in the company.</p></div>
+  <div class="mstrip k-stat"><span class="mb">M3</span><span><b>New-to-you, rarest-first scorer.</b> Frequency statistics, no training. Uses who did what in the training months.</span></div>
+  <p>A flagged person may have done hundreds of things since the replay began. The analyst needs the three that matter. We list every computer, website, USB day and after-hours login the person had, and give each a score:</p>
+  <p style="font: 600 17px var(--font-mono); color: var(--accent); margin: 10px 0">score = 2 &times; new + (1 &minus; share)</p>
+  <ul>
+    <li><b>new</b> is 1 if the person never did it during training, else 0.</li>
+    <li><b>share</b> is the fraction of all staff who did it during training (0 = nobody, 1 = everyone).</li>
+  </ul>
+  <p>So anything new to the person beats anything old, and among new things the rarest wins. Each top fact gets an ID (E1, E2, ...) for the next step.</p>
+  <figure class="ill">
+    <span class="ill-tag">Example evidence pack, made-up person</span>
+    <b>Each fact's score, built from its two parts</b>
+    <div class="ev">
+      <div class="evrow top3"><span class="evl">E1 · visited "wikileaks.org"</span><div class="evbar"><span class="seg new" style="--w:66.7%">new +2</span><span class="seg rare" style="--w:33.3%">rare +1.00</span></div><span class="evv">3.00</span></div>
+      <div class="evrow top3"><span class="evl">E2 · used a USB device</span><div class="evbar"><span class="seg new" style="--w:66.7%">new +2</span><span class="seg rare" style="--w:23.0%">rare +0.69</span></div><span class="evv">2.69</span></div>
+      <div class="evrow top3"><span class="evl">E3 · logged on to own computer PC-B</span><div class="evbar"><span class="seg rare" style="--w:33.3%">rare +1.00</span></div><span class="evv">1.00</span></div>
+      <div class="evrow"><span class="evl">logged on after hours</span><div class="evbar"><span class="seg rare" style="--w:18.3%">rare +0.55</span></div><span class="evv">0.55</span></div>
+    </div>
+    <ol class="howto"><li>Dark part: +2 if the person never did this in training. Light part: 1 minus the share of staff who did it.</li><li>Anything new beats anything old; among them, the rarer wins.</li><li>The top 3 (bold) are always shown to the analyst and sent to Granite with their IDs.</li></ol>
+  </figure>
+  <div class="why"><b>Why it works:</b> insiders do things that are new for them (a first USB stick, a first leak site), and most attacks use something few colleagues touch. Rarity alone fails when a rare thing is normal for that person; novelty fixes that.</div>
+  <div class="chart">
+    <span class="chart-title">A real malicious action is in the top 3 facts <span class="small muted">(longer is better)</span></span>
+    <div class="legend"><span style="--c: var(--accent)">new to you, rarest first (M3)</span><span style="--c: var(--base)">rarity alone</span></div>
+    <div class="bars">
+      <div class="bgroup"><span class="bl">r4.2<small>insiders caught in time</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:64%"></div></div><span class="bv hi">64%</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:49%; --c: var(--base)"></div></div><span class="bv">49%</span></div></div>
+      <div class="bgroup"><span class="bl">r5.2<small>insiders caught in time</small></span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:85%"></div></div><span class="bv hi">85%</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:51%; --c: var(--base)"></div></div><span class="bv">51%</span></div></div>
+    </div>
+  </div>
+  <p class="small muted">Measured on evidence up to the day each insider was caught. We also mark each pack "strong" when a fact is new to the person and used by under 1% of staff: at first alert that holds for 29% of insiders against 18% of normal staff on r4.2, and 65% against 31% on r5.2. It is a strength label, never a reason to dismiss anyone.</p>
+  <details class="fold"><summary>How we did it <span class="hint">code/outofrole_minimal.py, section 2</span></summary><div class="foldbody">
+    <dl>
+      <dt>Code</dt><dd><code>code/outofrole_minimal.py</code>, section "2. evidence for Granite" (lines 132 to 195); <code>case_items(user, day)</code> returns what the analyst sees for one person on one day</dd>
+      <dt>Reads</dt><dd><code>pc_pairs</code> (computers), <code>dom_pairs</code> (websites), <code>daily</code> (days with n_usb &gt; 0 become "USB"; days with n_logon_ah &gt; 0 become "after hours")</dd>
+      <dt>Window</dt><dd>from the first replay day up to the day being reviewed; training months give "new" and "share"</dd>
+      <dt>Score</dt><dd>2 &times; new + (1 &minus; share); top 3 always shown, top 5 sent to Granite</dd>
+      <dt>Who gets one</dt><dd>everyone who ever reaches the daily list or the snooping list, plus the snooping review's top 100</dd>
+    </dl>
+  </div></details>
+  <details class="fold"><summary>On LinuxONE <span class="hint">same code</span></summary><div class="foldbody">
+    <p>Same code. It only counts and compares, and it does not depend on the order of rows, so it gives the same top facts.</p>
+  </div></details>
+</article>
+
+<!-- ============================================================ STEP 5 -->
+<article class="step" id="s5">
+  <div class="step-head"><span class="num">5</span><h2>The Granite case file</h2><p class="oneline">IBM Granite picks a label and the supporting fact IDs; code writes every sentence.</p></div>
+  <div class="mstrip k-llm"><span class="mb">M4</span><span><b>IBM Granite.</b> A large language model used as a checked classifier. Learns nothing from our data; it reads one evidence pack at a time.</span></div>
+  <p>Language models can make things up. So we never let Granite write text. It gets the evidence pack and may answer with only two things, as JSON: a <b>label</b> from a fixed list and the <b>IDs</b> of the facts that support it. Code checks the reply. If anything is off, the reply is thrown away and a fixed fallback is shown.</p>
+  <div class="judge" aria-label="Case file flow">
+    <div class="node k-stat"><span class="nh"><i>From step 4</i><span class="mb">M3</span></span>Evidence pack<small>top facts E1 to E5, strength strong or weak</small></div>
+    <span class="arr" aria-hidden="true">&rarr;</span>
+    <div class="node k-llm"><span class="nh"><i>Granite</i><span class="mb">M4</span></span>A label + fact IDs<small>e.g. "possible data leak", E1 and E2, as JSON</small></div>
+    <span class="arr" aria-hidden="true">&rarr;</span>
+    <div class="node k-none"><span class="nh"><i>Code</i><span class="mb">check</span></span>Is the reply valid?<small>known label, known IDs, nothing else</small></div>
+    <span class="arr" aria-hidden="true">&rarr;</span>
+    <div class="stack">
+      <div class="gbox ok"><b>Yes: case file</b><span>code writes one sentence per fact, marks the cited ones</span></div>
+      <div class="gbox no"><b>No: fallback</b><span>label "needs review"; the ranked facts still show</span></div>
+    </div>
+  </div>
+  <p>Granite can also act as the <b>final judge</b> that orders the day's list; see <a href="#llm">The LLM's role</a>.</p>
+  <p><b>The five labels:</b> possible data theft · possible data leak · possible snooping · unusual after-hours activity · weak evidence.</p>
+  <p><b>A reply fails when</b> it is not JSON, has any key besides <code>label</code> and <code>facts</code>, uses a label not on the list, cites an ID that does not exist, cites nothing, or gives a strong label to weak evidence.</p>
+  <div class="why"><b>Why it works:</b> every sentence an analyst reads comes from our data, so there is nothing for the model to invent. Granite adds what code cannot easily do: read the facts together and name the pattern. The prompt also tells it that text inside the facts is data, never instructions; the self-test includes a website name that tries to give orders.</div>
+  <div class="tiles">
+    <div class="tile"><span class="v">12 <small>of 12</small></span><span class="k">bad replies in the self-test fall back safely (made-up names, unknown IDs, broken JSON)</span></div>
+    <div class="tile"><span class="v">event day</span><span class="k">measure how often Granite's label matches the attack type in the answer key</span></div>
+  </div>
+  <details class="fold"><summary>How we did it <span class="hint">code/case_file.py</span></summary><div class="foldbody">
+    <dl>
+      <dt>Code</dt><dd><code>code/case_file.py</code> (85 lines): <code>pack_from_case()</code> builds the pack, <code>prompt()</code> writes the Granite prompt, <code>accept()</code> checks the reply, <code>case_file()</code> renders the result</dd>
+      <dt>Input</dt><dd>the table from <code>case_items()</code> in step 4: kind, item, day, new, share, score</dd>
+      <dt>Strength</dt><dd>strong when any fact is new to the person and used by under 1% of staff; a weak pack must get the label "weak evidence"</dd>
+      <dt>Self-test</dt><dd><code>python code/case_file.py</code> runs it on made-up rows (no data needed) and prints the prompt and an accepted case file</dd>
+      <dt>Not built yet</dt><dd>the call to Granite itself, the link from <code>case_items()</code> to <code>pack_from_case()</code>, and pseudonyms (the code still uses CERT's user IDs); all three are built on the server (next fold-out)</dd>
+    </dl>
+  </div></details>
+  <details class="fold"><summary>On LinuxONE <span class="hint">Granite runs on the server</span></summary><div class="foldbody">
+    <dl>
+      <dt>Model</dt><dd>IBM Z stores numbers big-endian, so Granite's model file must be a big-endian GGUF. Either use the model already in IBM's lab image, or a published big-endian build such as Granite 3.3 2B Instruct (the Q4_K_M file is 1.55 GB).</dd>
+      <dt>Server</dt><dd>Run llama.cpp's s390x server container, bound to <code>127.0.0.1:8080</code> only, and check <code>/health</code>.</dd>
+      <dt>Glue</dt><dd>Still to write at the event: for each of today's 20 names, <code>pack_from_case()</code>, then <code>prompt()</code>, send it to the server with temperature 0 and JSON output, then <code>case_file()</code>. The final judge uses the same server.</dd>
+      <dt>Watch out</dt><dd>Never run Granite (about 2 GB) at the same time as the r5.2 scoring (up to 6 GB) on an 8 GB VM. Pre-generate the 20 case files and run one live.</dd>
+    </dl>
+  </div></details>
+</article>
+
+<!-- ============================================================ STEP 6 -->
+<article class="step" id="s6">
+  <div class="step-head"><span class="num">6</span><h2>Access advice</h2><p class="oneline">Predict which websites each person will need next, so routine access can be pre-approved.</p></div>
+  <div class="mstrip k-rec"><span class="mb">M5</span><span><b>Person &times; website recommender.</b> Implicit ALS (collaborative filtering), unsupervised, retrained every month. Learns from who visited which website.</span></div>
+  <p>This is the recommender's real job, and the one it is best at. The same kind of model as step 3, now on <b>people &times; websites</b>, predicts the 20 websites each person is most likely to need next. Those can be pre-approved, so admins see fewer routine requests. Websites a person used in training but never again become suggestions for removing access.</p>
+  <div class="why"><b>Why it works:</b> people in similar jobs use similar tools. When your colleagues start using a site, you probably will too. Retraining every month keeps the predictions current, and it takes seconds.</div>
+  <div class="chart">
+    <span class="chart-title">Next new websites caught by the 20 suggestions <span class="small muted">(longer is better)</span></span>
+    <div class="legend"><span style="--c: var(--k-rec)">recommender (M5)</span><span style="--c: var(--base)">popularity: suggest what most people use</span></div>
+    <div class="bars">
+      <div class="bgroup"><span class="bl">r4.2</span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:92.8%; --c: var(--k-rec)"></div></div><span class="bv hi">23.2%</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:58%; --c: var(--base)"></div></div><span class="bv">14.5%</span></div></div>
+      <div class="bgroup"><span class="bl">r5.2</span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:80.8%; --c: var(--k-rec)"></div></div><span class="bv hi">20.2%</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:52%; --c: var(--base)"></div></div><span class="bv">13.0%</span></div></div>
+    </div>
+    <p class="small muted">Bars are drawn on a 0 to 25% scale.</p>
+  </div>
+  <div class="chart">
+    <span class="chart-title">Access requests per person per month <span class="small muted">(shorter is better)</span></span>
+    <div class="legend"><span style="--c: var(--base)">own history only</span><span style="--c: var(--k-rec-soft)">recommender trained once</span><span style="--c: var(--k-rec)">recommender retrained monthly</span></div>
+    <div class="bars three">
+      <div class="bgroup"><span class="bl">r4.2</span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:64%; --c: var(--base)"></div></div><span class="bv">2.24</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:48.9%; --c: var(--k-rec-soft)"></div></div><span class="bv">1.71</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:44%; --c: var(--k-rec)"></div></div><span class="bv hi">1.54</span></div></div>
+      <div class="bgroup"><span class="bl">r5.2</span>
+        <div class="brow"><div class="track"><div class="fill" style="--w:88%; --c: var(--base)"></div></div><span class="bv">3.08</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:70.3%; --c: var(--k-rec-soft)"></div></div><span class="bv">2.46</span></div>
+        <div class="brow"><div class="track"><div class="fill" style="--w:60.6%; --c: var(--k-rec)"></div></div><span class="bv hi">2.12</span></div></div>
+    </div>
+    <p class="small muted">Approved requests are kept, and each person's own history is refreshed monthly. Bars are drawn on a 0 to 3.5 scale. Retraining monthly means 31% fewer requests than own history alone, on both releases.</p>
+  </div>
+  <div class="tiles">
+    <div class="tile"><span class="v">1.6x <small>/ 1.5x</small></span><span class="k">better than popularity at guessing the next new site (r4.2 / r5.2)</span></div>
+    <div class="tile"><span class="v">&minus;31%</span><span class="k">access requests with monthly retraining, both releases</span></div>
+    <div class="tile"><span class="v">6.0% <small>/ 3.6%</small></span><span class="k">of sites used in training and never again: suggestions to remove access</span></div>
+  </div>
+  <div class="caveat"><b>Say it straight:</b> CERT has no permission lists, so past website use stands in for held access. In a real company this would advise on applications, shared drives and groups. Only some of the extra pre-approvals are later used (31% on r4.2, 44% on r5.2), so call it "suggests which access to pre-approve".</div>
+  <details class="fold"><summary>How we did it <span class="hint">code/outofrole_minimal.py, sections 3 and 4</span></summary><div class="foldbody">
+      <dl>
+      <dt>Code</dt><dd><code>code/outofrole_minimal.py</code>, section "3 and 4. recommender" (lines 196 to 237): <code>web()</code> builds the matrix, <code>WEB</code> holds the setting, <code>top20()</code> picks the suggestions, the monthly loop starts at line 221</dd>
+      <dt>Reads</dt><dd><code>dom_pairs</code>: user, day, domain</dd>
+      <dt>Matrix</dt><dd>people &times; websites; each cell = log(1 + number of training days the person visited the site)</dd>
+      <dt>Model</dt><dd>implicit ALS: rank 128, alpha 0.1, regularization 10, 12 iterations, seed 0; chosen without labels on the last weeks of r4.2's training period, in a test written down in advance</dd>
+      <dt>Grant</dt><dd>the 20 highest-scoring sites the person does not already use</dd>
+      <dt>Measured</dt><dd>recall@20 = share of each normal employee's new sites in the replay that were among their 20; requests = replay (person, site) pairs neither owned nor granted, per person per month</dd>
+      <dt>Monthly</dt><dd>30-day blocks from the cutoff; before each block, refit on all web data so far, so approved sites become the person's own history</dd>
+    </dl>
+  </div></details>
+  <details class="fold"><summary>On LinuxONE <span class="hint">same numpy ALS</span></summary><div class="foldbody">
+    <p>This is the heaviest step: a rank-128 model refitted every month (10 times on r4.2, 13 on r5.2). Make sure numpy uses OpenBLAS (<code>python3 -c "import numpy; numpy.show_config()"</code>); without it this could take hours. The closest call between a person's 20th and 21st suggestion is 0.000001, far above rounding noise, so the same sites get suggested.</p>
+  </div></details>
+</article>
+
+<!-- ============================================================ STEP 7 -->
+<article class="step" id="s7">
+  <div class="step-head"><span class="num">7</span><h2>The new-site rule</h2><p class="oneline">Hold any website that nobody in the company visited during training.</p></div>
+  <div class="mstrip k-rule"><span class="mb">R1</span><span><b>New-site rule.</b> A rule, not ML. Uses the list of websites anyone visited in training.</span></div>
+  <p>We keep the list of every website anyone visited during training. A visit to a site outside that list is flagged.</p>
+  <div class="tiles">
+    <div class="tile"><span class="v">100%</span><span class="k">of wikileaks and keylogger-site visits flagged, on both releases</span></div>
+    <div class="tile"><span class="v">8 <small>/ 0</small></span><span class="k">normal person-days affected over the replay (r4.2 / r5.2)</span></div>
+  </div>
+  <div class="caveat"><b>Say it straight:</b> this only works because CERT's fake company uses only 475 websites in total (r4.2). A real company should not block browsing; it should hold <b>uploads</b> to never-seen or newly registered sites. Job sites are untouched by the rule, because someone had visited them during training.</div>
+  <details class="fold"><summary>How we did it <span class="hint">code/outofrole_minimal.py, section 5</span></summary><div class="foldbody">
+    <dl>
+      <dt>Code</dt><dd><code>code/outofrole_minimal.py</code>, section "5. block sites nobody here visited in training" (lines 238 to 243); the full study is <code>code/experiments/org_novel_sites.py</code></dd>
+      <dt>Reads</dt><dd><code>dom_pairs</code>: domain, with training days giving the known-site list</dd>
+      <dt>Graded on</dt><dd>the leakers' and sysadmins' web events in the answer key (wikileaks and keylogger sites)</dd>
+    </dl>
+  </div></details>
+  <details class="fold"><summary>On LinuxONE <span class="hint">same code</span></summary><div class="foldbody">
+    <p>Same code. It only checks whether a site is on a list.</p>
+  </div></details>
+</article>
+
+<!-- ============================================================ STEP 8 -->
+<article class="step" id="s8">
+  <div class="step-head"><span class="num">8</span><h2>Grade and check</h2><p class="oneline">Score everything against the answer key, then try to break our own result.</p></div>
+  <div class="mstrip k-rule"><span class="mb">B0</span><span><b>28-day baseline</b>, the standard method we compare against, plus the grading code. The only step that reads the answer key.</span></div>
+  <p>An insider is <b>caught in time</b> if they appear on the daily list on any day from their first malicious day up to (not including) their last. Then we checked whether the result could be luck, leakage or tuning.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Check</th><th>What it showed (r4.2 / r5.2)</th></tr></thead>
+    <tbody>
+      <tr><td>Random list of the same size</td><td>10 / 11 insiders in time, against our 59 / 80</td></tr>
+      <tr><td>5,000 resamples of the insiders</td><td>our lead on r5.2 stays between +27 and +52, never zero; r4.2 is a genuine tie (&minus;6 to +6)</td></tr>
+      <tr><td>Each person's "normal" rolls forward (last 26 weeks, skipping the most recent 4)</td><td>59 / 84 caught, so detection holds; more normal staff appear at some point (274 / 374)</td></tr>
+      <tr><td>Training cutoff one month later</td><td>headline unchanged</td></tr>
+      <tr><td>Independent re-run of every script</td><td>no use of future data, no answer-key leakage</td></tr>
+      <tr><td>Trained (supervised) models, one attack type hidden</td><td>they found only 4 to 7 of 30 job-hunters; why we use no labels</td></tr>
+      <tr><td>Outside review (11 rounds)</td><td>final verdict: simple, impressive and honestly presented, connected to the proposal</td></tr>
+    </tbody>
+  </table></div>
+  <div class="why"><b>Why r5.2 shows twice the baseline but r4.2 ties:</b> r5.2 has snoopers (the baseline catches 2 of 30) and harder job-hunters (7 of 30). On r4.2 both methods do well on the easier attacks.</div>
+  <div class="caveat"><b>What we disclose:</b> the daily-list method was chosen after seeing results (the method we named in advance also beat the baseline, 54 against 28 of 99). The training cutoffs were placed before every attack, which used the labels. The snooping review was designed after looking at r5.2. CERT is synthetic. The real-data test below is how we checked them.</div>
+  <h3>The real-data test (LANL)</h3>
+  <p>We froze every CERT setting, wrote the test and its pass mark down, locked the file with a hash, and only then opened LANL's list of red-team logins. 44 stolen accounts were active in the test weeks.</p>
+  <div class="tiles">
+    <div class="tile"><span class="v">0 <small>of 44</small></span><span class="k">stolen accounts in the snooping review's top 100 (chance: 0.26). It does not transfer.</span></div>
+    <div class="tile"><span class="v">6.4x</span><span class="k">a red-team login is flagged "new and unexpected" this much more often than a normal login</span></div>
+    <div class="tile"><span class="v">4 <small>of 44</small></span><span class="k">in the top 100 when we simply count each person's new computers (chance 0.26)</span></div>
+  </div>
+  <p>So the signal is real for single logins, but our way of adding it up per person was tuned to CERT. At LANL almost everyone logs into a new computer most weeks, and the stolen accounts belonged to people who already moved between many machines, so the roamer discount pushed them down. The daily list caught 0 of 44 too, with only two weeks of history to learn from.</p>
+  <div class="caveat"><b>How to say it:</b> "We tested on real data we never tuned on. Novelty shows up in real logs, but the person-level score has to be re-tuned for each organisation." Do not claim LANL confirms our CERT numbers.</div>
+  <details class="fold"><summary>How we did it <span class="hint">grading code and the checks</span></summary><div class="foldbody">
+    <dl>
+      <dt>Grading</dt><dd><code>in_time()</code> in section 1 of <code>code/outofrole_minimal.py</code>; insider start and end come from <code>answers/insiders.csv</code>, events from each insider's own rows in the answer files</dd>
+      <dt>Checks</dt><dd><code>code/checks/followup_checks.py</code>: resampling, rolling normal, role changes in LDAP, monthly recommender retraining</dd>
+      <dt>Full study</dt><dd><code>evidence/Study_Notebook.ipynb</code>; every number with its source in <code>evidence/Verified_Numbers.md</code></dd>
+    </dl>
+  </div></details>
+  <details class="fold"><summary>On LinuxONE <span class="hint">the same checks, on s390x</span></summary><div class="foldbody">
+    <p>Run <code>python code/checks/followup_checks.py 4.2</code> and <code>5.2</code> after the main program; they use the same CSV copy. On a laptop they take about 2 and 4.5 minutes; plan for two to three times that on the VM. Then compare every printed line with the table in runbook step 14.</p>
+  </div></details>
+</article>
+
+<!-- ============================================================ LLM -->
+<section class="part" id="llm">
+  <span class="kicker">The build, step by step</span>
+  <h2>The LLM's role</h2>
+  <p>IBM Granite (M4) is the one part of the system that reads evidence the way a person would. We use it in a narrow, checked way, so it adds judgment without adding risk.</p>
+  <div class="llm-grid">
+    <div class="lbox"><span class="st now">Built and tested</span><b><span class="mb k-llm">M4</span> Labeller (step 5)</b><span>Reads one evidence pack and returns a label from five options plus the fact IDs behind it. Code writes every sentence; a bad reply falls back.</span></div>
+    <div class="lbox"><span class="st plan">Planned for the event</span><b><span class="mb k-llm">M4</span> Final judge</b><span>Reads the case files of today's 20 names and sorts them into escalate, review today, or can wait, each with the fact IDs behind it. The analyst works from the top.</span></div>
+  </div>
+  <div class="judge" aria-label="Where the judge sits">
+    <div class="node">Today's 20 names<small>from steps 2 to 4</small></div>
+    <span class="arr" aria-hidden="true">&rarr;</span>
+    <div class="node k-llm"><span class="nh"><i>Granite</i><span class="mb">M4</span></span>Final judge<small>verdict + fact IDs, as JSON</small></div>
+    <span class="arr" aria-hidden="true">&rarr;</span>
+    <div class="node">Code check<small>bad reply: keep the original order</small></div>
+    <span class="arr" aria-hidden="true">&rarr;</span>
+    <div class="node end">Same 20 names, reordered<small>the analyst decides</small></div>
+  </div>
+  <h3>Rules for the judge</h3>
+  <ul>
+    <li><b>It reorders; it never removes.</b> All 20 names stay on the list. About half of the insiders we catch in time have weak-looking evidence, so letting the AI dismiss people would throw real catches away.</li>
+    <li><b>Same safety as step 5.</b> A verdict from a fixed list plus fact IDs, as JSON. Code checks it, and no free text reaches the analyst.</li>
+    <li><b>A person decides.</b> The judge sets the order of work; the analyst makes the call.</li>
+  </ul>
+  <h3>How we will know it helps</h3>
+  <p>The same way as everything else: write the test down first, try the prompt on r4.2, then run it unchanged on r5.2. It earns its place only if insiders move up the queue, for example more insiders in the top 5 of each day's 20 than in the plain order. If it does not help, we say so and keep the plain order.</p>
+  <p class="small muted">Other planned uses, in order of value: a daily briefing of the list, "ask your logs" (a plain-English question turned into one of a fixed set of queries), and short notes for access reviews. All follow the same rule: Granite picks from fixed options and cites IDs; code writes the text.</p>
+</section>
+
+<!-- ============================================================ OUTPUT -->
+<section class="part" id="output">
+  <span class="kicker">Finish</span>
+  <h2>What we deliver, and why it matters</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Who</th><th>Gets</th><th>Built in step</th></tr></thead>
+    <tbody>
+      <tr><td>Security analysts</td><td>A 20-name list every day, each name with a case file</td><td>2, 4, 5</td></tr>
+      <tr><td>Security leads</td><td>A monthly report of who keeps logging into computers outside their role</td><td>3</td></tr>
+      <tr><td>Compliance officers</td><td>Dated case files that cite their evidence and cannot contain invented facts</td><td>5</td></tr>
+      <tr><td>Access admins</td><td>20 pre-approval suggestions per person, unused-access review lists, a hold on never-seen sites</td><td>6, 7</td></tr>
+      <tr><td>The organization</td><td>Monitoring and AI on one LinuxONE server; people shown as pseudonyms such as U-017 (added at the event)</td><td>all</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Why it is significant</h3>
+  <ul>
+    <li><b>Twice the standard baseline</b> on the test release (80 against 40 of 99), with settings frozen before the test.</li>
+    <li><b>Early:</b> about half of each insider's malicious actions are still ahead when we first flag them.</li>
+    <li><b>An AI that cannot make things up</b>, proven by a self-test, which suits audits and compliance.</li>
+    <li><b>Honest about the recommender:</b> we tested our own proposal, found it a weak detector but a good predictor of needed access, and used it where it wins.</li>
+    <li><b>Simple:</b> two short programs on top of three tables reproduce every headline number.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ PRESENT -->
+<section class="part" id="present">
+  <span class="kicker">Finish</span>
+  <h2>How to present it</h2>
+  <h3>The 30-second pitch</h3>
+  <blockquote class="pitch">Malicious insiders hide behind valid logins. OutOfRole learns each employee's normal week and gives analysts a 20-name daily list. In a day-by-day replay of 2,000 employees, it caught 80 of 99 insiders while they were still active, twice a standard baseline. For every alert, IBM Granite on the same LinuxONE server labels the case from checked evidence, and code writes the text, so it cannot invent facts. A Netflix-style recommender keeps access lean. No data leaves the platform.</blockquote>
+  <h3>The 3-minute demo</h3>
+  <ol>
+    <li>The replay plays. A leaker joins the daily list on the day of the first wikileaks upload.</li>
+    <li>Click the person. The case file opens: Granite's label, the top facts written by code, the cited ones marked. Then show a bad reply being rejected and replaced by the fallback.</li>
+    <li>Access panel: 20 pre-approved sites. A request for wikileaks.org is held as new to the company.</li>
+    <li>On screen during the video: <code>uname -m</code> printing <code>s390x</code>, so judges see it really runs on LinuxONE.</li>
+  </ol>
+  <h3>How to talk about the change from our proposal</h3>
+  <p>Our proposal said a recommender would catch insider snooping. Say plainly, and early, that we tested it: "The recommender turned out to be a great predictor of what people need, but a weak insider detector, so we used it where it wins (access advice and the snooping review) and built detection on each person's normal week, which doubled the baseline." Judges reward a team that tests its own assumptions.</p>
+  <h3>Say this, not that</h3>
+  <div class="say">
+    <div class="yes h">Say</div><div class="no h">Not</div>
+    <div class="yes">flags insiders while they are still active</div><div class="no">real-time production system (it is a replay of past logs)</div>
+    <div class="yes">the recommender predicts legitimate access</div><div class="no">the recommender detects insiders</div>
+    <div class="yes">suggests which access to pre-approve</div><div class="no">trims access to exactly what people need</div>
+    <div class="yes">twice the baseline on r5.2, a tie on r4.2</div><div class="no">twice the baseline (without the tie)</div>
+    <div class="yes">two-day sysadmin sabotage is mostly missed; the baseline does better there</div><div class="no">catches every kind of insider</div>
+    <div class="yes">CERT is synthetic; on real LANL logins our snooping score did not transfer</div><div class="no">proven on real companies</div>
+  </div>
+</section>
+
+<!-- ============================================================ RUNBOOK -->
+<section class="part" id="runbook">
+  <span class="kicker">Finish</span>
+  <h2>Runbook: reproduce everything on LinuxONE</h2>
+  <p>Follow these in order on the server. Tick each step as you finish it; the ticks stay in your own browser only. When the last step passes, our numbers are confirmed on IBM Z.</p>
+  <p class="progress" id="rbProgress" aria-live="polite"></p>
+  <div class="caveat"><b>Before you start:</b> submissions close Oct 18, 11:30 AM CDT (setup guide; confirm on the event page). The whole path takes about 3 to 5 hours, so start the r5.2 download as soon as step 7 is running. Nothing in this runbook has been run on a LinuxONE VM yet; the commands are checked on a laptop and against IBM's lab files.</div>
+  <ol class="runbook">
+    <li><input type="checkbox" id="rb1"><label for="rb1">Get the VM <span class="muted small">(30 to 45 min)</span></label><div><p>Register on the LinuxONE Community Cloud with the event code from <code>setup/LinuxONE_Setup_Guide.pdf</code>, create an SSH key in the dashboard, and create one instance for the team: <b>Ubuntu 24.04 Datathon</b>, the <b>AI Lab</b> size (3 vCPU, 8 GB RAM, 50 GB disk). Wait for ACTIVE. There is no backup, so one person owns the VM.</p></div></li>
+    <li><input type="checkbox" id="rb2"><label for="rb2">Connect and prove it is IBM Z <span class="muted small">(5 min)</span></label><div><p>Save this output; it goes in the video.</p><div class="code"><pre>ssh -i key.pem linux1@VM_IP
+whoami; uname -m; lscpu; free -h; df -h ~; nproc</pre></div><p><code>uname -m</code> must print <code>s390x</code>.</p></div></li>
+    <li><input type="checkbox" id="rb3"><label for="rb3">Give teammates access <span class="muted small">(5 min)</span></label><div><p>Each teammate sends a <b>public</b> key; the owner adds it to <code>~/.ssh/authorized_keys</code>. Nobody shares the private key.</p></div></li>
+    <li><input type="checkbox" id="rb4"><label for="rb4">Install system packages <span class="muted small">(10 to 20 min)</span></label><div><div class="code"><pre>sudo apt-get update
+sudo apt-get install -y openjdk-17-jre-headless python3-venv python3-pip python3-numpy python3-pandas libopenblas0-pthread git tmux curl
+java -version; python3 --version</pre></div><p>Expect Java 17 and Python 3.12.</p></div></li>
+    <li><input type="checkbox" id="rb5"><label for="rb5">Make the Python environment <span class="muted small">(5 min)</span></label><div><div class="code"><pre>python3 -m venv --system-site-packages ~/oor-venv
+. ~/oor-venv/bin/activate
+pip install pyspark==3.5.9
+python -c "import numpy; numpy.show_config()"   # must mention openblas</pre></div><p>Do <b>not</b> run <code>pip install -r requirements.txt</code> here: numpy, pandas and scipy have no ready-made IBM Z packages on pip, so it would try to compile them. The system packages above are enough.</p></div></li>
+    <li><input type="checkbox" id="rb6"><label for="rb6">Get the code <span class="muted small">(2 min)</span></label><div><div class="code"><pre>git clone &lt;team repo URL&gt; ~/outofrole &amp;&amp; cd ~/outofrole
+git checkout &lt;frozen commit&gt;; git rev-parse HEAD</pre></div><p>Freeze one commit for the whole run and post its hash in the team chat. Sign in to GitHub with a read-only deploy key made on the VM, or forward your own key with <code>ssh -A</code>. Never put a token or key in the repo.</p></div></li>
+    <li><input type="checkbox" id="rb7"><label for="rb7">Download r4.2 and the answer key <span class="muted small">(25 to 45 min)</span></label><div><div class="code"><pre>mkdir -p data/raw &amp;&amp; cd data/raw
+curl -fL -C - -o r4.2.tar.bz2    https://ndownloader.figshare.com/files/24856766
+curl -fL -C - -o answers.tar.bz2 https://ndownloader.figshare.com/files/24857828
+md5sum r4.2.tar.bz2 answers.tar.bz2   # cf64caa3... and c0c96eaa... (full sums in the data guide)
+mkdir -p ../r4.2 ../answers &amp;&amp; tar -xjf answers.tar.bz2 -C ../answers
+tar -xjf r4.2.tar.bz2 -C ../r4.2 --wildcards '*/logon.csv' '*/device.csv' '*/file.csv' '*/http.csv' '*/LDAP/*'
+rm r4.2.tar.bz2 &amp;&amp; cd ../..</pre></div><p>Run long steps inside <code>tmux</code> so they survive a dropped connection.</p></div></li>
+    <li><input type="checkbox" id="rb8"><label for="rb8">Build the r4.2 tables <span class="muted small">(5 to 15 min)</span></label><div><div class="code"><pre>export SPARK_DRIVER_MEMORY=4g
+python code/build_tables.py 4.2
+python code/tables_to_csv.py 4.2
+rm data/r4.2/r4.2/http.csv   # frees 14.5 GB; keep LDAP</pre></div><p>The CSV step should report 330,285 / 380,476 / 9,043,275 rows.</p></div></li>
+    <li><input type="checkbox" id="rb9"><label for="rb9">Download and build r5.2 <span class="muted small">(1 to 2 h)</span></label><div><div class="code"><pre>cd data/raw &amp;&amp; curl -fL -C - -o r5.2.tar.bz2 https://ndownloader.figshare.com/files/24849938
+md5sum r5.2.tar.bz2   # e24c10807f4923b731276c3421a13c9f
+mkdir -p ../r5.2 &amp;&amp; tar -xjf r5.2.tar.bz2 -C ../r5.2 --wildcards '*/logon.csv' '*/device.csv' '*/file.csv' '*/LDAP/*'
+tar -xjOf r5.2.tar.bz2 --wildcards '*/http.csv' | cut -d, -f1-5 &gt; ../r5.2/r5.2/http.csv
+rm r5.2.tar.bz2 &amp;&amp; cd ../..
+python code/build_tables.py 5.2 &amp;&amp; python code/tables_to_csv.py 5.2</pre></div><p>The <code>cut</code> drops the web pages' text, which we never use, so http.csv is about 9 GB instead of 30 GB. Fallback if the disk is still short: build the r5.2 tables on a laptop and copy <code>data/cache/r5.2</code> (56 MB) over, and say so in the video.</p></div></li>
+    <li><input type="checkbox" id="rb10"><label for="rb10">Run the whole system on both releases <span class="muted small">(a few minutes each)</span></label><div><div class="code"><pre>python code/outofrole_minimal.py 4.2 | tee ~/r4.2.txt
+python code/outofrole_minimal.py 5.2 | tee ~/r5.2.txt</pre></div><p>Close Jupyter and Granite first and check <code>free -h</code>: r5.2 needs up to 6 GB of memory.</p></div></li>
+    <li><input type="checkbox" id="rb11"><label for="rb11">Run the Granite self-test <span class="muted small">(1 s)</span></label><div><div class="code"><pre>python code/case_file.py</pre></div><p>Expect: <code>self-test passed: 12 bad replies fell back without crashing</code>.</p></div></li>
+    <li><input type="checkbox" id="rb12"><label for="rb12">Run the follow-up checks <span class="muted small">(10 to 20 min)</span></label><div><div class="code"><pre>python code/checks/followup_checks.py 4.2 | tee ~/checks4.2.txt
+python code/checks/followup_checks.py 5.2 | tee ~/checks5.2.txt</pre></div></div></li>
+    <li><input type="checkbox" id="rb13"><label for="rb13">Start Granite and make one live case file <span class="muted small">(20 to 40 min)</span></label><div><div class="code"><pre>mkdir -p ~/models   # put the big-endian Granite GGUF here as g.gguf
+docker run -d --name granite -p 127.0.0.1:8080:8080 -v ~/models:/models \
+  ghcr.io/ggml-org/llama.cpp:server-s390x -m /models/g.gguf --host 0.0.0.0 --port 8080 -c 4096 -t 3
+curl -s http://127.0.0.1:8080/health</pre></div><p>Install Docker first if <code>docker --version</code> fails (setup guide, section 5). A model error saying the file version is "extremely large" means the file is little-endian. If Granite is slow, pre-generate the top 20 case files and show one live.</p></div></li>
+    <li><input type="checkbox" id="rb14"><label for="rb14">Compare with our numbers <span class="muted small">(10 min)</span></label><div><p>Every line must match. These come from the laptop run of the same code.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Printed line</th><th>r4.2</th><th>r5.2</th></tr></thead>
+      <tbody>
+        <tr><td>1 early warning: insiders listed in time (baseline)</td><td>59/70 (59/70)</td><td>80/99 (40/99)</td></tr>
+        <tr><td>daily churn, ours vs baseline</td><td>9.2% vs 9.1%</td><td>11.3% vs 8.9%</td></tr>
+        <tr><td>normal staff ever listed</td><td>230</td><td>291</td></tr>
+        <tr><td>on the list on a given day (ours)</td><td>82%, 1.3% (64x)</td><td>54%, 0.7% (82x)</td></tr>
+        <tr><td>2 evidence: C1 vs rarity</td><td>0.64 vs 0.49</td><td>0.85 vs 0.51</td></tr>
+        <tr><td>3 next new sites: recommender vs popularity</td><td>0.232 vs 0.145</td><td>0.202 vs 0.130</td></tr>
+        <tr><td>4 requests: own history, popularity, recommender</td><td>2.31, 1.97, 1.77</td><td>3.15, 2.74, 2.51</td></tr>
+        <tr><td>monthly: refreshed, trained once, retrained</td><td>2.24, 1.71, 1.54</td><td>3.08, 2.46, 2.12</td></tr>
+        <tr><td>6 snooping review, top 100 (any new computer)</td><td>no snoopers</td><td>27/30 (26/30)</td></tr>
+        <tr><td>5 new-site rule: wikileaks, keylogger; cost</td><td>100%, 100%; 8</td><td>100%, 100%; 0</td></tr>
+        <tr><td>follow-up A: lead over baseline, 95% range</td><td>0 (&minus;6 to +6)</td><td>+40 (+27 to +52)</td></tr>
+        <tr><td>follow-up B: rolling normal, in time; staff listed</td><td>59/70; 274</td><td>84/99; 374</td></tr>
+      </tbody>
+    </table></div>
+    <p>If one recommender line differs in its last digit, check the numpy version first. Anything else that differs: stop and post both outputs in the team chat.</p></div></li>
+    <li><input type="checkbox" id="rb15"><label for="rb15">Record the proof for the video <span class="muted small">(10 min)</span></label><div><div class="code"><pre>uname -m          # s390x
+python3 -c "import sys, platform; print(platform.machine(), sys.byteorder)"   # s390x big
+java -version; docker ps
+time python code/outofrole_minimal.py 4.2</pre></div><p>Show the <code>linux1@</code> prompt, the run, <code>curl /health</code> and one live case file, then a bad reply falling back. Never show a key or a token on screen.</p></div></li>
+  </ol>
+</section>
+
+<!-- ============================================================ GLOSSARY -->
+<section class="part" id="glossary">
+  <span class="kicker">Finish</span>
+  <h2>Glossary</h2>
+  <details class="gl"><summary>Insider</summary><p>An employee who misuses access they legitimately have.</p></details>
+  <details class="gl"><summary>Caught in time</summary><p>On the daily list at least once between the insider's first and last malicious action, so there is still something to stop.</p></details>
+  <details class="gl"><summary>Baseline</summary><p>The simple standard method we must beat. Ours is a 28-day check of each person against their own training habits.</p></details>
+  <details class="gl"><summary>Unsupervised</summary><p>Learning without the answer key. Our detectors only see behaviour, never who the insiders are, because a real company does not have that list.</p></details>
+  <details class="gl"><summary>Percentile (p)</summary><p>The share of a person's normal weeks that are below this week's count. p = 0.99 or more means this week beats essentially all of them.</p></details>
+  <details class="gl"><summary>Half-life</summary><p>How long until a score falls to half. Ours is 7 days: unusual behaviour from a week ago counts half as much as today's.</p></details>
+  <details class="gl"><summary>Recommender, collaborative filtering</summary><p>A model that predicts what you will use from what people with similar habits use, as Netflix does with films.</p></details>
+  <details class="gl"><summary>ALS (alternating least squares)</summary><p>The recommender we use. It squeezes the big people &times; items table into two thin tables (one row of "taste" numbers per person and per item) and alternates between fitting the people side and the items side. <b>Implicit</b> means we only know what was used, not ratings. <b>Rank</b> is how many taste numbers each row has, <b>alpha</b> is how much more we trust a used cell than an empty one, and <b>regularization</b> keeps the numbers small so the model does not memorize noise.</p></details>
+  <details class="gl"><summary>Popularity</summary><p>The simplest recommender: suggest what most people use. The bar ALS must beat.</p></details>
+  <details class="gl"><summary>hit@3</summary><p>Whether at least one real malicious action is among a person's top 3 evidence items.</p></details>
+  <details class="gl"><summary>recall@20</summary><p>Of the new websites people actually started using, the share that were in their 20 predicted sites.</p></details>
+  <details class="gl"><summary>Requests per person-month</summary><p>How many access requests one employee would file in an average month. Lower means less routine work for admins.</p></details>
+  <details class="gl"><summary>Fail closed</summary><p>When a check fails, show the safe fallback instead of the risky output.</p></details>
+  <details class="gl"><summary>Overfitting</summary><p>A method that looks good on the data it was tuned on but fails on new data. Freezing settings on r4.2 and testing on r5.2 guards against it.</p></details>
+  <details class="gl"><summary>Pre-registration</summary><p>Writing down the exact test and the pass rule, and hashing the file, before looking at the answers, so the rule cannot be bent afterwards.</p></details>
+  <details class="gl"><summary>Parquet</summary><p>A compact column-based file format. Spark writes our three tables in it; pandas reads them.</p></details>
+  <details class="gl"><summary>s390x, big-endian</summary><p>s390x is the processor architecture of IBM Z and LinuxONE. It stores numbers big-endian (most significant byte first), unlike laptops, which matters for some binary model files such as Granite's.</p></details>
+  <details class="gl"><summary>Pseudonym</summary><p>A stand-in ID such as U-017 instead of a real name, so the people on the list are not named.</p></details>
+</section>
+
+<p class="small muted" style="margin-top: 24px">Numbers on this page come from <code>evidence/Verified_Numbers.md</code>. The long version of everything is the OutOfRole Handbook.</p>
+</main>
+</div>
+
+<script>
+(function () {
+  // open or close every fold-out
+  const folds = () => document.querySelectorAll("details.fold, details.gl");
+  document.getElementById("openAll").addEventListener("click", () => folds().forEach(d => d.open = true));
+  document.getElementById("closeAll").addEventListener("click", () => folds().forEach(d => d.open = false));
+
+  // release toggle on the step 2 chart
+  document.querySelectorAll("[data-rel]").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("[data-rel]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    document.querySelectorAll("[data-rel-panel]").forEach(p => p.hidden = p.dataset.relPanel !== b.dataset.rel);
+  }));
+
+  // copy buttons on code blocks
+  document.querySelectorAll(".code").forEach(box => {
+    const btn = document.createElement("button"); btn.type = "button"; btn.className = "copy"; btn.textContent = "Copy";
+    btn.addEventListener("click", () => {
+      const text = box.querySelector("pre").innerText;
+      const done = () => { btn.textContent = "Copied"; setTimeout(() => btn.textContent = "Copy", 1400); };
+      const pick = () => { const r = document.createRange(); r.selectNodeContents(box.querySelector("pre")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = "Selected"; };
+      try { navigator.clipboard.writeText(text).then(done, pick); } catch (e) { pick(); }
+    });
+    box.appendChild(btn);
+  });
+
+  // runbook ticks, remembered per viewer
+  const KEY = "oor-runbook-v1"; let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { saved = {}; }
+  const boxes = Array.from(document.querySelectorAll("ol.runbook input[type=checkbox]"));
+  const sync = () => {
+    let n = 0;
+    boxes.forEach(b => { b.closest("li").classList.toggle("done", b.checked); if (b.checked) n++; });
+    const p = document.getElementById("rbProgress"); if (p && boxes.length) p.textContent = n + " of " + boxes.length + " steps done";
+  };
+  boxes.forEach(b => {
+    b.checked = !!saved[b.id];
+    b.addEventListener("change", () => { saved[b.id] = b.checked; try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} sync(); });
+  });
+  sync();
+})();
+</script>

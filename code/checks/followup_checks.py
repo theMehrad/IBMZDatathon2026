@@ -14,7 +14,7 @@ with contextlib.redirect_stdout(io.StringIO()):
     sys.argv = ["outofrole_minimal.py", REL]; g = runpy.run_path(os.path.join(HERE, "..", "outofrole_minimal.py"))
 ins, users, U, normal, T, t0 = g["ins"], g["users"], g["U"], g["normal"], g["T"], g["t0"]
 X, ACT, week, days, last7, CUT, TRAIN_END = g["X"], g["ACT"], g["week"], g["days"], g["last7"], g["CUT"], g["TRAIN_END"]
-in_time, daily_lists, als, dom = g["in_time"], g["daily_lists"], g["als"], g["dom"]
+in_time, daily_lists, als, dom, WEB = g["in_time"], g["daily_lists"], g["als"], g["dom"], g["WEB"]
 print(f"== r{REL}: {len(users)} staff, {len(ins)} insiders ==")
 
 # ---------------------------------------------------------------- A. overfitting: how stable is the lead over the baseline?
@@ -65,7 +65,7 @@ print(f"C  test period ({len(months)} monthly snapshots): staff whose role chang
 blocks = pd.date_range(CUT, dom.day.max() + pd.Timedelta(days=1), freq="30D")
 nrm = set(users[normal]); res = {"own history only": 0, "recommender trained once": 0, "recommender retrained monthly": 0}
 def topk(Xm, own, k=20):
-    s = np.where(own, -np.inf, als(Xm) + np.random.default_rng(1).random(Xm.shape) * 1e-9)
+    s = np.where(own, -np.inf, als(Xm, **WEB) + np.random.default_rng(1).random(Xm.shape) * 1e-9)       # the main file's website setting
     return ((-s).argsort(1).argsort(1) < k) & ~own
 first_grant = None
 for bi, (s, e) in enumerate(zip(blocks[:-1], blocks[1:])):

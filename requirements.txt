@@ -1,0 +1,34 @@
+# Third-party packages imported by code/ (build_tables.py, outofrole_minimal.py, case_file.py, checks/,
+# experiments/) and evidence/Study_Notebook.ipynb.   pip install -r requirements.txt
+#
+# Python 3.11. The floors are the versions every number was produced with (Python 3.11.16, macOS), not tested
+# minimums. PySpark needs Java 17. pip may pick PySpark 4.x, which is untested here (results came from 3.5.9).
+# To open the notebook in Jupyter, also install ipykernel (the "python3" kernel it names) and jupyterlab.
+#
+# IBM LinuxONE (s390x), checked against package listings on 2026-10-17, nothing below installed or run there:
+# - pyspark, joblib and ipython are pure Python and pip-install anywhere.
+# - numpy, pandas, scipy, scikit-learn and pyarrow have NO s390x wheel on PyPI (no version ever), so pip would
+#   build them from source (compilers; scipy also needs Fortran and BLAS). Ready-made s390x builds exist, mostly
+#   older than these floors, and the code is unverified on them:
+#     IBM's JupyterLab s390x image (setup/IBM_Lab_Materials/lab_packages.txt): numpy 2.0.2, pandas 3.0.6,
+#       scipy 1.13.1, scikit-learn 1.9.0, joblib 1.6.0; no pyarrow, no pyspark
+#     Ubuntu 24.04 apt (built for its Python 3.12): python3-numpy 1.26.4, python3-pandas 2.1.4,
+#       python3-scipy 1.11.4, python3-sklearn 1.4.1; no pyarrow
+#     Anaconda defaults channel, linux-s390x: numpy 2.2.4, pandas 2.2.3, scipy 1.15.2, scikit-learn 1.6.1,
+#       pyarrow 19.0.0 (conda-forge has no s390x builds of any of these)
+#   So on LinuxONE start from one of those and pip-install only what is missing (pyspark), not this whole file.
+# - pyarrow is the real gap: pd.read_parquet (outofrole_minimal.py, experiments, notebook) needs pyarrow or
+#   fastparquet. Options, all unverified on s390x: Anaconda's pyarrow 19.0.0; fastparquet from source (no s390x
+#   wheel, but its cramjam dependency has one); pyarrow from source (needs Arrow C++ first, not in Ubuntu 24.04).
+#   build_tables.py itself needs no pyarrow: Spark writes the Parquet tables in the JVM.
+# - Java 17 on s390x: openjdk-17-jre-headless (Ubuntu 24.04), java-17-openjdk-headless (CentOS Stream 9,
+#   the RHEL 9 upstream).
+
+numpy>=2.4.6
+pandas>=3.0.6
+scipy>=1.17.1
+scikit-learn>=1.9.1        # notebook and experiments/lanl_snooping.py
+pyarrow>=25.0.1            # pd.read_parquet everywhere; imported by experiments/early_warning_full.py
+pyspark>=3.5.9             # build_tables.py, experiments/evidence_ranking.py, notebook
+joblib>=1.6.0              # notebook
+ipython>=9.17.1            # notebook (IPython.display)

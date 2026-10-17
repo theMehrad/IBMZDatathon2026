@@ -1,0 +1,19 @@
+lanl_snooping.py check, 2026-10-17 12:19:11
+(a) sparse ALS vs outofrole_minimal.als (rank 16, alpha 10, reg 0.1, 12 iterations, seed 0)
+    300x200, density 0.05: max |difference| 6.33e-15, surprise>=0.5 flips 0
+    500x120, density 0.02: max |difference| 4.61e-15, surprise>=0.5 flips 0
+    80x400, density 0.1: max |difference| 9.10e-15, surprise>=0.5 flips 0
+
+tables: 16,759 people, 16,884 computers, 5,577,395 person x destination x day rows, days 0..57
+
+(b) label-free sanity check: train days 0-6, predict new computers in days 7-13; people with a training row only;
+    a new computer = a (person, computer) pair in days 7-13 not seen in days 0-6; computers unseen in days 0-6 count as misses
+    logon rows: 9,367 people, 4,190 computers, 10,882 new pairs (89.9% on computers seen in days 0-6); ALS fit 0.8s
+        popularity           R@5 0.587  R@20 0.698  R@50 0.740
+        ALS r16 a10 reg0.1   R@5 0.558  R@20 0.661  R@50 0.717
+    all   rows: 12,065 people, 11,305 computers, 31,997 new pairs (93.9% on computers seen in days 0-6); ALS fit 1.3s
+        popularity           R@5 0.280  R@20 0.461  R@50 0.681
+        ALS r16 a10 reg0.1   R@5 0.328  R@20 0.548  R@50 0.629
+
+(c) after-hours window (M3), training days < 14: busiest 12 hours start at hour 6; after hours = [0, 1, 2, 3, 4, 5, 18, 19, 20, 21, 22, 23]
+    person events by hour of day (training days): 2305k 2335k 2318k 2241k 2241k 2269k 2735k 3882k 4572k 4685k 4639k 4473k 4377k 4502k 4528k 4428k 3918k 3078k 2625k 2492k 2452k 2453k 2429k 2394k

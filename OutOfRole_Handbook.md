@@ -66,12 +66,12 @@ The build uses two kinds of machine learning plus one language model. All of it 
 
 | Step | Method (what kind of ML) | What it learns, from what | What it outputs | What it buys us (r4.2 / r5.2) |
 |---|---|---|---|---|
-| 0. Data tables | **Spark** distributed processing (not ML) | Nothing; it aggregates 15 to 37 GB of raw logs | Three tables per person per day: activity counts, computers used, websites visited | Everything after this runs in about 20 seconds per release |
+| 0. Data tables | **Spark** distributed processing (not ML) | Nothing; it aggregates 15 to 37 GB of raw logs | Three tables per person per day: activity counts, computers used, websites visited | Everything after this runs in 1 to 2 minutes per release on a laptop |
 | 1. Daily review list | **Unsupervised anomaly detection, one model per person:** an empirical percentile test ("is this week above every one of my normal weeks?") on 9 activity counts, with a score that halves every 7 days | Each person's own distribution of weekly activity, learned from their training weeks | A daily score per person; the top 20 form the list | Caught in time: 59 / 80, against 59 / 40 for the baseline. An active insider is on the list 64x / 82x as often as a normal employee |
-| 2. Snooping review | **Collaborative filtering:** implicit-feedback ALS matrix factorization (the Netflix-style recommender), on the person-by-computer usage matrix | Which computers "people like you" log into | For each login, how unexpected it is for that person; weeks with unexpected logins are counted, discounting people who always roam | 27 of 30 snoopers in the top 100 (26 without the recommender), r5.2 only |
+| 2. Snooping review | **Collaborative filtering:** implicit-feedback ALS matrix factorization (the Netflix-style recommender), on the person-by-computer usage matrix | Which computers "people like you" log into | For each login, how unexpected it is for that person; weeks with unexpected logins are counted, discounting people who always roam | 27 of 30 snoopers in the top 100 (26 without the recommender), r5.2 only; 0 of 44 on LANL's real logins |
 | 3. Evidence ranking | **Frequency statistics:** novelty (not in this person's history) and rarity (share of staff who used it), no training | How common each computer, website, USB or after-hours action is, from training | The top items for each flagged person, each with an ID | A real malicious action in the top 3 for 64% / 85% of insiders caught in time, against 49% / 51% for rarity alone |
 | 4. Case file | **Large language model (IBM Granite), used as a constrained classifier:** it picks an attack-type label from a fixed list and the IDs of the supporting facts | Nothing new; it reads the evidence pack | A label plus fact IDs; code writes every sentence | A readable case file for analysts and auditors that cannot contain invented facts; label accuracy is measured at the event |
-| 5. Access advice | **Collaborative filtering again:** ALS matrix factorization on the person-by-website matrix, used as a top-20 recommender | Which websites people with similar habits use | Each person's 20 most likely next websites (pre-approve) and websites they stopped using (review) | Predicts 21% / 19% of next new websites, against 14.5% / 13% for popularity; access requests down 21% / 19%, 28% with monthly retraining |
+| 5. Access advice | **Collaborative filtering again:** ALS matrix factorization on the person-by-website matrix, used as a top-20 recommender | Which websites people with similar habits use | Each person's 20 most likely next websites (pre-approve) and websites they stopped using (review) | Predicts 23% / 20% of next new websites, against 14.5% / 13% for popularity; access requests down 23% / 20%, 31% with monthly retraining |
 | 6. New-site rule | **A simple rule** (not ML): never used by anyone in training | The set of websites seen in training | Flags for first-seen sites | All wikileaks and keylogger-site visits flagged; for a real company, flag uploads only |
 
 **Where the code is** for each step:
@@ -79,13 +79,13 @@ The build uses two kinds of machine learning plus one language model. All of it 
 | Step | Code | Notebook |
 |------------|----------------------------------------|------------|
 | 0. Data tables | `code/build_tables.py` | Step 1 |
-| Baseline | `outofrole_minimal.py`, `r2_score()` at line 58 | Step 3 |
-| 1. Daily review list | `outofrole_minimal.py`, lines 43 to 94 | Steps 10 and 19 |
-| 2. Snooping review | `outofrole_minimal.py`, lines 97 to 122 | Step 13 |
-| 3. Evidence ranking | `outofrole_minimal.py`, lines 124 to 186 | Step 18 |
+| Baseline | `outofrole_minimal.py`, `r2_score()` at line 63 | Step 3 |
+| 1. Daily review list | `outofrole_minimal.py`, lines 48 to 104 | Steps 10 and 19 |
+| 2. Snooping review | `outofrole_minimal.py`, lines 105 to 131 | Step 13 |
+| 3. Evidence ranking | `outofrole_minimal.py`, lines 132 to 195 | Step 18 |
 | 4. Case file | `code/case_file.py` | Step 18, Part 3 |
-| 5. Access advice | `outofrole_minimal.py`, lines 188 to 215 | Steps 16 and 17 |
-| 6. New-site rule | `outofrole_minimal.py`, lines 217 to 221 | Step 17 |
+| 5. Access advice | `outofrole_minimal.py`, lines 196 to 237 | Steps 16 and 17 |
+| 6. New-site rule | `outofrole_minimal.py`, lines 238 to 243 | Step 17 |
 
 **The baseline we beat** is also unsupervised and per person. It compares the last 28 days of five activity counts with what the person's own training-period daily rates predict, using a standardized excess: (observed minus expected) divided by the square root of (expected plus 1).
 
@@ -133,7 +133,7 @@ Each level runs on the output of the one above it. Grey bars show the reference 
 
 ![Level by level](figures/levels.png){ width=76% }
 
-All numbers below come from one program, `code/outofrole_minimal.py`, and are listed with their sources in `evidence/Verified_Numbers.md`.
+Most numbers below are printed by one program, `code/outofrole_minimal.py`; all are listed with their sources in `evidence/Verified_Numbers.md`.
 
 ## Catching insiders in time
 
@@ -170,9 +170,9 @@ The honest trade-off: over a whole year, 25% (r4.2) and 15% (r5.2) of normal sta
 
 | Result | r4.2 | r5.2 |
 |---|---|---|
-| Next new websites caught by its top 20 guesses (popularity in brackets) | 21% (14.5%) | 19% (13%) |
-| Access requests per person per month: history only, then with the recommender | 2.31 to 1.82 | 3.15 to 2.55 |
-| Same, retrained monthly with approvals kept: history only / trained once / retrained monthly | 2.24 / 1.76 / 1.61 | 3.08 / 2.50 / 2.21 |
+| Next new websites caught by its top 20 guesses (popularity in brackets) | 23% (14.5%) | 20% (13%) |
+| Access requests per person per month: history only, then with the recommender | 2.31 to 1.77 | 3.15 to 2.51 |
+| Same, retrained monthly with approvals kept: history only / trained once / retrained monthly | 2.24 / 1.71 / 1.54 | 3.08 / 2.46 / 2.12 |
 | Websites used in training but not again (access-review suggestions) | 6.0% | 3.6% |
 | Snooping review: snoopers in its top 100 (without the recommender) | no snoopers | 27 of 30 (26) |
 | Same review as a live 10-name daily list: snoopers caught in time | no snoopers | 9 of 30 |
@@ -190,7 +190,7 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 | Own-history percentile | "Higher than every normal week" | 18 of top 20 real insiders (r5.2) | 20 of 20 on both releases | core of the daily list |
 | Combined signals | Fuse several label-free signals | 44 / 39 in the top 100 | 55 / 43 | kept as a comparison |
 | Recommender as detector | Flag surprising websites | popularity | no gain on any item type | moved to other jobs |
-| Recommender tuned properly | Settings chosen without labels | popularity 14.5% | 21.1% next-site recall | real job: access advice |
+| Recommender tuned properly | Settings chosen without labels | popularity 14.5% | 23.2% next-site recall | real job: access advice |
 | Learning from analyst verdicts | Re-weight after each review round | 55 / 43 | 57 / 42 | dropped: noise |
 | Day-by-day replay | The daily list | baseline 59 / 40 caught in time | 59 / 80 | the headline |
 | Evidence ranking | "New to you, rarest first" | rarity 49% / 51% | 64% / 85% | used for case files |
@@ -206,9 +206,9 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 - **Controls.** A random score with the same list size catches 10 and 11. Moving the training cutoff a month later changes nothing.
 - **Independent checking.** A separate validator re-ran every script and found no use of future data or answer-key leakage. One mislabelled number was corrected.
 - **Outside review.** Codex reviewed the work in 11 rounds; its final verdict on simple, impressive and connected to the proposal was "yes" on all three.
-- **Reproducible.** One 253-line program rebuilds every headline number in about 20 seconds per release.
+- **Reproducible.** One 277-line program rebuilds every headline number in 1 to 2 minutes per release.
 
-**What remains a risk:** a few choices were made after seeing results (the daily-list method, the snooping review, the training cutoff date). The fix is a dataset we have never looked at, which is why we are adding the LANL dataset (see the FAQ).
+**What remains a risk:** a few choices were made after seeing results (the daily-list method, the snooping review, the training cutoff date). We tested the frozen snooping review on LANL's real logins, pre-registered, and it did not transfer (0 of 44 compromised accounts in its top 100); see the FAQ.
 
 # Using it in a real company
 
@@ -217,7 +217,7 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 | Part | Practical? | How to present it |
 |---|---|---|
 | Daily list and case files | Yes. This is how commercial insider-risk tools work (Microsoft Purview Insider Risk, Sentinel UEBA). | A triage aid for analysts, not an accusation tool. In a real company insiders are far rarer than CERT's 5 to 7%, so most names will be innocent. |
-| Snooping review | Yes, as a monthly report. | "Who keeps logging into computers outside their role?" |
+| Snooping review | Yes, as a monthly report, but its settings must be re-set for each organisation: CERT's failed on LANL's real logins. | "Who keeps logging into computers outside their role?" |
 | Case files with Granite | Yes. The constrained design suits compliance and audits. | Granite labels and picks facts; code writes the text. |
 | Access advice | Yes, but for applications, shared drives and groups. Companies do not manage website access per person. | An access-review assistant. CERT has no permission lists, so websites stand in. |
 | New-site rule | Not as built: blocking every never-seen site is excessive. It only works because CERT has about 470 websites in total. | Hold or flag uploads to never-seen or newly registered sites. |
@@ -226,7 +226,7 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 
 - **CERT never changes anyone's role** (0 role changes), though 14 to 30 people change department and 126 to 213 change team. So we tested the general fix: let each person's "normal" roll forward, using their last 26 weeks and skipping the most recent 4 so a slow attack cannot become the new normal.
 - **Detection held:** 59 of 70 and 84 of 99, against 59 and 80 with frozen normal weeks. The cost is that more innocent people appear on the list at some point (274 vs 230, and 374 vs 291).
-- **Retrain the recommender monthly.** It trains in seconds. Monthly retraining cuts access requests 28% below own history alone, against about 21% when trained once.
+- **Retrain the recommender monthly.** It trains in seconds. Monthly retraining cuts access requests 31% below own history alone, against 24% / 20% when trained once.
 - **For a real deployment:**
   - update each person's normal weekly
   - when HR records a role or department change, compare the person with their new team for a few weeks and note the change in the case file
@@ -239,7 +239,7 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 
 **Planned for the event, in order of value:**
 
-1. **Measure its labels.** Compare Granite's attack-type label with the answer key; chance is 1 in 4 on r5.2. This turns "AI explains" into a measured number.
+1. **Measure its labels.** Compare Granite's attack-type label with the answer key. First add a sabotage label: the fixed list has none for the sysadmin attack. This turns "AI explains" into a measured number.
 2. **Daily briefing.** Granite summarizes the day's list (who is new, who escalated, which pattern), using the same labels-and-IDs approach.
 3. **"Ask your logs."** An analyst types a question in plain English; Granite picks one of a fixed set of queries and fills in the details; code runs it. A strong live demo on LinuxONE.
 4. **Access-review notes.** Granite drafts the reason behind each removal or pre-approval suggestion from the facts.
@@ -266,9 +266,9 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 |---|---|---|
 | Spotting insiders across all attack types | Never beat simple popularity, on any item type | Did not work |
 | Live snooping alarm | 9 of 30 snoopers caught in time (r5.2) | Did not work |
-| End-of-period snooping review | 27 of 30 snoopers in its top 100, 26 without it | Works, small edge |
-| Predicting the access each person will need | 21% / 19% of next new websites, vs 14.5% / 13% for popularity | Works |
-| Fewer access requests | 21% / 19% fewer; 28% with monthly retraining | Works |
+| End-of-period snooping review | 27 of 30 snoopers in its top 100, 26 without it; 0 of 44 on LANL's real logins | Works on CERT, small edge; did not transfer |
+| Predicting the access each person will need | 23% / 20% of next new websites, vs 14.5% / 13% for popularity | Works |
+| Fewer access requests | 23% / 20% fewer; 31% with monthly retraining | Works |
 
 What actually catches insiders is each person's own normal week: 80 of 99 caught while still active on r5.2, against 40 for a standard baseline.
 
@@ -284,8 +284,8 @@ Insiders misuse valid access to leak, steal or snoop. Rules miss them or flood a
 **Proposed solution** (179 of 200):
 OutOfRole learns each employee's normal week and lists the 20 who drift most each day. Granite on LinuxONE labels each case from checked evidence; a recommender advises on access.
 
-**Audience** (785 of 1,024):
-(1) Security analysts: a 20-name daily review list instead of thousands of rule hits. In a day-by-day replay it caught 80 of 99 insiders while still active, twice a standard baseline. (2) Privacy and compliance officers: dated case files that cite their evidence; the AI picks a label and the facts, code writes every sentence, so nothing is invented. (3) Identity and access admins: a Netflix-style recommender predicts the access each person will need (1.45 times better than popularity), cutting access requests by about a fifth, and lists access people stopped using for review. (4) Patients and account holders: monitoring and AI stay on the platform; people appear only as pseudonyms. (5) Organizations running core records on IBM Z: everything runs next to the data on LinuxONE.
+**Audience** (790 of 1,024):
+(1) Security analysts: a 20-name daily review list instead of thousands of rule hits. In a day-by-day replay it caught 80 of 99 insiders while still active, twice a standard baseline. (2) Privacy and compliance officers: dated case files that cite their evidence; the AI picks a label and the facts, code writes every sentence, so nothing is invented. (3) Identity and access admins: a Netflix-style recommender predicts the access each person will need (about 1.5 times better than popularity), cutting access requests by about a fifth, and lists access people stopped using for review. (4) Patients and account holders: monitoring and AI stay on the platform; people appear only as pseudonyms. (5) Organizations running core records on IBM Z: everything runs next to the data on LinuxONE.
 
 **Data and method** (685 of 1,024):
 (1) CMU SEI CERT Insider Threat r4.2 and r5.2: synthetic logons, USB, file, web and email logs for 1,000 and 2,000 employees, with an answer key of 70 and 99 insiders used only for grading. (2) Spark builds per-person daily tables; each person's normal weeks are learned from the early months, and the later months are replayed day by day as a live stream. (3) An ALS recommender learns who uses which computers and websites, for snooping reviews and access advice. (4) IBM Granite labels each case from a ranked evidence pack with a fail-closed check. (5) Settings frozen on r4.2, tested unchanged on r5.2; LANL's real authentication logs with red-team labels as an independent check.
@@ -302,7 +302,7 @@ OutOfRole learns each employee's normal week and lists the 20 who drift most eac
 | Novelty | We measure catching insiders while they are still active, which much published work on this dataset does not report; the AI cannot invent facts; the recommender's job is measured in fewer access requests |
 | Technical depth | Per-person anomaly detection, ALS recommender, a constrained LLM, a day-by-day replay with no look-ahead, a resampling check (+27 to +52 insiders on r5.2) |
 | LinuxONE and IBM tech | Spark, Granite and the dashboard all on one LinuxONE server; pseudonyms only |
-| Credibility | Settings frozen before the test release, an independent validator, 11 outside review rounds, one 253-line program that reproduces every number |
+| Credibility | Settings frozen before the test release, an independent validator, 11 outside review rounds, one 277-line program that reproduces every number |
 
 ## How to talk about the change
 
@@ -312,8 +312,8 @@ Judges reward a team that tests its own assumptions. They punish one that hides 
 
 ## Three things that would strengthen it at the event
 
-1. **Measure Granite's labels** against the answer key (chance is 1 in 4 on r5.2), so "the AI explains" becomes a number.
-2. **Run on LANL's real logs** (already downloaded: 1.05 billion login events, 749 red-team events) to show the approach is not just tuned to synthetic data.
+1. **Measure Granite's labels** against the answer key (after adding a sabotage label, which the list lacks), so "the AI explains" becomes a number.
+2. **Re-set the snooping review for a real network.** With CERT's settings frozen it found 0 of 44 compromised accounts in LANL's real logins, while a plain count of new computers found 4. Any new setting must be chosen without labels and tested on held-out days.
 3. **Combine with the baseline for sysadmins:** the baseline catches 8 to 9 of 10 sabotage cases where our list catches 2 to 4. A combined list is a likely quick win; it needs testing.
 
 # What we say openly
@@ -322,6 +322,7 @@ Judges reward a team that tests its own assumptions. They punish one that hides 
 - The daily-list method was chosen after seeing results. The method we had named in advance also beat the baseline (54 vs 28 of 99).
 - Two-day sysadmin sabotage is mostly missed; the baseline does better there.
 - The snooping review was designed after looking at r5.2; as a live list it catches only 9 of 30 snoopers in time.
+- On LANL's real logins (pre-registered, settings frozen) the snooping review did not transfer: 0 of 44 compromised accounts in its top 100 (chance 0.26). Single new, unexpected logins still stood out (27.1% of red-team logins vs 4.2% of others).
 - Most leakers were already doing suspicious USB copying before the answer key's start date, so "caught the same day" partly means "already on the list".
 - Granite and the LinuxONE run are built at the event; the code they plug into is tested here.
 
@@ -330,7 +331,8 @@ Judges reward a team that tests its own assumptions. They punish one that hides 
 - Say "flags insiders while they are still active", not "real-time production system". It is a replay of past logs.
 - Say "the recommender predicts legitimate access", not "the recommender detects insiders". We tested that: as a detector it is no better than popularity.
 - Say openly that two-day sysadmin sabotage is mostly missed, and that CERT is synthetic data.
-- Say "suggests which access to pre-approve", not "trims access to what people need". Only 28% (r4.2) and 42% (r5.2) of the recommender's extra grants were later used.
+- Say "suggests which access to pre-approve", not "trims access to what people need". Only 31% (r4.2) and 44% (r5.2) of the recommender's extra grants were later used.
+- Say "novelty carries over to real logins; our snooping score does not yet", not "validated on real data".
 - Say plainly that the approach changed after testing. The abstract promised recommender-based detection; our tests showed that own-history baselines detect better, so the recommender moved to access advice.
 - Compare against the strongest baseline. On the same 20-name list, the 28-day baseline flags 59 of 70 (a tie on r4.2) and 40 of 99 (half of ours on r5.2).
 - The early-warning method was picked after seeing results. The full detector we had named in advance also beat the baseline: 54 vs 28 of 99 r5.2 insiders flagged in time.
@@ -346,7 +348,7 @@ Fill in names. Hours count from the start of our build.
 | **R1 Data and platform** (\_\_\_\_\_\_) | VM: Java 17, PySpark (no pyarrow on s390x), Docker; download r4.2. At hour 2, hand a one-month sample to R2 and R4. Spark builds 3 tables: daily counts, person-computer-day, person-site-day | r5.2 if disk allows; run the whole pipeline end to end | Docker container, GitHub repo, README | Support the demo; check the repo runs from scratch |
 | **R2 Detection** (\_\_\_\_\_\_) | Port section 1 of `outofrole_minimal.py` (the daily list) and run it on the sample | Run on r4.2 with the fixed settings below | r5.2 unchanged; results table vs baseline and chance, per attack type, analyst load | Export daily lists and per-person timelines for the dashboard |
 | **R3 Granite** (\_\_\_\_\_\_) | Both IBM labs (Granite via llama.cpp; the model file must be big-endian) | Port `case_items` from `outofrole_minimal.py` and all of `case_file.py` (evidence pack with IDs, Granite prompt that returns only a label and fact IDs, reply check, fallback); pseudonyms | Pre-generate case files for the top 20; keep one live run | Case-file panel in the dashboard |
-| **R4 Recommender and demo** (\_\_\_\_\_\_) | Dashboard skeleton: daily list, person page, case-file panel | Port sections 3 to 6 of `outofrole_minimal.py`: ALS on person-site data, top-20 pre-approval, removal suggestions, new-to-company block, and the recommender snooping review (end of period) | Wire everything into the dashboard | Video with on-screen proof: `uname -m` (s390x), `docker ps`, the server prompt |
+| **R4 Recommender and demo** (\_\_\_\_\_\_) | Dashboard skeleton: daily list, person page, case-file panel | Port sections 1b and 3 to 5 of `outofrole_minimal.py`: ALS on person-site data (retrained monthly), top-20 pre-approval, removal suggestions, new-to-company block, and the recommender snooping review (end of period) | Wire everything into the dashboard | Video with on-screen proof: `uname -m` (s390x), `docker ps`, the server prompt |
 
 **Fixed detector settings (decide nothing new):**
 
@@ -354,7 +356,7 @@ Fill in names. Hours count from the start of our build.
 - The running score halves every 7 days.
 - The list holds 20 names a day.
 
-**Recommender settings:** rank 64, alpha 0.5, regularization 1.0 on log(1 + active days), using the numpy version in `recommender_als_simple.py`. Spark's ALS scales regularization differently, so if you use it, re-tune on the last training month and pick by how many next-month new sites it catches.
+**Recommender settings:** rank 128, alpha 0.1, regularization 10 on log(1 + active days), using the numpy `als()` in `outofrole_minimal.py`, retrained every 30 days. Spark's ALS scales regularization differently, so if you use it, re-tune on the last training month and pick by how many next-month new sites it catches.
 
 ## Cut rules
 
@@ -377,7 +379,8 @@ In `code/`, in the order they run:
 | File | What it does | Who ports it |
 |------------------|------------------------------------|------------|
 | `build_tables.py` | Spark turns the raw logs into the three tables (daily counts, person-computer-day, person-site-day) | R1 |
-| `outofrole_minimal.py` | The whole system, printing every headline number: daily list (section 1, lines 43 to 94), snooping review (1b, lines 97 to 122), evidence ranking (2, lines 124 to 186), recommender and access advice (3 and 4, lines 188 to 215), new-site rule (5, lines 217 to 221) | R2: sections 1 and 2; R4: 1b, 3 to 5 |
+| `tables_to_csv.py` | IBM Z only: copies the three tables to CSV, because pandas has no Parquet reader there; `outofrole_minimal.py` reads the copy automatically (identical output, checked on both releases) | R1 |
+| `outofrole_minimal.py` | The whole system, printing every headline number: daily list (section 1, lines 48 to 104), snooping review (1b, lines 105 to 131), evidence ranking (2, lines 132 to 195), recommender and access advice (3 and 4, lines 196 to 237), new-site rule (5, lines 238 to 243) | R2: sections 1 and 2; R4: 1b, 3 to 5 |
 | `case_file.py` | Evidence pack, Granite prompt, reply check and fallback; run it to see the self-test | R3 |
 | `checks/` `followup_checks.py` | Resampling, rolling baseline, role changes, monthly retraining | optional |
 | `experiments/` | The original study scripts behind the evidence | reference only |
@@ -412,10 +415,10 @@ No. Granite returns only a label from a fixed list and fact IDs. Code writes eve
 The fallback case file is fully deterministic and still shows the ranked evidence. The demo works without Granite; Granite adds the label.
 
 **Did we overfit?**
-We guarded against it at every step (see "How we know the results are real"). The remaining risk is choices made after seeing results; the LANL test addresses it.
+We guarded against it at every step (see "How we know the results are real"). The remaining risk is choices made after seeing results, and the LANL test showed it is real for the snooping review: its CERT settings did not carry over to real logins.
 
-**What is the LANL dataset, and why add it?**
-Los Alamos National Laboratory published 58 days of real (not synthetic) login records from its network: 12,425 users, about 1 billion login events, plus a list of 749 red-team attack logins. Using it tests our ideas on data we have never seen. Its attacks are outside intruders moving between computers with stolen accounts, so the snooping review (logins outside a person's normal computers) is the closest fit. We requested the data and are downloading it now.
+**What is the LANL dataset, and what did it show?**
+Los Alamos National Laboratory published 58 days of real (not synthetic) login records from its network. We counted 16,759 user accounts with 331.5 million authentication events, plus 749 red-team logins from 104 accounts whose credentials someone else used. That is the snooping review's case (logins outside a person's normal computers), so we tested it with CERT's settings frozen and the test written down and hashed before opening the red-team file. **It did not transfer:** 0 of 44 compromised accounts in its top 100 (chance 0.26), the same with "any new computer"; the daily list, with only two training weeks, caught 0 of 44. The signal exists per login: 27.1% of red-team logins were flagged new and unexpected, against 4.2% of other logins (6.4 times), and a plain count of each person's new computers put 4 of 44 in the top 100. Found afterwards: at LANL almost everyone logs into new computers most weeks and the compromised accounts were heavy roamers, so our roamer discount pushed them down. The recommender also did not beat popularity at predicting next-week computers there. Our person-level score would have to be re-set for each organisation.
 
 **Do we need to retrain when roles change?**
 Yes, cheaply: roll each person's normal forward weekly, treat a role change as a reason to compare with the new team for a few weeks, and retrain the recommender monthly. Our tests show detection holds with a rolling normal and monthly retraining cuts more requests.
@@ -427,7 +430,7 @@ On r5.2, yes: twice the baseline, robust to resampling, with 54 to 48% of each i
 A small team can review 20 people a day. It also makes the comparison fair, since every method gets the same list size.
 
 **How much code is the build?**
-Two files: 253 lines for scoring and 85 lines for case files, on top of the three tables Spark builds. About 20 seconds per release on a laptop.
+Two files: 277 lines for scoring and 85 lines for case files, on top of the three tables Spark builds. About 1 minute (r4.2) and 2 minutes (r5.2) on a laptop, mostly the monthly recommender retraining.
 
 **What runs on LinuxONE?**
 Everything: Spark builds the tables, Python scores and ranks, Granite labels the case files, and the dashboard shows the list. Nothing leaves the server.

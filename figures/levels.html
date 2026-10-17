@@ -1,0 +1,170 @@
+<!doctype html><html data-theme="light"><head><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"><style>
+/* Layout: one 760px reading column; the hour track and role grid are the only wide elements, each scrolls on its own. */
+:root {
+  --bg: #f6f7f8; --surface: #ffffff; --fg: #1c2328; --muted: #5b6770; --line: #d9dee2;
+  --accent: #0f6e7a; --accent-soft: #e2f1f2; --warn: #9a5b00; --warn-soft: #fbf0dd;
+  --font-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12171a; --surface: #1a2125; --fg: #e4e9ec; --muted: #9aa7af; --line: #2c363c;
+  --accent: #5cc3cf; --accent-soft: #163135; --warn: #e8b25c; --warn-soft: #33281a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12171a; --surface: #1a2125; --fg: #e4e9ec; --muted: #9aa7af; --line: #2c363c;
+  --accent: #5cc3cf; --accent-soft: #163135; --warn: #e8b25c; --warn-soft: #33281a; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--font-body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 36px; }
+header { display: grid; gap: 8px; }
+.eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: 34px; line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h2 { font-size: 20px; margin: 0 0 12px; text-wrap: balance; }
+p { margin: 0; }
+.lede { font-size: 17px; max-width: 65ch; }
+.sub { color: var(--muted); }
+section { display: grid; gap: 12px; min-width: 0; }
+.parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.part { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 6px; align-content: start; }
+.part b { font-size: 15px; }
+.part .tag { font: 600 11px/1 var(--font-mono); color: var(--accent); text-transform: uppercase; letter-spacing: .06em; }
+.pitch { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; font-style: italic; max-width: 65ch; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+td.n { font: 14px var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.n strong { color: var(--accent); }
+.note { font-size: 13px; color: var(--muted); }
+ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.roles { display: grid; gap: 12px; }
+.role { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.role-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+.role-head b { font-size: 16px; }
+.owner { font: 13px var(--font-mono); color: var(--muted); border-bottom: 1px dashed var(--line); min-width: 120px; padding-bottom: 1px; }
+.blocks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.block { display: grid; gap: 4px; align-content: start; font-size: 13.5px; }
+.block .h { font: 600 11px/1 var(--font-mono); color: var(--accent); }
+code { font: 12.5px var(--font-mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.settings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.settings > div { background: var(--accent-soft); border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; align-content: start; }
+.cuts { list-style: none; padding: 0; display: grid; gap: 8px; }
+.cuts li { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: baseline; }
+.hr { font: 600 13px var(--font-mono); color: var(--warn); background: var(--warn-soft); border-radius: 4px; padding: 2px 6px; text-align: center; }
+.track { position: relative; height: 34px; margin: 4px 0 6px; min-width: 420px; }
+.track .bar { position: absolute; left: 0; right: 0; top: 16px; height: 2px; background: var(--line); }
+.track .tick { position: absolute; top: 9px; width: 2px; height: 16px; background: var(--warn); transform: translateX(-1px); }
+.track .lab { position: absolute; top: 0; font: 11px var(--font-mono); color: var(--muted); transform: translateX(-50%); }
+.track .end { position: absolute; top: 22px; font: 11px var(--font-mono); color: var(--muted); }
+ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.saythis { display: grid; gap: 8px; }
+.saythis div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; font-size: 14px; }
+.levels { display: grid; gap: 8px; }
+.stage { font: 600 11px/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 0 2px; border-top: 1px solid var(--line); }
+.stage:first-child { border-top: 0; padding-top: 0; }
+.lvl { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.lvl-hero { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+.lvl-text { display: grid; gap: 4px; align-content: start; }
+.lvl-text p { font-size: 13.5px; color: var(--muted); }
+.lvl-id { font: 600 12px/1 var(--font-mono); color: var(--accent); }
+.lvl-bars { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.metric { font-size: 12.5px; font-weight: 600; }
+.pair { display: grid; grid-template-columns: 36px minmax(0, 1fr) 200px; gap: 10px; align-items: center; }
+.pair .vals { text-align: right; }
+.rel { font: 11px var(--font-mono); color: var(--muted); }
+.tracks { display: grid; gap: 3px; }
+.track2 { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.track2 i { display: block; height: 100%; border-radius: 4px; }
+.track2 i.b0 { background: var(--muted); opacity: .45; }
+.track2 i.b1 { background: var(--accent); }
+.vals { font: 12.5px var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vals b { color: var(--accent); }
+.chg { font-style: normal; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 0 5px; margin-left: 2px; }
+.lvl-note { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 640px) { .lvl { grid-template-columns: 1fr; gap: 10px; } .pair { grid-template-columns: 36px minmax(0, 1fr); row-gap: 2px; } .pair .vals { grid-column: 2; text-align: left; white-space: normal; } }
+.ladder td, .ladder th { font-size: 13px; padding: 7px 8px; }
+.ladder td:nth-child(2) { min-width: 150px; }
+.chip { display: inline-block; font: 600 11px/1.3 var(--font-mono); padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+.chip.kept { background: var(--accent-soft); color: var(--accent); }
+.chip.build { background: var(--accent); color: var(--surface); }
+.chip.drop { background: var(--warn-soft); color: var(--warn); }
+.yes { color: var(--accent); font-weight: 600; }
+.no { color: var(--muted); text-decoration: line-through; }
+@media (max-width: 640px) {
+  .parts, .settings { grid-template-columns: 1fr; }
+  .blocks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  h1 { font-size: 28px; }
+  .saythis div { grid-template-columns: 1fr; gap: 2px; }
+}
+</style><style>.wrap{max-width:860px;padding-block:16px}</style></head><body><div class="wrap"><section id="levels">
+  
+  
+  <div class="levels">
+
+    <div class="stage">Data</div>
+    <div class="lvl">
+      <div class="lvl-text"><span class="lvl-id">L0</span><b>Logs to tables</b><p>Logon, USB, file and web logs (about 15 GB for r4.2, 31 GB for r5.2) become three Spark tables per person per day.</p></div>
+      <div class="lvl-bars"><p class="lvl-note">r4.2 alone has 1,003 computers and 475 websites. The web log moved from a stretch goal to core, because rare-site visits turned out to be a strong signal.</p></div>
+    </div>
+
+    <div class="stage">Detect</div>
+    <div class="lvl">
+      <div class="lvl-text"><span class="lvl-id">L1</span><b>Personal baseline</b><p>Is this person's last 28 days unusual compared with their own history?</p></div>
+      <div class="lvl-bars">
+        <div class="metric">Insiders found when an analyst reviews the top 100 people</div>
+        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:10%"></i></div><div class="track2"><i class="b1" style="width:62.9%"></i></div></div><span class="vals">chance 7 → <b>44</b></span></div>
+        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:5.1%"></i></div><div class="track2"><i class="b1" style="width:39.4%"></i></div></div><span class="vals">chance 5 → <b>39</b></span></div>
+      </div>
+    </div>
+    <div class="lvl">
+      <div class="lvl-text"><span class="lvl-id">L2</span><b>Own-history weekly percentile</b><p>Did this week beat every one of the person's normal weeks, on any activity?</p></div>
+      <div class="lvl-bars">
+        <div class="metric">Real insiders among the top 20 names</div>
+        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:100%"></i></div><div class="track2"><i class="b1" style="width:100%"></i></div></div><span class="vals">L1 20 → <b>20</b></span></div>
+        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:90%"></i></div><div class="track2"><i class="b1" style="width:100%"></i></div></div><span class="vals">L1 18 → <b>20</b></span></div>
+      </div>
+    </div>
+    <div class="lvl">
+      <div class="lvl-text"><span class="lvl-id">L3</span><b>Signal families combined</b><p>Behaviour, own history, peers, rare sites and slow drift, fused without labels (family-first Stouffer).</p></div>
+      <div class="lvl-bars">
+        <div class="metric">Insiders found in the top 100 people</div>
+        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:62.9%"></i></div><div class="track2"><i class="b1" style="width:78.6%"></i></div></div><span class="vals">L1 44 → <b>55</b> <em class="chg">+11</em></span></div>
+        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:39.4%"></i></div><div class="track2"><i class="b1" style="width:43.4%"></i></div></div><span class="vals">L1 39 → <b>43</b> <em class="chg">+4</em></span></div>
+        <p class="lvl-note">End-of-period snooping review, built on the recommender: weeks with logins to computers outside the person's profile put 27 of 30 r5.2 snoopers in its top 100 (14 in the top 20); without the recommender, 26. As a live list it catches 9 of 30 in time, so live warnings come from the daily list. On LANL's real logins it found none of 44 stolen accounts, so it must be re-set per network.</p>
+      </div>
+    </div>
+
+    <div class="stage">Watch daily</div>
+    <div class="lvl lvl-hero">
+      <div class="lvl-text"><span class="lvl-id">L4</span><b>Early warning</b><p>Replay the logs one day at a time, using only the past. The 20 highest running scores form that day's review list.</p></div>
+      <div class="lvl-bars">
+        <div class="metric">Insiders on the list before their last malicious action</div>
+        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:84.3%"></i></div><div class="track2"><i class="b1" style="width:84.3%"></i></div></div><span class="vals">L1 59 → <b>59</b> <em class="chg">tie</em></span></div>
+        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:40.4%"></i></div><div class="track2"><i class="b1" style="width:80.8%"></i></div></div><span class="vals">L1 40 → <b>80</b> <em class="chg">+40</em></span></div>
+        <p class="lvl-note">Grey is the 28-day baseline on the same 20-name list. Under our running rule it gets only 33 and 28, and a random score gets 10 and 11. On average, about half of each insider's labelled malicious actions (54%, 48%) came on later days. Median delay: 0 days for leakers (most were already listed) and 1.5 to 3 weeks for job-hunters and snoopers. Analyst load is about 5 new names a week.</p>
+      </div>
+    </div>
+
+    <div class="stage">Explain</div>
+    <div class="lvl">
+      <div class="lvl-text"><span class="lvl-id">L5</span><b>Evidence and Granite case file</b><p>For each flagged person, rank their activity "new to this person, rarest first". Granite picks a label and the supporting facts; code writes every fact sentence.</p></div>
+      <div class="lvl-bars">
+        <div class="metric">Insiders flagged in time with a real malicious event in their top 3 items (evidence up to the flag day)</div>
+        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:49%"></i></div><div class="track2"><i class="b1" style="width:64%"></i></div></div><span class="vals">rarity 49% → <b>64%</b> <em class="chg">+15</em></span></div>
+        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:51%"></i></div><div class="track2"><i class="b1" style="width:85%"></i></div></div><span class="vals">rarity 51% → <b>85%</b> <em class="chg">+34</em></span></div>
+        <p class="lvl-note">Leakers, sysadmins and snoopers: 85 to 100%. Job-hunters are the hard case. The labels are used only to grade, never to rank.</p>
+      </div>
+    </div>
+
+    <div class="stage">Prevent</div>
+    <div class="lvl">
+      <div class="lvl-text"><span class="lvl-id">L6</span><b>Least-privilege advisor</b><p>The recommender predicts each person's next websites, so those can be pre-approved; anything else goes to a reviewer. Sites no one here visited during the training months are blocked.</p></div>
+      <div class="lvl-bars">
+        <div class="metric">Next new websites caught by the top 20 guesses (bar scale 0 to 30%)</div>
+        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:48.3%"></i></div><div class="track2"><i class="b1" style="width:77.3%"></i></div></div><span class="vals">popularity 14.5% → <b>23.2%</b></span></div>
+        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:43.3%"></i></div><div class="track2"><i class="b1" style="width:67.3%"></i></div></div><span class="vals">popularity 13.0% → <b>20.2%</b></span></div>
+        <p class="lvl-note">Access requests drop from 2.31 to 1.77 per person-month (3.15 to 2.51 on r5.2); retrained monthly, 31% fewer than own history on both. It suggests rather than decides: only 31% and 44% of its extra grants were later used. Removal suggestions: 6.0% and 3.6% of the sites people hold go unused afterwards. The new-to-company rule blocks 100% of wikileaks and keylogger visits, costing 5 normal people 8 days in total on r4.2.</p>
+      </div>
+    </div>
+  </div>
+</section></div></body></html>

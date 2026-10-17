@@ -71,27 +71,31 @@ Script: `evidence_ranking.py`. Metric: hit@3, meaning at least one answer-key ma
 
 ## 3. The recommender's own job: predicting legitimate new websites (normal staff)
 
-Scripts: `recommender_als_simple.py` (independent check) and `least_privilege_full.py`.
+Scripts: `outofrole_minimal.py` (build setting), `recommender_als_simple.py` (independent check) and `least_privilege_full.py`.
 
 | Recall of next new websites | r4.2 | r5.2 |
 |---|---|---|
 | Popularity, top 5 / 20 / 50 | 0.037 / 0.145 / 0.303 | 0.034 / 0.130 / 0.274 |
-| ALS, label-free tuned (rank 64, alpha 0.5, reg 1.0, log1p days, numpy), top 5 / 20 / 50 | 0.073 / 0.211 / 0.386 | 0.062 / 0.190 / 0.356 |
+| **ALS, build setting since Oct 17 (rank 128, alpha 0.1, reg 10, 12 iterations, log1p distinct days, seed 0, numpy `als()` in `outofrole_minimal.py`), top 20** | **0.232 (0.2319; 1.59x popularity)** | **0.202 (0.2015; 1.55x)** |
+| Previous build setting, superseded (rank 64, alpha 0.5, reg 1.0, log1p days, numpy), top 5 / 20 / 50 | 0.073 / 0.211 / 0.386 | 0.062 / 0.190 / 0.356 |
 | ALS, v3 notebook setting (rank 16, alpha 10, reg 0.1), top 5 / 20 / 50 | 0.031 / 0.126 / 0.315 | 0.031 / 0.121 / 0.294 |
+
+**Re-tune (October 17).** The build setting came from a pre-registered side test: temporal validation on r4.2 training weeks only, then r4.2 and r5.2 test. With monthly retraining it passed all five checks; trained once it passed 4 of 5, missing the requests threshold (-0.036 vs -0.05 needed). `outofrole_minimal.py` now prints the monthly retraining itself.
 
 The v3 notebook's statement that the recommender is "at the popularity baseline on its own job" came from untuned settings, and is superseded.
 
 ## 4. Least-privilege advisor (websites, normal staff)
 
-Script: `least_privilege_full.py`.
+Scripts: `outofrole_minimal.py` (canonical) and `least_privilege_full.py` (old-setting experiment).
 
 | Policy | Requests per person-month (r4.2 / r5.2) | Malicious web events needing approval (r4.2 / r5.2) |
 |---|---|---|
 | Own history only | 2.31 / 3.15 | 71.0% / 90.1% |
 | Pre-approve popularity top 20 | 1.97 / 2.74 | 65.5% / 86.2% |
-| Pre-approve ALS top 20 | 1.82 / 2.55 | 69.1% / 89.2% |
+| Pre-approve ALS top 20 | 1.77 / 2.51 (-23% / -20%) | 68.0% / 89.1% |
+| Monthly, approved requests kept: own history refreshed / ALS trained once / ALS retrained monthly | r4.2 2.24 / 1.71 / 1.54; r5.2 3.08 / 2.46 / 2.12 (retrained monthly: -31% vs own history on both; -10% / -14% vs trained once) | not printed |
 
-These canonical numbers come from `outofrole_minimal.py`, which drops the cutoff week. The full experiment (`least_privilege_full.py`) trains through the day before the cutoff instead, and gives r5.2 3.07 / 2.67 / 2.48 requests and 87.5% / 83.7% / 86.8% coverage; on r4.2 it agrees except for ALS coverage (69.0%). Both are kept. The notebook's Step 17 shows the full-experiment version. Share of the recommender's extra grants later used: 0.28 / 0.42 (0.41 in the full experiment).
+These canonical numbers come from `outofrole_minimal.py`, which drops the cutoff week and uses the build setting (section 3). The old-setting experiment (`least_privilege_full.py`: rank 64, alpha 0.5, reg 1.0, trained through the day before the cutoff) gave r4.2 2.31 / 1.97 / 1.82 requests and 71.0% / 65.5% / 69.0% coverage, and r5.2 3.07 / 2.67 / 2.48 and 87.5% / 83.7% / 86.8%. It is kept as a record; the notebook's Step 17 shows it. Share of the recommender's extra grants later used: 0.31 / 0.44 (old setting: 0.28 / 0.42; 0.41 in the old-setting experiment).
 
 **New-to-company site rule** (`org_novel_sites.py`): block any site that nobody visited during training.
 
@@ -108,7 +112,7 @@ These canonical numbers come from `outofrole_minimal.py`, which drops the cutoff
 
 - **Analyst-feedback re-weighting** (AAD, Das et al. 2016): 57 vs 55 insiders found at 100 reviews (r4.2), and 42 vs 43 (r5.2). Across 40 subsamples the gain is +0.2 ± 0.9 and +0.1 ± 1.0. With job-hunters hidden, it still finds 22 of 30, against 4 to 7 for trained combiners.
 - **Recommender as a detector** (site, site × hour, computer × hour, email recipients, sequences, peer groups): no gain over popularity. Site × hour popularity raises r5.2 web novelty from 11.4 to 26.0 expected hits in the top 70, but popularity alone gets that gain. CF variants reach 22 to 26 (user-kNN ties popularity at 26.0).
-- **Tuned rerun (done):** label-free tuning makes ALS a much better recommender. The best web setting is rank 128, alpha 0.1, reg 10, with site recall@20 of 0.232 on r4.2 and 0.202 on r5.2 (independently re-run). Person-level detection stays flat or gets worse, at 3.0 and 4.0 hits@70 on site. Tuned ALS also adds nothing in the logistic combiner (AP change of -0.000 and -0.001, against a seed noise of ±0.005).
+- **Tuned rerun (done):** label-free tuning makes ALS a much better recommender. The best web setting is rank 128, alpha 0.1, reg 10, with site recall@20 of 0.232 on r4.2 and 0.202 on r5.2 (independently re-run; the build setting since October 17, section 3). Person-level detection stays flat or gets worse, at 3.0 and 4.0 hits@70 on site. Tuned ALS also adds nothing in the logistic combiner (AP change of -0.000 and -0.001, against a seed noise of ±0.005).
 - **Recommender as explanation evidence:** C1 beats it (section 2).
 
 ## 6. Retrospective ranking (v3 notebook, unchanged)
@@ -143,8 +147,8 @@ Use this table wherever steps are listed: the notebook, the plan, the briefing a
 | 13 | Snooper signal | snoopers in top 100, r5.2 | Naive new computers 10.9 of 30 | Weekly persistence + roaming discount 27 of 30 (ownership, naive and ALS alike) | +16 | Persistence, not ALS |
 | 14 | Equal budget, 100 reviews | insiders found, r4.2 / r5.2 | R2 44 / 39 | Stouffer 55 / 43; four queues 42 / 53 | Stouffer +11 / +4 | Fusion as default |
 | 15 | Recommender at its own job (untuned) | MPR, lower is better, r4.2 | Popularity 35.5 | ALS 35.9 | Worse by 0.4 | Superseded by Step 16 |
-| 16 | Recommender, tuned without labels | recall@20 of next new sites, r4.2 / r5.2 | Popularity 0.145 / 0.130; v3 setting 0.126 / 0.121 | 0.211 / 0.190 | +0.066 / +0.060 over popularity (1.45x / 1.46x) | Real job found |
-| 17 | Least-privilege advisor | requests per person-month, r4.2 / r5.2 | Own history 2.31 / 3.15 | ALS top 20: 1.82 / 2.55 (popularity: 1.97 / 2.74) | -21% / -19% at about the same static coverage (71.0% to 69.1%; 90.1% to 89.2%) | Build (R4) |
+| 16 | Recommender, tuned without labels | recall@20 of next new sites, r4.2 / r5.2 | Popularity 0.145 / 0.130; v3 setting 0.126 / 0.121 | 0.232 / 0.202 (rank 128, alpha 0.1, reg 10) | 1.59x / 1.55x popularity | Real job found |
+| 17 | Least-privilege advisor | requests per person-month, r4.2 / r5.2 | Own history 2.31 / 3.15 | ALS top 20: 1.77 / 2.51 (popularity: 1.97 / 2.74); retrained monthly with approvals kept: 1.54 / 2.12 (own history refreshed 2.24 / 3.08) | -23% / -20%, static coverage 71.0% to 68.0% and 90.1% to 89.1%; retrained monthly -31% / -31% | Build (R4) |
 | 17b | New-to-company site rule | wikileaks + keylogger visits blocked | (none) | 100% (r4.2 and r5.2) | Cost: 8 person-days on r4.2, 0 on r5.2 | Build (R4) |
 | 18 | Evidence ranking for Granite | hit@3, insiders flagged in time, evidence up to the flag day, r4.2 / r5.2 | Global rarity 0.49 / 0.51 | C1 "new to you, rarest first" 0.64 / 0.85 (validator's window: 0.66 / 0.85) (ALS: 0.75 / 0.46; retrospective top-100 set: C1 0.98 / 0.98) | +0.15 / +0.34 over rarity | Build (R3) |
 | 19 | Early warning, day-by-day replay | insiders listed before last malicious action, r4.2 / r5.2 | R2 on the same list 59 / 40 (R2 under the same decay rule 33 / 28; random score 10 / 11; chance about 3 / 3) | Percentile 59 / 80 (pre-registered fusion 60 / 54) | 0 / +40 over the fair baseline | Headline (R2 role) |
@@ -156,7 +160,7 @@ Use this table wherever steps are listed: the notebook, the plan, the briefing a
 - The early-warning percentile method was chosen after seeing results. The pre-registered fusion flagged 60 of 70 and 54 of 99 (54.5%) in time.
 - Each train cutoff was set to precede every attack, a choice that used the labels.
 - `least_privilege_full.py` trains through the day before the cutoff, rather than dropping the cutoff week. This is not leakage, because every attack starts after the cutoff.
-- Requests per person-month include staff who have since left in the denominator. Both policies share it, so the -21% / -19% comparison holds.
+- Requests per person-month include staff who have since left in the denominator. Both policies share it, so the -23% / -20% comparison holds.
 - The validator found no look-ahead and no label leakage in any scoring code. A random-score control and a one-month-later cutoff both left the early-warning headline intact.
 
 ## 9. External review, round 4 (Codex gpt-6.1-sol, October 17)
@@ -166,14 +170,14 @@ The review is in `evidence/Reviews/round4_review.md`. These are the changes it a
 - **Evidence as of the alert:** replaced the 98% with 0.66 / 0.85, computed only on evidence up to the flag day (section 2).
 - **Fair baseline:** R2 on the same list ties on r4.2 (59 vs 59) and is half of ours on r5.2 (40 vs 80). This now leads the comparison.
 - **Leakers:** median delay 0 days is measured from the first labelled day. Only 7 of 30 (r4.2) and 15 of 29 (r5.2) were newly flagged; the rest were already on the list.
-- **Least privilege:** say "suggests which access to pre-approve". Only 28% and 42% of the 20 extra grants were later used. At matched cost, ALS covers 68.7% vs 60.4% for popularity (r4.2), and 85.9% vs 81.5% (r5.2); these are interpolated values from `matched_disruption_dom.csv`.
+- **Least privilege:** say "suggests which access to pre-approve". Only 28% and 42% of the 20 extra grants were later used (old setting; 31% and 44% with the build setting since October 17). At matched cost, ALS covers 68.7% vs 60.4% for popularity (r4.2), and 85.9% vs 81.5% (r5.2); these are interpolated values from `matched_disruption_dom.csv`, from the old-setting experiment (rank 64, alpha 0.5, reg 1.0), not re-run.
 - **Hidden job-hunters:** frozen fusion places 19 of 30 in the top 100, against 22 for feedback re-weighting and 4 to 7 for trained combiners.
 - **Answer parsers:** `early_warning_simple.py` and `org_novel_sites.py` now read only each insider's own answer rows. All their numbers are unchanged after re-running (0.54 / 0.48; 8 person-days; 100%).
 - **Pivot from the abstract:** must be stated. Recommender-based detection was promised; own-history baselines detect better, so the recommender moved to access advice.
 
 ## 10. The whole system in one file (`code/outofrole_minimal.py`)
 
-The file is 253 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
+The file is 277 lines and runs in about 1 minute (r4.2) and 2 minutes (r5.2) on a laptop, most of it the monthly recommender retraining. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`. Where pandas has no Parquet reader (IBM Z: pyarrow has no s390x build), it reads a CSV copy of the tables written by `code/tables_to_csv.py`; on October 17 both paths printed identical output on r4.2 and r5.2.
 
 | Result | r4.2 | r5.2 |
 |---|---|---|
@@ -182,15 +186,17 @@ The file is 253 lines and runs in about 20 seconds per release on a laptop. It u
 | Share of each insider's malicious events on later days, averaged over all insiders (missed = 0) | 0.54 | 0.48 |
 | Same, averaged over the insiders flagged in time only | 0.64 | 0.60 |
 | Normal staff ever listed | 230 | 291 |
+| On the list on a given day: insiders during their attack vs normal staff (ratio); 28-day baseline on its own list | 82% vs 1.3% (64x); baseline 61% vs 1.5% (39x) | 54% vs 0.7% (82x); baseline 39% vs 0.8% (47x) |
 | Evidence top 3 holds an answer-key-matched item (in-time insiders, evidence from replay day zero up to the graded flag day; ties averaged): C1 vs rarity | **0.64 vs 0.49** | **0.85 vs 0.51** |
-| Next new sites caught by the top 20: recommender vs popularity | 0.211 vs 0.145 | 0.190 vs 0.130 |
-| Access requests per person-month: own history / popularity top 20 / recommender top 20 | 2.31 / 1.97 / 1.82 | 3.15 / 2.74 / 2.55 |
-| Malicious web visits that would need approval (static coverage): own history / popularity / recommender | 71.0% / 65.5% / 69.1% | 90.1% / 86.2% / 89.2% |
+| Next new sites caught by the top 20: recommender (rank 128, alpha 0.1, reg 10) vs popularity | 0.232 vs 0.145 | 0.202 vs 0.130 |
+| Access requests per person-month: own history / popularity top 20 / recommender top 20 | 2.31 / 1.97 / 1.77 | 3.15 / 2.74 / 2.51 |
+| Same, monthly with approved requests kept: own history refreshed / recommender trained once / retrained monthly | 2.24 / 1.71 / 1.54 | 3.08 / 2.46 / 2.12 |
+| Malicious web visits that would need approval (static coverage): own history / popularity / recommender | 71.0% / 65.5% / 68.0% | 90.1% / 86.2% / 89.1% |
 | Access-review suggestions (end-of-period proxy): share of websites used in training and not again, people still active at the end | 6.0% (7.3 per person; 99% have at least one) | 3.6% (3.9 per person; 96%) |
 | Evidence at each insider's first alert, searched from replay day zero, hit@3 (share of first alerts before labelled onset) | 0.31 (46%) | 0.62 (31%) |
 | Label-free evidence strength (an item not in the person's training history and used by under 1% of staff), both groups at first alert: insiders vs normal staff | 29% vs 18% | 65% vs 31% |
 | Same rule, insiders at their graded in-time day | 53% | 72% |
-| Share of the recommender's extra grants later used | 0.28 | 0.42 |
+| Share of the recommender's extra grants later used | 0.31 | 0.44 |
 | New-to-company rule: wikileaks and keylogger visits blocked; normal person-days affected | 100%, 100%; 8 | 100%, 100%; 0 |
 | Live snooping list (10 names a day, same signal counted up to each day): snoopers listed before their last malicious action; with the 20-name daily list | no snoopers | 9 / 30 (any new computer: 7); 25 / 30 combined = 25 for the daily list alone |
 | File names belonging to exactly one person (why no file recommender) | 100% | 94.4% |
@@ -198,7 +204,7 @@ The file is 253 lines and runs in about 20 seconds per release on a laptop. It u
 
 Notes:
 
-- **r5.2 requests.** They differ slightly from the full-experiment variant listed in section 4 (3.07 / 2.67 / 2.48), because that script trained through the day before the cutoff instead of dropping the cutoff week. The reduction is the same (-19%). Both results are kept, with their protocol named.
+- **Recommender setting.** Rank 128, alpha 0.1, reg 10 since October 17 (section 3). The old-setting experiment in section 4 (r5.2 3.07 / 2.67 / 2.48, -19%) used rank 64 and trained through the day before the cutoff; it is kept as a record, with its protocol named.
 - **Share on later days.** "Over all insiders" is the conservative figure; "over flagged insiders" describes the people the list actually caught.
 - **Evidence window.** The validator's comparison tables in section 2 (C1 0.66 / 0.85, ALS, novelty, mixed rule) start the evidence window on the Monday after the cutoff week. The canonical one-file numbers start it on replay day zero, which gives C1 0.64 / 0.85 and leaves rarity at 0.49 / 0.51. Both are kept; headline documents quote 0.64 / 0.85.
 
@@ -252,10 +258,31 @@ No local fix is needed. The LinuxONE run and Granite integration are delivery ch
 | B. Rolling "normal" (each person's last 26 weeks, skipping the most recent 4): in time; normal staff ever listed | 59 / 70; 274 | 84 / 99; 374 |
 | B. Rolling "normal" (last 13 weeks, skipping 4): in time; normal staff ever listed | 58 / 70; 257 | 78 / 99; 386 |
 | C. LDAP changes during the test period: role; department; team; staff who left (insiders among them) | 0; 14; 126; 129 (70) | 0; 30; 213; 213 (70) |
-| D. Access requests per person-month, approvals kept, own history refreshed monthly: own history only; recommender trained once; recommender retrained monthly | 2.24; 1.76; 1.61 | 3.08; 2.50; 2.21 |
+| D. Access requests per person-month, approvals kept, own history refreshed monthly: own history only; recommender trained once; recommender retrained monthly (build setting, same as `outofrole_minimal.py`'s monthly line) | 2.24; 1.71; 1.54 | 3.08; 2.46; 2.12 |
 
 **Notes:**
 
 - **CERT never changes anyone's role,** so role-change robustness cannot be tested directly. The rolling baseline is the proxy for it.
 - **A rolling baseline keeps or slightly improves detection,** but puts more normal staff on the list over the period.
-- **Retraining the recommender monthly cuts requests a further 9% (r4.2) and 12% (r5.2)** compared with training it once. In total that is 28% fewer requests than own history alone.
+- **Retraining the recommender monthly cuts requests a further 10% (r4.2) and 14% (r5.2)** compared with training it once. In total that is 31% fewer requests than own history alone, on both releases.
+
+## 12. LANL real-login test (pre-registered, October 17)
+
+Scripts: `code/experiments/lanl_tables.py` and `lanl_snooping.py`. Sources in `evidence/LANL/`: `PREREG.txt` (hashed in `PREREG.sha256` before the red-team labels were opened), `results.txt` (every number below) and `posthoc.txt`.
+
+**Design.** CERT settings frozen; nothing tuned on LANL labels. 58 days of real logins. Person = source user `U...@DOM...`: 16,759 people, 16,884 computers, 331.5 million authentication events by those people. Red team: 749 rows from 104 accounts. Primary analysis: LogOn rows, train days 0 to 13, test days 14 to 57, 44 gradable compromised accounts. No deviations from the pre-registration.
+
+| Result (primary analysis unless stated) | Value |
+|---|---|
+| **Verdict (pre-registered decision rule)** | **Does not transfer** |
+| Snooping review (new to the person and ALS surprise of 0.5 or more, weekly count, roamers discounted): compromised accounts in the top 100 | 0 of 44 (chance 0.26) |
+| Any computer new to the person, same count and discount: top 100 | 0 of 44 |
+| Both, at the 7-day and 21-day training cutoffs | 0 of 88; 0 of 23 |
+| Per login: red-team logins flagged new and unexpected vs other logins | 27.1% vs 4.2% (6.4x); 11.7x with one training week |
+| Pre-registered baseline: count of each person's distinct new computers, top 100 | 4 of 44 (p = 1.3e-4); 24 of 88 with one training week |
+| Early-warning daily list (two thin training weeks): accounts listed between first and last red-team day | 0 of 44 (chance 0.08) |
+| Label-free check: person x computer ALS (rank 16, alpha 10, reg 0.1) vs popularity at predicting next-week computers, recall@20, LogOn rows | 0.661 vs 0.698 |
+
+**Post hoc** (written after the pre-registered run; changes no verdict): the roamer discount and the weekly count were tuned to CERT. At LANL almost everyone logs into a new computer most weeks (10,281 of 10,673 people with a test login; median 5 test weeks), and the compromised accounts belonged to heavy roamers (median roam 0.906, against 0.871 for other people who roam at all), so the discount pushes them down. Every person in the snooping review's top 100 had roam 0.
+
+**Reading:** novelty carries over to real logs at the level of single logins; our person-level snooping score does not, and would have to be re-set for each new organisation.

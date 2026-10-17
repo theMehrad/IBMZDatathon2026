@@ -17,3 +17,6 @@ __pycache__/
 # kept on disk, not in the repo: history and duplicate formats
 9_Archive/
 .venv/
+
+# LANL run logs: they list a few of LANL's anonymised account names; numbers are in evidence/LANL/results.txt
+evidence/LANL/runs/

@@ -18,9 +18,14 @@ F9 = ["n_logon", "n_logon_ah", "n_usb", "n_usb_ah", "n_file", "n_file_ah", "n_ht
 K, HALF_LIFE = 20, 7                                           # daily list size; running score halves every 7 days
 
 # ------------------------------------------------------------------ load
-daily = pd.read_parquet(f"{WORK}/daily"); daily["day"] = pd.to_datetime(daily.day)
-pcs = pd.read_parquet(f"{WORK}/pc_pairs"); pcs["day"] = pd.to_datetime(pcs.day)
-dom = pd.read_parquet(f"{WORK}/dom_pairs"); dom["day"] = pd.to_datetime(dom.day)
+def table(name):                                               # Parquet; on IBM Z (no pyarrow) the CSV copy made by tables_to_csv.py
+    try: return pd.read_parquet(f"{WORK}/{name}")
+    except ImportError:
+        parts = sorted(glob.glob(f"{BASE}/data/cache_csv/r{REL}/{name}/part-*.csv")); assert parts, f"no Parquet reader: run code/tables_to_csv.py {REL}"
+        return pd.concat([pd.read_csv(f, keep_default_na=False) for f in parts], ignore_index=True)
+daily = table("daily"); daily["day"] = pd.to_datetime(daily.day)
+pcs = table("pc_pairs"); pcs["day"] = pd.to_datetime(pcs.day)
+dom = table("dom_pairs"); dom["day"] = pd.to_datetime(dom.day)
 ins = pd.read_csv(f"{ANS}/insiders.csv"); ins = ins[ins.dataset.astype(str) == REL].set_index("user")
 users = np.sort(daily.user.unique()); U = {u: i for i, u in enumerate(users)}; normal = ~np.isin(users, ins.index)
 days = pd.date_range(daily.day.min(), daily.day.max()); t0 = days.get_loc(CUT); T = len(days) - t0
@@ -28,7 +33,7 @@ ACT = np.zeros((len(users), len(days)), bool); ACT[daily.user.map(U).values, (da
 assert not daily.duplicated(['user', 'day']).any() and not pcs.duplicated(['user', 'day', 'pc']).any()
 assert ins.index.isin(users).all() and (pd.to_datetime(ins.start) >= CUT).all(), 'every insider present, every attack after the cutoff'
 
-def als(Xc, rank=64, alpha=0.5, reg=1.0, iters=12, seed=0):                      # Hu-Koren-Volinsky implicit ALS
+def als(Xc, rank, alpha, reg, iters=12, seed=0):                                  # Hu-Koren-Volinsky implicit ALS
     rng = np.random.default_rng(seed); P = rng.normal(0, .01, (Xc.shape[0], rank)); Q = rng.normal(0, .01, (Xc.shape[1], rank))
     C = alpha * Xc
     def solve(C, Y):
@@ -93,6 +98,9 @@ def in_time(on):
 on_pct = daily_lists(pct_score, decay=True); on_r2 = daily_lists(r2_score(), decay=False)
 FLAG, after = in_time(on_pct); flag_r2, _ = in_time(on_r2)
 churn = lambda on: np.mean([(on[:, t] & ~on[:, t - 1]).sum() / K for t in range(1, T)])
+def lift(on):                                                    # share of attack days on the list vs share of normal person-days
+    att = np.mean([on[U[u], (pd.Timestamp(r.start).normalize() - CUT).days:(pd.Timestamp(r.end).normalize() - CUT).days + 1].mean() for u, r in ins.iterrows()])
+    return att, on[normal].mean(), att / on[normal].mean()
 
 # ------------------------------------------------------------------ 1b. snooping list: computers the recommender would never suggest
 pc_tr, pc_te = pcs[pcs.day < TRAIN_END], pcs[pcs.day >= CUT]
@@ -186,14 +194,16 @@ strong_ins_first = np.mean([strong(u, t) for u, t in ins_first.items()])
 strong_nrm = np.mean([strong(u, t) for u, t in first.items() if u not in ins.index])
 
 # ------------------------------------------------------------------ 3 and 4. recommender: predict next sites, pre-approve them
-sites = np.sort(dom[dom.day < TRAIN_END].domain.unique()); S = {d: j for j, d in enumerate(sites)}
-g = dom[dom.day < TRAIN_END].groupby(["user", "domain"]).day.nunique()
-Xs = np.zeros((len(users), len(sites))); Xs[g.index.get_level_values(0).map(U), g.index.get_level_values(1).map(S)] = np.log1p(g.values)
-own = Xs > 0
-def top20(score):
+def web(before):                                                                     # person x site log1p(distinct days), sites seen before
+    sites = np.sort(before.domain.unique()); S = {d: j for j, d in enumerate(sites)}; g = before.groupby(["user", "domain"]).day.nunique()
+    Xs = np.zeros((len(users), len(sites))); Xs[g.index.get_level_values(0).map(U), g.index.get_level_values(1).map(S)] = np.log1p(g.values)
+    return sites, S, Xs
+sites, S, Xs = web(dom[dom.day < TRAIN_END]); own = Xs > 0
+WEB = dict(rank=128, alpha=0.1, reg=10.0)                                            # website setting, tuned on r4.2 training weeks only
+def top20(score, own=own):
     s = np.where(own, -np.inf, score + np.random.default_rng(1).random(score.shape) * 1e-9)
     return ((-s).argsort(1).argsort(1) < 20) & ~own
-grant = {"popularity": top20(np.tile(own.sum(0).astype(float), (len(users), 1))), "recommender": top20(als(Xs))}
+grant = {"popularity": top20(np.tile(own.sum(0).astype(float), (len(users), 1))), "recommender": top20(als(Xs, **WEB))}
 te = dom[dom.day >= CUT][["user", "domain"]].drop_duplicates()
 te = te[te.user.isin(users[normal])]; tu, ti = te.user.map(U).values, te.domain.map(S).fillna(-1).astype(int).values
 known = ti >= 0; months = (dom.day.max() - CUT).days / 30.44
@@ -207,6 +217,17 @@ used_share = {k: (allowed(A) & new_pair).sum() / A[normal].sum() for k, A in gra
 mal_web = [(U[u], DOMRE.match(e[5]).group(1).lower()) for u in ins.index for e in EVENTS[u] if e[0] == "http" and DOMRE.match(e[5])]
 held = lambda A: np.mean([not (d in S and A[i, S[d]]) for i, d in mal_web])                 # malicious visits needing approval
 coverage = {"own history": held(own), **{k: held(own | A) for k, A in grant.items()}}
+
+blocks = pd.date_range(CUT, dom.day.max() + pd.Timedelta(days=1), freq="30D")          # monthly refresh: 30-day blocks from the cutoff
+monthly = dict.fromkeys(["own history refreshed", "trained once", "retrained monthly"], 0)
+for bi, (s, e) in enumerate(zip(blocks[:-1], blocks[1:])):                              # refit on all web data before each block, so
+    _, Sm, Xm = web(dom[dom.day < s]) if bi else (sites, S, Xs); om = Xm > 0            # approved sites become own history; block 0 = above
+    gm = top20(als(Xm, **WEB), om) if bi else grant["recommender"]
+    b = dom[(dom.day >= s) & (dom.day < e) & dom.user.isin(users[normal])][["user", "domain"]].drop_duplicates()
+    hit = lambda A, M: np.where(b.domain.isin(M).values, A[b.user.map(U).values, b.domain.map(M).fillna(0).astype(int).values], False)
+    has = hit(om, Sm); monthly["own history refreshed"] += (~has).sum()
+    monthly["trained once"] += (~(has | hit(grant["recommender"], S))).sum(); monthly["retrained monthly"] += (~(has | hit(gm, Sm))).sum()
+monthly = {k: v / normal.sum() / months for k, v in monthly.items()}
 
 te_all = dom[dom.day >= CUT][["user", "domain"]].drop_duplicates()
 te_all = te_all[te_all.domain.isin(S)]
@@ -228,6 +249,8 @@ print(f"1  early warning, 20 names/day: {len(FLAG)}/{n} insiders listed before t
 print(f"   share of each insider's malicious events on later days: {sum(after.values()) / n:.2f} averaged over all insiders "
       f"(missed = 0), {np.mean(list(after.values())):.2f} over those flagged in time; "
       f"normal staff ever listed {(on_pct.any(1) & normal).sum()} over {T / 7:.0f} weeks")
+print("   on the list on a given day: " + "; ".join(f"{k} insiders during their attack {a:.0%}, normal staff {nr:.1%} ({x:.0f}x)"
+                                              for k, (a, nr, x) in (("ours", lift(on_pct)), ("baseline", lift(on_r2)))))
 print(f"2  evidence top 3 holds a malicious item: C1 {ev_graded[0]:.2f} vs rarity {ev_graded[1]:.2f} (in-time insiders, evidence up to the "
       f"graded flag day); at each insider's first alert {ev_first:.2f} ({pre_onset:.0%} of first alerts come before labelled onset)")
 print(f"   label-free evidence strength (an item not in the person's training history, used by under 1% of staff): at first alert, "
@@ -235,6 +258,7 @@ print(f"   label-free evidence strength (an item not in the person's training hi
 print(f"3  next new sites caught by top 20: recommender {recall['recommender']:.3f} vs popularity {recall['popularity']:.3f}")
 print("4  access requests per person-month: " + ", ".join(f"{k} {v:.2f}" for k, v in requests.items())
       + f"; share of the recommender's extra grants later used {used_share['recommender']:.2f}")
+print("   monthly, approved requests kept: " + ", ".join(f"{k} {v:.2f}" for k, v in monthly.items()))
 print("   malicious web visits that would need approval (static coverage): " + ", ".join(f"{k} {v:.1%}" for k, v in coverage.items()))
 print(f"   end-of-period access-review proxy: {stale[still].sum() / own[still].sum():.1%} of training person-site pairs not revisited "
       f"({stale[still].sum(1).mean():.1f} per person; {(stale[still].sum(1) > 0).mean():.0%} of people have at least one)")

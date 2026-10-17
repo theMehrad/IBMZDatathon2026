@@ -8,7 +8,8 @@ Reads data/r{rel}/r{rel}/{logon,device,file,http}.csv and writes, under data/cac
   pc_pairs   (person, day, computer) for every logon
   dom_pairs  (person, day, website domain, visits)
 Same code as Step 1 of evidence/Study_Notebook.ipynb. On LinuxONE: install Java 17 and PySpark first;
-there is no pyarrow for s390x, so this script avoids pandas UDFs.
+there is no pyarrow for s390x, so this script avoids pandas UDFs; then run tables_to_csv.py for pandas.
+On a small VM set SPARK_DRIVER_MEMORY=4g (default 8g).
 """
 import os, sys
 from pathlib import Path
@@ -21,7 +22,7 @@ OUT = Path(os.environ.get("OUTOFROLE_CACHE", BASE / "data" / "cache")) / f"r{REL
 OUT.mkdir(parents=True, exist_ok=True)
 
 spark = (SparkSession.builder.master("local[*]").appName("outofrole-tables")
-         .config("spark.driver.memory", "8g").config("spark.sql.shuffle.partitions", "64").config("spark.ui.showConsoleProgress", "false").getOrCreate())
+         .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "8g")).config("spark.sql.shuffle.partitions", "64").config("spark.ui.showConsoleProgress", "false").getOrCreate())
 spark.sparkContext.setLogLevel("ERROR")
 
 def load(name, cols):
