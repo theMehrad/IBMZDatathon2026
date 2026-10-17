@@ -168,3 +168,25 @@ The review is in `feasibility/codex_review/round4_review.md`. These are the chan
 - **Hidden job-hunters:** frozen fusion places 19 of 30 in the top 100, against 22 for feedback re-weighting and 4 to 7 for trained combiners.
 - **Answer parsers:** `early_warning_simple.py` and `org_novel_sites.py` now read only each insider's own answer rows. All their numbers are unchanged after re-running (0.54 / 0.48; 8 person-days; 100%).
 - **Pivot from the abstract:** must be stated. Recommender-based detection was promised; own-history baselines detect better, so the recommender moved to access advice.
+
+## 10. The whole system in one file (`feasibility/reference/outofrole_minimal.py`)
+
+The file is 178 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week, and test from the cutoff. It reproduces the headline numbers:
+
+| Result | r4.2 | r5.2 |
+|---|---|---|
+| Insiders on the 20-name daily list before their last malicious action | 59 / 70 | 80 / 99 |
+| Same, 28-day baseline at similar churn (daily churn ours vs baseline) | 59 / 70 (9.2% vs 9.1%) | 40 / 99 (11.3% vs 8.9%) |
+| Share of each insider's malicious events on later days, averaged over all insiders (missed = 0) | 0.54 | 0.48 |
+| Same, averaged over the insiders flagged in time only | 0.64 | 0.60 |
+| Normal staff ever listed | 230 | 291 |
+| Evidence top 3 holds a malicious item (in-time insiders, evidence up to the flag day): C1 vs rarity | 0.66 vs 0.49 | 0.85 vs 0.51 |
+| Next new sites caught by the top 20: recommender vs popularity | 0.211 vs 0.145 | 0.190 vs 0.130 |
+| Access requests per person-month: own history / popularity top 20 / recommender top 20 | 2.31 / 1.97 / 1.82 | 3.15 / 2.74 / 2.55 |
+| Share of the recommender's extra grants later used | 0.28 | 0.42 |
+| New-to-company rule: wikileaks and keylogger visits blocked; normal person-days affected | 100%, 100%; 8 | 100%, 100%; 0 |
+
+Notes:
+
+- **r5.2 requests.** They differ slightly from section 4 (3.07 / 2.67 / 2.48), because section 4's script trained through the day before the cutoff instead of dropping the cutoff week. The reduction is the same (-19%). Both results are kept, with their protocol named.
+- **Share on later days.** "Over all insiders" is the conservative figure; "over flagged insiders" describes the people the list actually caught.
