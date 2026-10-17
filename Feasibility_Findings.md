@@ -1,5 +1,7 @@
 # OutOfRole: Feasibility Findings (Oct 16, before the event)
 
+> **Superseded (October 17, 2026). Do not quote numbers from this file.** It records the first two rounds of throwaway tests and is kept only as history. Several of its conclusions were later overturned, including the value it gives the recommender as a detector and its specialist-queue design. For current numbers use `feasibility/Verified_Numbers.md` and the notebook `feasibility/OutOfRole_Feasibility.ipynb`; for the current plan see `Build_Plan.md` and `feasibility/OutOfRole_Plan.md`.
+
 Throwaway test on the full CERT r4.2 data, run on Mehrad's laptop. The test code is not part of the project; the team writes everything from scratch during the event. Only these findings carry over.
 
 ## Setup

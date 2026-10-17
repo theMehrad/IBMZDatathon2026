@@ -1,123 +1,124 @@
 ---
 title: "OutOfRole: Plan, Changes and Findings"
 subtitle: "The Debugging Table · IBM Z Datathon 2026 · AI Secured: Innovation Without Exposure"
-date: "October 16, 2026 (revised after external review)"
+date: "October 17, 2026 (v4: early warning, case files, least privilege)"
 ---
 
 # Purpose
 
-This document records what we will build on October 17 and 18, why the plan changed from our abstract, and what each step of our pre-event study found. The full study, with code and outputs, is in `OutOfRole_Feasibility.ipynb` (same folder). It has been through **three rounds of external review** (Codex, gpt-6.1-sol); the reviews are in `codex_review/`. Every number below comes from the notebook's final run.
+This document records what we build on October 17 and 18, why the plan changed from our abstract, and what each step of the pre-event study found. Version 4 replaces the v3 plan, which was a retrospective fused ranking with the recommender as one of its signals.
 
-**The question:** can we rank employees so that people misusing legitimate access (insiders) rise to the top, using only activity logs and no labels? Does a recommender system ("access that is surprising for someone like you") add anything over simpler signals?
+**The direction in one line:** detection does not depend on the recommender. Each person is compared with their own history, day by day. Granite explains each alert from evidence that code picks and checks. The recommender suggests which access to pre-approve.
 
-**Data:** CMU SEI CERT Insider Threat Test Dataset.
+**The pivot, stated openly.** Our abstract promised recommender-based detection. Our tests showed that own-history baselines detect better, so the recommender moved to access advice.
 
-- **r4.2:** 1,000 staff, 70 insiders, three attack types: leakers, job-hunter thieves and disgruntled sysadmins.
-- **r5.2:** 2,000 staff, 99 insiders. It adds a fourth type: snoopers who log into colleagues' computers.
+**Sources.** Every number comes from `Verified_Numbers.md` (same folder), which names the script behind it; the scripts are in `reference/`. Roles, cut rules and the demo are in `../Build_Plan.md`; the plain-language explainer is `Team_Briefing.pdf`; the v3 study and its reviews are `OutOfRole_Feasibility.ipynb` and `codex_review/`.
 
-We train only on the months before any attack (r4.2 until June 1, 2010; r5.2 until April 1, 2010), drop the week that contains each cutoff, score every person once, and use the answer key only to grade. Top-k counts are expected values with tied scores ordered at random, so some are fractional.
+**Data and protocol.** CMU SEI CERT Insider Threat Test Dataset (synthetic). r4.2: 1,000 staff, 70 insiders (leakers, job-hunters, sysadmins). r5.2: 2,000 staff, 99 insiders, adding snoopers who log into colleagues' computers. We train only before the cutoff (r4.2: June 1, 2010; r5.2: April 1, 2010) and drop the cutoff week. The answer key only grades; departure data is never used; settings were frozen on r4.2, then r5.2 was run unchanged.
 
-# The plan for the build
+# The build plan
 
-| Stage | What | Status |
-|-----------|------------------------------------------------------|----------------------------|
-| 1. Load | PySpark in local mode: daily, person-to-computer and person-to-site tables (install Java 17 and PySpark; no pyarrow on s390x) | tested |
-| 2. Baselines | Personal daily and 28-day baselines, shown as the bar to beat | tested |
-| 3. Main ranked list | **Frozen family-first Stouffer fusion** of signal families: behavior windows, own-history weekly percentiles, team peers, rare sites, weekly LOF and autoencoder, recommender. Baseline and percentile lists shown alongside for comparison | tested on both releases; beat the baseline at 100 reviews on both (55 vs 44; 43 vs 39) |
-| 4. Out-of-role view | Weekly persistence of logins to unusual computers, discounted for people who already roamed in training; shown as an **experimental investigation view** with no reserved review slots | r5.2 only (27 to 30 of 30 snoopers); designed after seeing r5.2 |
-| 5. Evidence | Per-person facts for Granite: signal contributions and timelines; the recommender's "nobody like you visits this site" as an optional fact | recommender kept inside the tested fusion; its individual necessity not proven |
-| 6. Explain and show | Granite cited explanations; dashboard; honest evaluation table (baseline vs system, per attack type, unseen-attack test, equal review budget) | not yet built; Granite reliability and 3-vCPU runtime untested |
+| Part | What it does | Key evidence (r4.2 / r5.2) |
+|------------------|----------------------------------------------|----------------------------------------|
+| **1. Early warning** (headline) | Replays the logs day by day. Each person's last 7 days are compared with each of their own training weeks; a feature is unusual when it beats all of them. The running score halves every 7 days; the top 20 people each day form the review list. | On the list before their last malicious action: **59 of 70 / 80 of 99**. Fair baseline (28-day window at similar list churn): 59 / 40, a tie on r4.2 and half of ours on r5.2. Chance about 3; random score 10.3 / 11.4 |
+| **2. Granite case files** | Code ranks each listed person's evidence "new to this person, rarest first" and gives the top items, each with an ID, to Granite. Granite cites the IDs, code checks every number, and an evidence-strength note marks thin cases. | For insiders the daily list flags in time, using evidence up to the flag day: a real malicious item in the top 3 for **66% / 85%**, vs 49% / 51% for global rarity. Optional (post hoc): adding the top recommender item gives 78% / 85% |
+| **3. Least-privilege advisor** | A label-free tuned ALS recommender suggests which websites to pre-approve: each person's 20 most likely next sites. Anything else needs a request. A rule blocks any site that nobody in the company visited during training. | Next new sites caught in the top 20: 0.211 vs 0.145 for popularity / 0.190 vs 0.130, about **1.45 times**. Requests per person-month: 2.31 to 1.82 / 3.07 to 2.48. Only 28% / 41% of the extra grants were later used. Static coverage of the rule: 100% of wikileaks and keylogger-site visits |
+| Support views | The v3 retrospective ranking over the whole test period, as a comparison view; and an experimental snooper view (weekly persistence of logins to unusual computers, discounted for people who already roamed) | Percentile P@20 1.00 / 1.00; frozen Stouffer finds 55 vs 44 / 43 vs 39 in 100 reviews. Snooper view: 27 to 30 of 30 snoopers in the top 100 (r5.2) |
 
-The combination of stages 3 and 4 was not tested as a unit. Freeze its settings before evaluating it.
+Everything runs on one LinuxONE server: Spark builds three tables (daily counts, person-computer-day, person-site-day), Granite runs through llama.cpp, and people appear as pseudonyms (U-017). Settings are fixed in `../Build_Plan.md`.
 
 # What changed from the abstract, and why
 
-| Original plan | Now | Reason (study step) |
-|------------------------|---------------------------|----------------------------------------------|
-| Recommender (ALS) as the core engine | Optional evidence inside the fused ranking; not a queue | At its own job it is at the popularity baseline; as a queue it displaced more insiders than it added (Step 15) |
-| "The recommender forgives colleagues' computers; an ownership rule fixes it" | Snoopers are caught by **persistence** (weekly counting plus a roaming discount); ownership only sharpens the top of the list | With identical counting, ownership, naive and recommender versions each catch 27 of 30 (Step 13) |
-| Four specialist queues | Fused ranking as the default, plus an experimental out-of-role view | At 100 reviews, fusion won on r4.2 (55 vs 42) and queues won on r5.2 (53 vs 43). Neither won on both, and fusion beat the baseline on both (Step 14) |
-| Web log as a stretch goal | Web log is core | Rare-site visits are a strong signal; Spark processes the log in under a minute (Steps 1, 4) |
-| Trained combiner as the headline | Label-free signals as the headline | With job-hunters hidden from training, trained models catch 4 to 7 of 30; the label-free sum catches 16 (Step 7) |
+| Abstract said | Now | Why (step) |
+|----------------------------|----------------------------|----------------------------------------|
+| Recommender-based detection: access the model would never suggest is flagged | Detection comes from own-history baselines; the recommender suggests which access to pre-approve | Own-history baselines detect better. As a detector, six recommender variants did no better than popularity, tuned or not (20); at predicting next sites, tuned, it beats popularity (16) |
+| Later months replayed as a held-out "live" stream for scoring | A day-by-day replay with a 20-name daily list, graded on *when* each insider is flagged | The v3 ranking scored each person over the whole test period and could not say how early anyone was caught (19) |
+| An AI on the same server explains why | Granite writes case files from evidence that code picks and checks | At flag time, "new to this person, rarest first" beats global rarity (0.66 / 0.85 vs 0.49 / 0.51); the recommender's surprise wins only on r4.2, through the job-hunters (18) |
+| Files, computers and websites | Websites only, for the advisor | For computers nothing helps: 99.5% / 98.8% of new computers are someone else's personal PC (17) |
+| Least privilege as one audience benefit | Access advice is one of the three parts | The tuned recommender cuts access requests at about the same static coverage (17) |
+
+v4 also retires two v3 positions: the verdict that the recommender was no better than popularity at predicting new sites (it came from untuned settings, Step 16), and the retrospective fused ranking as the default (now a support view, because the daily replay answers the analyst's question: who should I look at today?).
 
 # Results at a glance
 
-"found" = expected insiders in the top 70 (of 70 in r4.2, of 99 in r5.2).
+**Early warning** (`early_warning_full.py`; `early_warning_simple.py` reproduces the counts):
 
-| Approach | r4.2: P@20 / found / AP | r5.2: P@20 / found / AP | Unseen attack type |
-|-------------------------|-------------------|-------------------|----------------------------------|
-| Baseline: 28-day personal window | 1.00 / 38 / 0.728 | 0.90 / 36 / 0.428 | catches spike attacks only |
-| Own-history weekly percentile | 1.00 / 39.4 / 0.666 | 1.00 / 40.3 / 0.477 | best top of the list on both releases |
-| Label-free family-first Stouffer (frozen on r4.2) | 1.00 / 45 / 0.784 | 0.90 / 38 / 0.478 | no attack-label fitting |
-| Trained combiner (logistic regression) | 1.00 / 52 / 0.857 | 0.90 / 49 / 0.630 | hidden job-hunters 5 to 16 of 30; r5.2 hidden leakers 0 to 28 of 29 |
-| Gradient boosting | 1.00 / 60 / 0.940 | not run | hidden job-hunters 4 of 30 |
-| Weekly persistence, unusual computers | no snoopers in r4.2 | 27 to 30 of 30 snoopers in the top 100 | designed after seeing r5.2 |
+| Measure | r4.2 (70 insiders) | r5.2 (99 insiders) |
+|--------------------------------------------------|----------------|----------------|
+| On the list before their last malicious action ("in time") | **59** (84%) | **80** (81%) |
+| Same, 28-day baseline at similar list churn (**the fair comparison**) | 59 (84%) | 40 (40%) |
+| Same, 28-day baseline under the same decay rule (pre-registered comparison) | 33 (47%) | 28 (28%) |
+| Same, random score with the same 20-name list | 10.3 | 11.4 |
+| Same, chance (mean) | about 3 | about 3 |
+| Same, pre-registered fusion detector | 60 (86%) | 54 (54.5%) |
+| Median delay from the first labelled malicious day | 1 day | 9 days |
+| Labelled malicious actions on later days than the flag (mean share) | 54% | 48% |
+| New names per week (first-ever entrants) / distinct people per week | 4.8 / 30.2 | 5.3 / 32.6 |
 
-**Equal budget, exactly 100 people reviewed (insiders found):**
+Against the fair baseline, which scores the 28-day window on each day's value alone and so churns the list at a similar rate, we tie on r4.2 and double it on r5.2. The headline holds against chance and the random score (whose list churns about 4 times faster). By attack type (in time, median delay in days): r4.2 leakers 25/30 (0), job-hunters 30/30 (11), sysadmins 4/10 (1); r5.2 leakers 26/29 (0), job-hunters 27/30 (21.5), sysadmins 2/10 (2), snoopers 25/30 (21.5). The leakers' 0 days is mostly prior listing (see the limits).
 
-| Method | r4.2 | r5.2 |
-|---------------------------|------|------|
-| Four queues | 42 | 53 (59 without the recommender queue) |
-| Baseline R2 | 44 | 39 |
-| Own-history percentile | 43 | 44.6 |
-| Frozen family-first Stouffer | **55** | 43 |
-| Trained combiner (needs labels) | 63 | 55 |
+**Case-file evidence** (`evidence_ranking.py`): for insiders the daily list flags in time, using only evidence up to the flag day, "new to this person, rarest first" puts a malicious item in the top 3 for **0.66** (r4.2) and **0.85** (r5.2), against 0.49 / 0.51 for global rarity (+0.17 / +0.34) and 0.75 / 0.46 for the tuned recommender's surprise. The recommender wins on r4.2 only, through the job-hunters (C1: 0.33). C1's misleading rate is 0.09 / 0.02. An optional mixed rule (post hoc), the top 2 C1 items plus the top 1 recommender item, raises hit@3 from 0.66 to 0.78 on r4.2 (job-hunters 0.33 to 0.56) and keeps 0.85 on r5.2. This is the recommender's only measured evidence value. The 0.98 / 0.98 figure applies only to the top 100 of the retrospective full-period ranking (42 and 44 people, almost all leakers and sysadmins).
 
-**What the recommender contributes (Step 15):**
+**Least privilege** (`least_privilege_full.py`, `recommender_als_simple.py`; normal staff, websites). Requests per person-month, then static coverage (malicious web events still needing approval), r4.2 / r5.2: own history only 2.31 / 3.07 and 71.0% / 87.5%; plus popularity top 20, 1.97 / 2.67 and 65.5% / 83.7%; plus tuned ALS top 20, **1.82 / 2.48** and 69.0% / 86.8%. ALS cuts the most requests. At matched cost (interpolated), its static coverage is 68.7% vs 60.4% for popularity (r4.2) and 85.9% vs 81.5% (r5.2). The advisor only suggests what to pre-approve: just 28% (r4.2) and 41% (r5.2) of the 20 extra grants were later used. "Static coverage" means the policy would have required approval for those events; it is not a measure of prevention. The new-to-company rule (`org_novel_sites.py`) covers every leaker wikileaks visit (69 on r4.2, 65 on r5.2) and every sysadmin keylogger-site visit (53, 38), at a cost to normal staff of 8 person-days across 5 people on r4.2 and none on r5.2.
 
-- **Its own job:** predicting which new sites normal staff visit, its mean percentile rank is 35.9% vs 35.5% for "guess the popular sites" on r4.2, and 35.8% vs 38.3% on r5.2 (50% = random). RMSE is worse than popularity because implicit-feedback scores aren't calibrated, so RMSE is a diagnostic only.
-- **Detection:** adding recommender features to naive novelty in the combined model gives r4.2 51 to 52 and r5.2 45 to 49 insiders in the top 70. As a review queue on r5.2 it found 5 insiders the other queues missed, but displaced 11.
-- **Verdict:** modest, conditional value; kept as optional evidence and a tested research branch.
+# The step ladder: the number at each step and the improvement
 
-**Metrics:**
+Steps 1 and 2 (Spark tables; a leakage check that ruled out departure data) have no score. "Before" is the reference named in the cell; "found" means expected insiders in the top 70; LR is logistic regression; MPR is mean percentile rank. Pairs of values are r4.2 / r5.2. Steps 3 to 15 quote the v3 notebook outputs.
 
-- **P@20:** share of the top 20 who are real insiders.
-- **AP (average precision):** summarizes the whole ranking.
-- **AUC:** the chance a random insider ranks above a random normal employee.
-- **Unseen attack (leave one scenario out):** a combiner is trained without one attack type, then tested on it.
+```{=latex}
+\begingroup\small\setlength{\tabcolsep}{4pt}
+```
 
-# Findings at each step
+| Step | What we tried | Metric | Before | After | Change | Verdict |
+|----|--------------|------------|-------------|-------------------------|----------------|----------|
+| 3 | Personal baselines | found | none | R2 (28-day window): 38 / 36; P@20 1.00 / 0.90 | the bar to beat | Baseline |
+| 4 | Rare sites; recommender site surprise | found (r4.2) | R2 38 | Rare sites 41 (r5.2: 8.1); ALS surprise 5 (AUC 0.71) | Rare +3, does not transfer; ALS -33 | Rare kept as a family |
+| 5 | Learned combiner | found (r4.2) | Behavior + rare 39 | + naive novelty 41; + ALS 45 (other seeds 44, 45) | +6 | Stress test needed |
+| 6 | More signals, second model | found (r4.2) | LR, all signals 45 | + ALS 49; gradient boosting 60 | +4; +15 | Stress-test it |
+| 7 | Hide job-hunters from training | job-hunters in top 100 | none | Boosting 4; LR 5 to 7; label-free sum 16 of 30 | Label-free +9 to +12 | Not the headline |
+| 8 | Weekly LOF (literature) | job-hunters in top 100 | R2 5 of 30 | 12 to 13 of 30 | +7 to +8 | Slow-drift family |
+| 9 | Recommender tweaks | found (r4.2) | ALS surprise 5 | Site peer-of-item 17 (AUC 0.84) | +12 | Candidate only |
+| 10 | Own-history weekly percentile | found / AP (r4.2) | R2 38 / 0.728 | 39.4 / 0.666; P@20 1.00 | +1.4 found | Core detector |
+| 11 | Label-free family-first Stouffer | found / AP (r4.2) | R2 38 / 0.728 | 45 / 0.784 (all-detector Stouffer 39) | +7 | Frozen for r5.2 |
+| 12 | r5.2, pipeline frozen | found / AP (r5.2) | R2 36 / 0.428 | Stouffer 38 / 0.478; percentile AP 0.477 | +2 found | Survives |
+| 13 | Snooper signal | snoopers in top 100 (r5.2) | Naive new computers 10.9 of 30 | Weekly persistence + roaming discount 27 of 30 (ownership, naive, ALS alike) | +16 | Persistence, not ALS |
+| 14 | Equal budget, 100 reviews | found in 100 reviews | R2 44 / 39 | Stouffer 55 / 43; four queues 42 / 53 | Stouffer +11 / +4 | Fusion as v3 default |
+| 15 | Recommender's own job, untuned | MPR, lower is better (r4.2) | Popularity 35.5 | ALS 35.9 | 0.4 worse | Superseded by Step 16 |
 
-| Step | Why we did it | Key result | What changed |
-|--------------|----------------|------------------------------|----------------|
-| 1. Load with Spark | 15 GB (r4.2) and 37 GB (r5.2) of logs | About 36 s on a cold laptop run; 1,003 computers and 475 websites | Web log becomes core |
-| 2. Leakage check | Reviewer: time splits can leak answers | No attack before the cutoffs; boundary weeks dropped. All 70 r4.2 insiders leave; in r5.2 the 29 who stay are snoopers | Never use departure data |
-| 3. Baselines | A model must beat simple rules | Personal baselines: P@20 1.00, 38 of 70, AUC up to 0.96; only 2 to 5 of 30 job-hunters | Baselines are the bar |
-| 4. Novelty | The project's core idea | Rare-site visits: 41 of 70. Recommender website surprise: AUC 0.71 vs 0.59 for naive, but P@20 0.00 | Test the recommender as an addition |
-| 5. First combinations | Reviewer: prove the recommender adds value | Learned combiner: 39, then 41 with naive novelty, then 45 with the recommender (45 and 44 on other seeds) | Keep it as one signal |
-| 6. Peers, windows, second model | Reviewer: covering colleagues, team-wide changes | Logistic regression 45 to 49 with ALS; gradient boosting 60 of 70 | Stress test needed |
-| 7. Unseen-attack test (repaired) | Real attackers invent new methods | Hidden job-hunters: boosting 4, logistic 5 to 7, label-free sum **16** of 30 | Don't headline trained combiners |
-| 8. Literature models | Published CERT work | **Weekly LOF finds 12 to 13 of 30 job-hunters** | Weekly LOF is the slow-drift signal |
-| 9. Recommender tweaks | Menon 2014, Google Facade, Microsoft | Website peer-of-item AUC 0.84 (17 of 70); lift and site-lift failed | Peer-of-item stays a candidate |
-| 10. Own-history percentiles | Le & Zincir-Heywood 2021 | P@20 1.00, 39.4 of 70; combiner 47 to 51; hidden job-hunters 8 to 12 | Core detector |
-| 11. Label-free fusion | Labels are rare in practice | Family-first Stouffer: P@20 1.00, 45 of 70, AP 0.784; 11 of 11 corroborated people were insiders | Frozen for the r5.2 test |
-| 12. r5.2, pipeline frozen | Guard against tuning to r4.2 | Own-history percentile best (AP 0.477); frozen fusion beats the baseline (AP 0.478 vs 0.428); trained combiners swing widely on unseen attacks | Fusion survives as the default |
-| 13. Out-of-role signal | Snoopers need their own signal | Ownership rule: 30 of 30. Controlled: ownership, naive and recommender versions all 27 of 30 | Persistence, not ownership or ALS |
-| 14. Queues vs fusion | Averaging can hide specialists | At 100 reviews: fusion 55 vs queues 42 (r4.2); queues 53 vs fusion 43 (r5.2) | Fusion default plus experimental view |
-| 15. Recommender contribution | "Does it help?" | At the popularity baseline on its own job; +1 to +4 in combiners; its queue cost 6 insiders on r5.2 | Optional evidence only |
+Steps 16 to 20 come from the reference scripts (`Verified_Numbers.md`, sections 1 to 5); "at flag time" means insiders flagged in time, with evidence up to the flag day.
 
-# What the external review changed
+| Step | What we tried | Metric | Before | After | Change | Verdict |
+|----|--------------|------------|-------------|-------------------------|----------------|----------|
+| 16 | Recommender, tuned without labels | recall@20, next new sites | Popularity 0.145 / 0.130; v3 setting 0.126 / 0.121 | 0.211 / 0.190 | +0.066 / +0.060 over popularity (1.45x / 1.46x) | Real job found |
+| 17 | Least-privilege advisor | requests per person-month | Own history 2.31 / 3.07 | ALS top 20: 1.82 / 2.48 (popularity 1.97 / 2.67) | -21% / -19%; static coverage about the same (71.0% to 69.0%; 87.5% to 86.8%) | Build (role R4) |
+| 17b | New-to-company site rule | wikileaks and keylogger visits covered | none | 100% on both releases | Cost: 8 person-days (r4.2), 0 (r5.2) | Build (role R4) |
+| 18 | Evidence ranking for Granite | hit@3 at flag time | Global rarity 0.49 / 0.51 | "New to you, rarest first" 0.66 / 0.85 (ALS 0.75 / 0.46; retrospective top-100 set: 0.98 / 0.98) | +0.17 / +0.34 over rarity | Build (role R3) |
+| 19 | Early warning, daily replay | insiders in time | R2 at similar churn 59 / 40 (same decay rule 33 / 28; random score 10 / 11; chance about 3 / 3) | Percentile 59 / 80 (pre-registered fusion 60 / 54) | 0 / +40 over the fair baseline | Headline (role R2) |
+| 20a | Analyst feedback (AAD) | found in 100 reviews | Frozen Stouffer 55 / 43 | 57 / 42 | +2 / -1 (noise: +0.2 ± 0.9) | Dropped |
+| 20b | Richer recommender items | web novelty found (r5.2) | Site rarity 11.4 | Site x hour popularity 26.0; CF variants 22 to 26 | +14.6 from context; CF adds nothing | Dropped |
 
-Codex reviewed the notebook three times. Every point was checked against the code and the data before acting on it. It found real bugs:
+```{=latex}
+\endgroup
+```
 
-- The hold-one-attack-out test averaged held-out insiders over 25 models and normal staff over 5.
-- The week containing each cutoff leaked six test days into training. No attack days were involved.
-- Top-k counts depended on user-ID order when scores tied.
-- An equal-budget comparison silently used a different fusion method.
+Step 20b used the v3 ALS setting. Re-run after label-free tuning (best web setting rank 128, alpha 0.1, regularization 10; site recall@20 0.232 / 0.202), person-level detection stays flat or worse (3.0 / 4.0 hits@70 on sites) and tuned ALS adds nothing to the logistic combiner (AP change -0.000 / -0.001, seed noise ±0.005). A better recommender is still not a detector. With job-hunters hidden from training, frozen fusion places 19 of 30 in the top 100, against 22 for feedback re-weighting (Step 20a) and 4 to 7 for trained combiners.
 
-All were fixed and the notebook was re-run. The fixes overturned three headline claims: "the recommender adds 7 insiders", "collaborative filtering forgives colleagues' computers", and "four queues are best". Saying this openly is a strength in front of judges.
+# What external review changed
 
-# Honest limits to state in the pitch
+Codex (gpt-6.1-sol) reviewed the v3 notebook three times and the v4 claims once (`codex_review/`); we checked every point against the code and data before acting. **Rounds 1 to 3** found four real bugs (an unbalanced hold-one-attack-out test, a cutoff week that leaked test days into training, tie order deciding top-k counts, and an equal-budget comparison that graded the wrong fusion method). All were fixed and the notebook re-run. The fixes overturned three v3 claims: that the recommender belonged at the core because it added insiders to a trained combiner, that collaborative filtering "forgives" a colleague's computer, and that specialist queues beat one fused list. Those corrections started the move that v4 completes: the recommender left detection.
 
-- **Retrospective, not real-time:** each person is scored over the whole test period; detection delay is not measured.
-- **Job-hunters stay hard:** 0 to 16 of 30 in the top 100, depending on the method. Published work reports 12.5 to 74%.
-- **The data is synthetic:** it's the standard benchmark. Labeled real insider logs are very rare; LANL releases real authentication logs with red-team labels, which would make a good third test.
-- **Partly post-hoc design:** the out-of-role view and this build plan were shaped after seeing r5.2, and need an untouched test.
+**Round 4 (October 17, on v4)** changed seven claims, each reflected above: evidence is graded only on what was known at the alert (0.66 / 0.85, not 98%); the fair baseline leads the early-warning comparison; the leakers' 0-day delay is mostly prior listing; the advisor only suggests pre-approvals, and its coverage is static; hidden job-hunters (frozen fusion 19 of 30); two answer parsers now read only each insider's own rows (numbers unchanged); and the pivot is stated.
 
-# Related documents
+An independent validator found no look-ahead and no label leakage in any scoring code; a random-score control and a one-month-later cutoff both left the headline intact. Most headline numbers were re-run by independent code, and the early-warning and evidence protocols were written before any result.
 
-- `OutOfRole_Feasibility.ipynb` (and `.html`): the full study with code, outputs and reviewer questions.
-- `codex_review/`: the three external review rounds and our response.
-- `../Research_Findings.md`: published work, industry practice, LinuxONE notes and sources.
-- `../output/IBM_Z_Datathon_2026_OutOfRole_Team_Guide.pdf`: VM, SSH, Docker, Jupyter and PySpark setup. Its Chapter 9 ("Implement OutOfRole") is superseded by this plan.
-- `../Data_Access_Guide.pdf`: how each teammate downloads the data.
+# Honest limits
+
+- **A replay, not a live system.** We replay past logs day by day with no look-ahead. Say "flags insiders while they are still active", never "real-time production system". About half of each insider's labelled malicious actions (54% / 48%) came on later days than the flag: remaining opportunity, not prevention.
+- **The fair baseline ties us on r4.2.** At similar list churn, the 28-day baseline flags 59 of 70, as we do; our gain is on r5.2 (80 vs 40).
+- **Missed and late attacks.** Two-day sysadmin sabotage: 4 of 10 and 2 of 10. Median delay for job-hunters is 11 and 21.5 days, and for snoopers 21.5 days.
+- **Leakers look faster than they are.** Their 0-day median is mostly prior listing: only 7 of 30 and 15 of 29 were newly flagged. Counting only insiders not listed in the 14 days before their first malicious action gives 38 and 67 in time. Most leakers (25 of 30, 24 of 29) show unlabelled after-hours USB activity in the week before their labelled start.
+- **Analyst load.** Normal staff hold 60% / 63% of list slots; 30.2 / 32.6 distinct people are on the list each week.
+- **The advisor is a suggestion list.** Only 28% / 41% of its extra grants were later used, and its coverage is static, not prevention.
+- **Evidence strength is not a verdict.** 80 to 92% of flagged normal staff have weak evidence, but so do 44 to 56% of insiders flagged in time; never use it to dismiss anyone.
+- **Disclosures.** The pre-registered primary comparison (fusion vs the 28-day baseline) passed on both releases (McNemar p < 0.001), but the percentile headline was picked after seeing results; the pre-registered fusion flagged 60 of 70 and 54 of 99 (54.5%). Each train cutoff was set to precede every attack, which used the labels. `least_privilege_full.py` trains through the day before the cutoff instead of dropping the cutoff week (not leakage: every attack starts after it). Request counts keep leavers in the denominator for both policies, so the -21% / -19% holds.
+- **Data and untested pieces.** CERT is synthetic, with insiders 5 to 7% of staff. Granite on LinuxONE is untested; the snooper view needs an untouched test.

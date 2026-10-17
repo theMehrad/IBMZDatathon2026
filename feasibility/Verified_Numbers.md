@@ -111,6 +111,7 @@ Script: `least_privilege_full.py`.
 
 ## 6. Retrospective ranking (v3 notebook, unchanged)
 
+- Step 1 (v3 notebook output): r4.2 has 1,003 distinct computers and 475 distinct websites. An earlier "36 seconds to load" figure came from a cold run that the executed notebook does not reproduce, so do not quote it.
 - Own-history percentile: P@20 1.00 on both releases.
 - Frozen family-first Stouffer, insiders found in 100 reviews: 55 vs 44 for R2 (r4.2), 43 vs 39 (r5.2).
 - Out-of-role persistence view: 27 to 30 of 30 snoopers in the top 100 (r5.2).
