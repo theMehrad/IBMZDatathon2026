@@ -37,6 +37,37 @@ CERT data. Settings were frozen on r4.2, then r5.2 was run unchanged. Each numbe
 
 \newpage
 
+# Step by step: what each test changed
+
+"Found" = insiders expected in the top 70. Full detail: the notebook and `feasibility/Verified_Numbers.md` section 7.
+
+| Step | What we tried | Metric | Before | After | Change | Verdict |
+|----|------------------|--------------|----------|----------|----------|----------|
+| 3 | Personal 28-day baseline | found, r4.2 / r5.2 | none | 38 / 36 | the bar | bar |
+| 4 | Rare-site visits | found, r4.2 | 38 | 41 | +3 (r5.2: 8.1) | one family |
+| 5, 6 | Trained combiners | found, r4.2 | 39 | 45 to 60 | +6 to +21 | fail on new attacks |
+| 7 | Label-free sum, job-hunters hidden | job-hunters in top 100 | 4 to 7 | 16 of 30 | +9 to +12 | label-free wins |
+| 8 | Weekly LOF (literature) | job-hunters in top 100 | 5 | 12 to 13 | +7 to +8 | slow drift |
+| 10 | Own-history weekly percentile | found, r4.2 | 38 | 39.4, P@20 1.00 | +1.4 | core |
+| 11 | Family-first Stouffer fusion | found, r4.2 | 38 | 45 | +7 | frozen |
+| 12 | Same pipeline on r5.2, frozen | found, r5.2 | 36 | 38 | +2 | survives |
+| 13 | Snooper persistence signal | snoopers in top 100 | 10.9 | 27 of 30 | +16 | view |
+| 14 | Exactly 100 reviews | insiders, r4.2 / r5.2 | 44 / 39 | 55 / 43 | +11 / +4 | default ranking |
+| 16 | Recommender, tuned without labels | next-site recall@20, r4.2 | 0.145 (popularity) | 0.211 | 1.45x | real job |
+| 17 | Least-privilege advisor | requests per person-month | 2.31 / 3.07 | 1.82 / 2.48 | -21% / -19% | build |
+| 18 | Evidence rule for Granite | hit@3, flagged insiders | 0.93 / 0.89 | 0.98 / 0.98 | +0.05 / +0.09 | build |
+| 19 | Early warning, day by day | flagged in time, r4.2 / r5.2 | 33 / 28 | 59 / 80 | +26 / +52 | headline |
+| 20 | Analyst feedback; richer recommenders | insiders in 100 reviews | 55 / 43 | 57 / 42 | noise | dropped |
+
+Steps 1, 2, 9 and 15 were checks or were superseded:
+
+- Step 1: data loading.
+- Step 2: the leakage check.
+- Step 9: recommender tweaks (peer-of-item: 17 found).
+- Step 15: the untuned recommender verdict, replaced by Step 16.
+
+\newpage
+
 # Who builds what
 
 Fill in names. Hours count from the start of our build.

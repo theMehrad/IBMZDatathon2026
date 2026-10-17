@@ -95,3 +95,35 @@ Script: `least_privilege_full.py`.
 - Own-history percentile: P@20 1.00 on both releases.
 - Frozen family-first Stouffer, insiders found in 100 reviews: 55 vs 44 for R2 (r4.2), 43 vs 39 (r5.2).
 - Out-of-role persistence view: 27 to 30 of 30 snoopers in the top 100 (r5.2).
+
+## 7. Step ladder: the number at each step and the improvement
+
+Use this table wherever steps are listed: the notebook, the plan, the briefing and the explainer page.
+
+- **Steps 3 to 15** quote the v3 notebook outputs (`scratchpad/v3_outputs.txt`, the executed v3 notebook).
+- **Steps 16 to 20** quote sections 1 to 5 above.
+- **"found"** = expected insiders in the top 70 (hits@70).
+- **"Change"** is measured against the reference named in the row.
+
+| Step | What we tried | Metric | Before (reference) | After | Change | Verdict |
+|---|---|---|---|---|---|---|
+| 3 | Personal baselines | found, r4.2 / r5.2 | (none) | R2 28-day window: 38 / 36; P@20 1.00 / 0.90 | (the bar to beat) | Baseline |
+| 4 | Novelty: rare sites; recommender site surprise | found, r4.2 | R2 38 | Rare sites 41 (r5.2: 8.1); ALS site surprise 5 (AUC 0.71) | Rare +3 on r4.2 but does not transfer; ALS -33 | Rare kept as one family |
+| 5 | Learned combiner | found, r4.2 | Behaviour + rare 39 | + naive novelty 41; + ALS 45 (other seeds 44, 45) | +6 | Stress test needed |
+| 6 | More signals, second model | found, r4.2 | LR all signals 45 | + ALS 49; gradient boosting 60 | +4; +15 | Needs the unseen-attack test |
+| 7 | Hide job-hunters from training | job-hunters in top 100 | (none) | Boosting 4; LR 5 to 7; label-free sum 16 of 30 | Label-free +9 to +12 over trained | Don't headline trained models |
+| 8 | Literature: weekly LOF | job-hunters in top 100 | R2 5 of 30 | Weekly LOF 12 to 13 of 30 | +7 to +8 | Slow-drift family |
+| 9 | Recommender tweaks | found, r4.2 | ALS site surprise 5 | Site peer-of-item 17 (AUC 0.84) | +12 | Candidate only |
+| 10 | Own-history weekly percentile | found / AP, r4.2 | R2 38 / 0.728 | 39.4 / 0.666; P@20 1.00 | +1.4 found | Core detector |
+| 11 | Label-free family-first Stouffer | found / AP, r4.2 | R2 38 / 0.728 | 45 / 0.784; all-detector Stouffer 39 | +7 | Frozen for r5.2 |
+| 12 | r5.2, pipeline frozen | found / AP, r5.2 | R2 36 / 0.428 | Stouffer 38 / 0.478; percentile AP 0.477 | +2 found | Survives |
+| 13 | Snooper signal | snoopers in top 100, r5.2 | Naive new computers 10.9 of 30 | Weekly persistence + roaming discount 27 of 30 (ownership, naive and ALS alike) | +16 | Persistence, not ALS |
+| 14 | Equal budget, 100 reviews | insiders found, r4.2 / r5.2 | R2 44 / 39 | Stouffer 55 / 43; four queues 42 / 53 | Stouffer +11 / +4 | Fusion as default |
+| 15 | Recommender at its own job (untuned) | MPR, lower is better, r4.2 | Popularity 35.5 | ALS 35.9 | Worse by 0.4 | Superseded by Step 16 |
+| 16 | Recommender, tuned without labels | recall@20 of next new sites, r4.2 / r5.2 | Popularity 0.145 / 0.130; v3 setting 0.126 / 0.121 | 0.211 / 0.190 | +0.066 / +0.060 over popularity (1.45x) | Real job found |
+| 17 | Least-privilege advisor | requests per person-month, r4.2 / r5.2 | Own history 2.31 / 3.07 | ALS top 20: 1.82 / 2.48 (popularity: 1.97 / 2.67) | -21% / -19% at about the same protection (71.0% to 69.0%; 87.5% to 86.8%) | Build (R4) |
+| 17b | New-to-company site rule | wikileaks + keylogger visits blocked | (none) | 100% (r4.2 and r5.2) | Cost: 8 person-days on r4.2, 0 on r5.2 | Build (R4) |
+| 18 | Evidence ranking for Granite | hit@3, top-100 flagged insiders, r4.2 / r5.2 | Rarity 0.93 / 0.89 | C1 "new to you, rarest first" 0.98 / 0.98 (tuned ALS, all insiders: 0.71 / 0.44) | +0.05 / +0.09 | Build (R3) |
+| 19 | Early warning, day-by-day replay | insiders listed before last malicious action, r4.2 / r5.2 | R2 33 / 28; chance about 3 / 3 | Percentile 59 / 80 (pre-registered fusion 60 / 54) | +26 / +52 over R2 | Headline (R2 role) |
+| 20a | Analyst feedback (AAD) | insiders found in 100 reviews, r4.2 / r5.2 | Frozen Stouffer 55 / 43 | 57 / 42 | +2 / -1 (noise: +0.2 ± 0.9) | Dropped |
+| 20b | Richer recommender items | web novelty found, r5.2 | Site rarity 11.4 | Site x hour popularity 26.0; CF variants 22 to 25 | +14.6 from context; CF adds nothing | Dropped |

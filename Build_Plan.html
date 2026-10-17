@@ -62,6 +62,12 @@ code { font: 12.5px var(--font-mono); background: var(--accent-soft); padding: 1
 ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 .saythis { display: grid; gap: 8px; }
 .saythis div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; font-size: 14px; }
+.ladder td, .ladder th { font-size: 13px; padding: 7px 8px; }
+.ladder td:nth-child(2) { min-width: 150px; }
+.chip { display: inline-block; font: 600 11px/1.3 var(--font-mono); padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+.chip.kept { background: var(--accent-soft); color: var(--accent); }
+.chip.build { background: var(--accent); color: var(--surface); }
+.chip.drop { background: var(--warn-soft); color: var(--warn); }
 .yes { color: var(--accent); font-weight: 600; }
 .no { color: var(--muted); text-decoration: line-through; }
 @media (max-width: 640px) {
@@ -111,6 +117,32 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
     <li>Job-hunters and snoopers are flagged after 1.5 to 3 weeks.</li>
     <li>Two-day sysadmin sabotage is mostly missed: 4 of 10 on r4.2, 2 of 10 on r5.2.</li>
   </ul>
+</section>
+
+<section>
+  <h2>Step by step: what each test changed</h2>
+  <p class="sub">The number at each step of our study and how much it improved on the reference. "Found" = insiders expected in the top 70. Full detail is in the notebook and <code>feasibility/Verified_Numbers.md</code>.</p>
+  <div class="scroll"><table class="ladder">
+    <thead><tr><th>Step</th><th>What we tried</th><th>Metric</th><th>Before</th><th>After</th><th>Change</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td class="n">3</td><td>Personal 28-day baseline</td><td>found, r4.2 / r5.2</td><td class="n">none</td><td class="n">38 / 36</td><td class="n">the bar</td><td><span class="chip kept">bar</span></td></tr>
+      <tr><td class="n">4</td><td>Rare-site visits</td><td>found, r4.2</td><td class="n">38</td><td class="n">41</td><td class="n">+3 (r5.2: 8.1)</td><td><span class="chip kept">one family</span></td></tr>
+      <tr><td class="n">5–6</td><td>Trained combiners</td><td>found, r4.2</td><td class="n">39</td><td class="n">45 to 60</td><td class="n">+6 to +21</td><td><span class="chip drop">fail on new attacks</span></td></tr>
+      <tr><td class="n">7</td><td>Label-free sum, job-hunters hidden</td><td>job-hunters in top 100</td><td class="n">4 to 7</td><td class="n">16 of 30</td><td class="n">+9 to +12</td><td><span class="chip kept">label-free wins</span></td></tr>
+      <tr><td class="n">8</td><td>Weekly LOF (literature)</td><td>job-hunters in top 100</td><td class="n">5</td><td class="n">12 to 13</td><td class="n">+7 to +8</td><td><span class="chip kept">slow drift</span></td></tr>
+      <tr><td class="n">10</td><td>Own-history weekly percentile</td><td>found, r4.2</td><td class="n">38</td><td class="n">39.4, P@20 1.00</td><td class="n">+1.4</td><td><span class="chip kept">core</span></td></tr>
+      <tr><td class="n">11</td><td>Family-first Stouffer fusion</td><td>found, r4.2</td><td class="n">38</td><td class="n">45</td><td class="n">+7</td><td><span class="chip kept">frozen</span></td></tr>
+      <tr><td class="n">12</td><td>Same pipeline on r5.2, frozen</td><td>found, r5.2</td><td class="n">36</td><td class="n">38</td><td class="n">+2</td><td><span class="chip kept">survives</span></td></tr>
+      <tr><td class="n">13</td><td>Snooper persistence signal</td><td>snoopers in top 100</td><td class="n">10.9</td><td class="n">27 of 30</td><td class="n">+16</td><td><span class="chip kept">view</span></td></tr>
+      <tr><td class="n">14</td><td>Exactly 100 reviews</td><td>insiders, r4.2 / r5.2</td><td class="n">44 / 39</td><td class="n">55 / 43</td><td class="n">+11 / +4</td><td><span class="chip kept">default ranking</span></td></tr>
+      <tr><td class="n">16</td><td>Recommender, tuned without labels</td><td>next-site recall@20, r4.2</td><td class="n">0.145 popularity</td><td class="n">0.211</td><td class="n">1.45×</td><td><span class="chip build">real job</span></td></tr>
+      <tr><td class="n">17</td><td>Least-privilege advisor</td><td>requests per person-month</td><td class="n">2.31 / 3.07</td><td class="n">1.82 / 2.48</td><td class="n">−21% / −19%</td><td><span class="chip build">build</span></td></tr>
+      <tr><td class="n">18</td><td>Evidence rule for Granite</td><td>hit@3, flagged insiders</td><td class="n">0.93 / 0.89</td><td class="n">0.98 / 0.98</td><td class="n">+0.05 / +0.09</td><td><span class="chip build">build</span></td></tr>
+      <tr><td class="n">19</td><td>Early warning, day by day</td><td>flagged in time, r4.2 / r5.2</td><td class="n">33 / 28</td><td class="n">59 / 80</td><td class="n">+26 / +52</td><td><span class="chip build">headline</span></td></tr>
+      <tr><td class="n">20</td><td>Analyst feedback; richer recommenders</td><td>insiders in 100 reviews</td><td class="n">55 / 43</td><td class="n">57 / 42</td><td class="n">noise</td><td><span class="chip drop">dropped</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Steps 1, 2, 9 and 15 were checks or were superseded: data loading, the leakage check, recommender tweaks (peer-of-item 17 found), and the untuned recommender verdict that Step 16 replaced.</p>
 </section>
 
 <section>
