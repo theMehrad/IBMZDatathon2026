@@ -234,3 +234,11 @@ None of these changes moved the headline numbers.
 - **Gaps that cannot be closed locally:** CERT has no permission lists, so past use stands in for held access. File identities were not modelled (100% / 94.4% of file names seen for one person). The LinuxONE run and Granite integration happen on event day.
 - **Changes made:** case files now also cover the snooping review's top 100. The live snooping list is kept as an evaluation control, not an analyst queue.
 - No further modelling is justified.
+
+**Codex round 11 (the team lead's exact goal):**
+
+- Simple: **yes, certain**.
+- Impressive and honestly presented: **yes, certain**.
+- Some connection to the original proposal: **yes, certain**.
+
+No local fix is needed. The LinuxONE run and Granite integration are delivery checks for event day, and stay marked as pending until demonstrated.

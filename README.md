@@ -30,7 +30,7 @@ OutOfRole spots insiders while they are still active, explains each alert with c
 | `feasibility/reference/outofrole_minimal.py`, `case_file.py` | The whole build in about 300 lines: the daily list, evidence, recommender, access advice, and the Granite reply check. Port these to LinuxONE. |
 | `feasibility/reference/` | The scripts behind the verified numbers. They are local reference implementations, and we rewrite them on the event server. Paths inside point to Mehrad's laptop. |
 | `feasibility/OutOfRole_Plan.*`, `feasibility/Team_Briefing.*` | Plan with findings per step; teammate explainer |
-| `feasibility/codex_review/` | Eight rounds of external review (Codex) and our responses; round 8 verdict: ready for the local build and pitch |
+| `feasibility/codex_review/` | Eleven rounds of external review (Codex) and our responses. Round 11: simple, impressive and connected to the proposal, all yes and certain |
 | `Research_Findings.md` | Published work, industry practice, LinuxONE notes, sources |
 | `Abstract_Submission.md` | The abstract as submitted |
 | `output/` | VM, SSH, Docker, Jupyter and PySpark setup guide (its Chapter 9 is superseded by the build plan) |
