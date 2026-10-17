@@ -18,6 +18,7 @@ Method: own-history weekly percentile (the last 7 days vs each of the person's t
 | Same, not already listed in the 14 days before their first malicious action | 38 | 67 |
 | In time, 28-day personal baseline (R2) | 33 (0.471) | 28 (0.283) |
 | In time, chance (random normal employee's list history), mean / p95 | 0.038 (about 3) / 0.071 | 0.029 (about 3) / 0.061 |
+| In time, random score with the same 20-name list and decay rule (20 seeds; churns about 4x faster than the real list) | 10.3 | 11.4 |
 | In time, pre-registered fusion (c, max of family tails) | 0.86 | 0.545 (54) |
 | Median delay from first malicious day, days | 1 | 9 |
 | Share of each insider's malicious events dated after the flag day (mean) | 0.54 | 0.48 |
@@ -43,7 +44,14 @@ Script: `evidence_ranking.py`. Metric: hit@3, meaning at least one answer-key ma
 
 | Rule | r4.2 | r5.2 |
 |---|---|---|
-| "New to this person, rarest first" (C1), top-100 flagged insiders | 0.98 | 0.98 |
+| **C1, insiders the daily list flags in time, evidence up to the flag day (the operational number)** | **0.66** | **0.85** |
+| Global rarity, same setting | 0.49 | 0.51 |
+| Naive novelty, same setting | 0.54 | 0.28 |
+| Tuned ALS surprise, same setting | 0.75 | 0.46 |
+| ALS, v3 setting, same setting | 0.77 | 0.70 |
+| C1 misleading rate, same setting | 0.09 | 0.02 |
+| C1, same insiders, evidence over the full test period | 0.62 | 0.91 |
+| C1, insiders in the top 100 of the retrospective full-period ranking (42 / 44 people, almost all leakers and sysadmins) | 0.98 | 0.98 |
 | C1, all insiders | 0.68 | 0.92 |
 | Global rarity only, all insiders | 0.57 | 0.66 |
 | Tuned ALS surprise, all insiders | 0.71 | 0.44 |
@@ -51,7 +59,11 @@ Script: `evidence_ranking.py`. Metric: hit@3, meaning at least one answer-key ma
 
 **Other findings:**
 
-- The agreement filter (rare AND recommender-surprising) collapses to C1.
+- The agreement filter (rare AND recommender-surprising) collapses to C1 on r4.2 and on the top-100 view. On r5.2 across all insiders it trails C1 (0.891 vs 0.922).
+- **Correction (independent validator, Oct 17):** an earlier version quoted 98% as "flagged insiders". That figure applies only to the retrospective top-100 set. Use 0.66 / 0.85 for the early-warning flow (script: `scratchpad/validate/evidence_intime.py`).
+- **By scenario (C1, in time):** r4.2 leakers 1.00, job-hunters 0.33, sysadmins 1.00; r5.2 leakers 0.85, job-hunters 0.70, sysadmins 1.00 (2 people), snoopers 1.00.
+- **Where the recommender helps:** on r4.2, ALS beats C1 at flag time (0.75 to 0.77 vs 0.66) because of the job-hunters. On r5.2, C1 is clearly best. A mixed rule is being tested (post hoc).
+- **Weak-evidence flag:** 80 to 92% of flagged normal staff have no item above the median insider's top C1 score, but neither do 44 to 56% of in-time insiders. A weak-evidence label is feasible, but it would mark about half the real insiders as weak, so phrase it as "evidence strength" and do not use it to dismiss anyone.
 - For flagged normal staff, every rule always cites something. Granite therefore needs a weak-evidence flag.
 
 ## 3. The recommender's own job: predicting legitimate new websites (normal staff)
@@ -82,12 +94,16 @@ Script: `least_privilege_full.py`.
 - **Normal-staff cost:** 8 person-days across 5 people on r4.2, and none on r5.2.
 - **S2 job sites:** these were all visited by someone during training, so the rule does not touch them.
 
-**Computers:** no recommender benefit. 93 to 96% of new computers are colleagues' personal PCs, and every method recalls 8% or less.
+**Computers:** no recommender benefit.
+
+- 99.5% (r4.2) and 98.8% (r5.2) of new computers are someone else's personal PC, under the script's 80% ownership rule.
+- Top-K methods recall 8% or less of new computers. Team and department unions recall 82 to 97%, but grant 70 to 256 PCs each.
 
 ## 5. Ideas tested and dropped
 
 - **Analyst-feedback re-weighting** (AAD, Das et al. 2016): 57 vs 55 insiders found at 100 reviews (r4.2), and 42 vs 43 (r5.2). Across 40 subsamples the gain is +0.2 ± 0.9 and +0.1 ± 1.0. With job-hunters hidden, it still finds 22 of 30, against 4 to 7 for trained combiners.
-- **Recommender as a detector** (site, site × hour, computer × hour, email recipients, sequences, peer groups): no gain over popularity. Site × hour popularity raises r5.2 web novelty from 11.4 to 26.0 expected hits in the top 70, but popularity alone gets that gain. (These runs used the v3 ALS setting; a tuned rerun is pending.)
+- **Recommender as a detector** (site, site × hour, computer × hour, email recipients, sequences, peer groups): no gain over popularity. Site × hour popularity raises r5.2 web novelty from 11.4 to 26.0 expected hits in the top 70, but popularity alone gets that gain. CF variants reach 22 to 26 (user-kNN ties popularity at 26.0).
+- **Tuned rerun (done):** label-free tuning makes ALS a much better recommender. The best web setting is rank 128, alpha 0.1, reg 10, with site recall@20 of 0.232 on r4.2 and 0.202 on r5.2 (independently re-run). Person-level detection stays flat or gets worse, at 3.0 and 4.0 hits@70 on site. Tuned ALS also adds nothing in the logistic combiner (AP change of -0.000 and -0.001, against a seed noise of ±0.005).
 - **Recommender as explanation evidence:** C1 beats it (section 2).
 
 ## 6. Retrospective ranking (v3 notebook, unchanged)
@@ -121,10 +137,18 @@ Use this table wherever steps are listed: the notebook, the plan, the briefing a
 | 13 | Snooper signal | snoopers in top 100, r5.2 | Naive new computers 10.9 of 30 | Weekly persistence + roaming discount 27 of 30 (ownership, naive and ALS alike) | +16 | Persistence, not ALS |
 | 14 | Equal budget, 100 reviews | insiders found, r4.2 / r5.2 | R2 44 / 39 | Stouffer 55 / 43; four queues 42 / 53 | Stouffer +11 / +4 | Fusion as default |
 | 15 | Recommender at its own job (untuned) | MPR, lower is better, r4.2 | Popularity 35.5 | ALS 35.9 | Worse by 0.4 | Superseded by Step 16 |
-| 16 | Recommender, tuned without labels | recall@20 of next new sites, r4.2 / r5.2 | Popularity 0.145 / 0.130; v3 setting 0.126 / 0.121 | 0.211 / 0.190 | +0.066 / +0.060 over popularity (1.45x) | Real job found |
+| 16 | Recommender, tuned without labels | recall@20 of next new sites, r4.2 / r5.2 | Popularity 0.145 / 0.130; v3 setting 0.126 / 0.121 | 0.211 / 0.190 | +0.066 / +0.060 over popularity (1.45x / 1.46x) | Real job found |
 | 17 | Least-privilege advisor | requests per person-month, r4.2 / r5.2 | Own history 2.31 / 3.07 | ALS top 20: 1.82 / 2.48 (popularity: 1.97 / 2.67) | -21% / -19% at about the same protection (71.0% to 69.0%; 87.5% to 86.8%) | Build (R4) |
 | 17b | New-to-company site rule | wikileaks + keylogger visits blocked | (none) | 100% (r4.2 and r5.2) | Cost: 8 person-days on r4.2, 0 on r5.2 | Build (R4) |
-| 18 | Evidence ranking for Granite | hit@3, top-100 flagged insiders, r4.2 / r5.2 | Rarity 0.93 / 0.89 | C1 "new to you, rarest first" 0.98 / 0.98 (tuned ALS, all insiders: 0.71 / 0.44) | +0.05 / +0.09 | Build (R3) |
+| 18 | Evidence ranking for Granite | hit@3, insiders flagged in time, evidence up to the flag day, r4.2 / r5.2 | Global rarity 0.49 / 0.51 | C1 "new to you, rarest first" 0.66 / 0.85 (ALS: 0.75 / 0.46; retrospective top-100 set: C1 0.98 / 0.98) | +0.17 / +0.34 over rarity | Build (R3) |
 | 19 | Early warning, day-by-day replay | insiders listed before last malicious action, r4.2 / r5.2 | R2 33 / 28; chance about 3 / 3 | Percentile 59 / 80 (pre-registered fusion 60 / 54) | +26 / +52 over R2 | Headline (R2 role) |
 | 20a | Analyst feedback (AAD) | insiders found in 100 reviews, r4.2 / r5.2 | Frozen Stouffer 55 / 43 | 57 / 42 | +2 / -1 (noise: +0.2 ± 0.9) | Dropped |
-| 20b | Richer recommender items | web novelty found, r5.2 | Site rarity 11.4 | Site x hour popularity 26.0; CF variants 22 to 25 | +14.6 from context; CF adds nothing | Dropped |
+| 20b | Richer recommender items | web novelty found, r5.2 | Site rarity 11.4 | Site x hour popularity 26.0; CF variants 22 to 26 | +14.6 from context; CF adds nothing | Dropped |
+
+## 8. Disclosures (from the independent validation, October 17)
+
+- The early-warning percentile method was chosen after seeing results. The pre-registered fusion flagged 60 of 70 and 54 of 99 (54.5%) in time.
+- Each train cutoff was set to precede every attack, a choice that used the labels.
+- `least_privilege_full.py` trains through the day before the cutoff, rather than dropping the cutoff week. This is not leakage, because every attack starts after the cutoff.
+- Requests per person-month include staff who have since left in the denominator. Both policies share it, so the -21% / -19% comparison holds.
+- The validator found no look-ahead and no label leakage in any scoring code. A random-score control and a one-month-later cutoff both left the early-warning headline intact.

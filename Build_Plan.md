@@ -29,10 +29,11 @@ CERT data. Settings were frozen on r4.2, then r5.2 was run unchanged. Each numbe
 |------------------------------------------|----------|----------|
 | Insiders on the daily list before their last malicious action | **59** | **80** |
 | Same, with a simple 28-day personal baseline | 33 | 28 |
-| Same, by chance | about 3 | about 3 |
+| Same, by chance (shuffled real list histories) | about 3 | about 3 |
+| Same, a random score on the same 20-name list | 10 | 11 |
 | Share of malicious actions that happen after the flag | 54% | 48% |
 | New names per week for the analyst | about 5 | about 5 |
-| Flagged insiders with a real malicious event in their top 3 evidence items | 98% | 98% |
+| Insiders flagged in time with a real malicious event in their top 3 evidence items, using evidence up to the flag day (global rarity in brackets) | 66% (49%) | 85% (51%) |
 | Next new websites caught by the recommender's top 20 (popularity in brackets) | 21% (14.5%) | 19% (13%) |
 | Access requests per person per month: history only, then with the recommender | 2.3 to 1.8 | 3.1 to 2.5 |
 | Wikileaks and keylogger visits blocked by the new-to-company rule | 100% | 100% |
@@ -63,7 +64,7 @@ CERT data. Settings were frozen on r4.2, then r5.2 was run unchanged. Each numbe
 | 14 | Exactly 100 reviews | insiders, r4.2 / r5.2 | 44 / 39 | 55 / 43 | +11 / +4 | default ranking |
 | 16 | Recommender, tuned without labels | next-site recall@20, r4.2 | 0.145 (popularity) | 0.211 | 1.45x | real job |
 | 17 | Least-privilege advisor | requests per person-month | 2.31 / 3.07 | 1.82 / 2.48 | -21% / -19% | build |
-| 18 | Evidence rule for Granite | hit@3, flagged insiders | 0.93 / 0.89 | 0.98 / 0.98 | +0.05 / +0.09 | build |
+| 18 | Evidence rule for Granite | hit@3, insiders flagged in time | 0.49 / 0.51 (rarity) | 0.66 / 0.85 | +0.17 / +0.34 | build |
 | 19 | Early warning, day by day | flagged in time, r4.2 / r5.2 | 33 / 28 | 59 / 80 | +26 / +52 | headline |
 | 20 | Analyst feedback; richer recommenders | insiders in 100 reviews | 55 / 43 | 57 / 42 | noise | dropped |
 
@@ -114,7 +115,7 @@ Fill in names. Hours count from the start of our build.
 - Say "flags insiders while they are still active", not "real-time production system". It is a replay of past logs.
 - Say "the recommender predicts legitimate access", not "the recommender detects insiders". We tested that: as a detector it is no better than popularity.
 - Say openly that two-day sysadmin sabotage is mostly missed, and that CERT is synthetic data.
-- The early-warning method was picked after seeing results. The full detector we had named in advance also beat the baseline: 55% vs 28% of r5.2 insiders flagged in time.
+- The early-warning method was picked after seeing results. The full detector we had named in advance also beat the baseline: 54 vs 28 of 99 r5.2 insiders flagged in time.
 
 # Reference code (local tests; we rewrite on the server)
 

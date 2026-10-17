@@ -171,9 +171,10 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
     <div class="lvl">
       <div class="lvl-text"><span class="lvl-id">L5</span><b>Evidence and Granite case file</b><p>For each flagged person, rank their activity "new to this person, rarest first". Granite writes from the top items, and code checks every number.</p></div>
       <div class="lvl-bars">
-        <div class="metric">Flagged insiders with a real malicious event in their top 3 items</div>
-        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:93%"></i></div><div class="track2"><i class="b1" style="width:98%"></i></div></div><span class="vals">rarity 93% → <b>98%</b></span></div>
-        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:89%"></i></div><div class="track2"><i class="b1" style="width:98%"></i></div></div><span class="vals">rarity 89% → <b>98%</b></span></div>
+        <div class="metric">Insiders flagged in time with a real malicious event in their top 3 items (evidence up to the flag day)</div>
+        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:49%"></i></div><div class="track2"><i class="b1" style="width:66%"></i></div></div><span class="vals">rarity 49% → <b>66%</b> <em class="chg">+17</em></span></div>
+        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:51%"></i></div><div class="track2"><i class="b1" style="width:85%"></i></div></div><span class="vals">rarity 51% → <b>85%</b> <em class="chg">+34</em></span></div>
+        <p class="lvl-note">Leakers, sysadmins and snoopers: 85 to 100%. Job-hunters are the hard case (33% and 70%); on r4.2 the recommender points at their evidence better (75%), so a mixed rule is being tested.</p>
       </div>
     </div>
 
@@ -198,10 +199,11 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
     <tbody>
       <tr><td>Insiders on the daily list before their last malicious action</td><td class="n"><strong>59</strong></td><td class="n"><strong>80</strong></td></tr>
       <tr><td>Same, with a simple 28-day personal baseline</td><td class="n">33</td><td class="n">28</td></tr>
-      <tr><td>Same, by chance</td><td class="n">about 3</td><td class="n">about 3</td></tr>
+      <tr><td>Same, by chance (shuffled real list histories)</td><td class="n">about 3</td><td class="n">about 3</td></tr>
+      <tr><td>Same, a random score on the same 20-name list</td><td class="n">10</td><td class="n">11</td></tr>
       <tr><td>Share of malicious actions that happen after the flag</td><td class="n">54%</td><td class="n">48%</td></tr>
       <tr><td>New names per week for the analyst</td><td class="n">about 5</td><td class="n">about 5</td></tr>
-      <tr><td>Flagged insiders with a real malicious event in their top 3 evidence items</td><td class="n">98%</td><td class="n">98%</td></tr>
+      <tr><td>Insiders flagged in time with a real malicious event in their top 3 evidence items, using evidence up to the flag day (global rarity in brackets)</td><td class="n">66% (49%)</td><td class="n">85% (51%)</td></tr>
       <tr><td>Next new websites caught by the recommender's top 20 (popularity in brackets)</td><td class="n">21% (14.5%)</td><td class="n">19% (13%)</td></tr>
       <tr><td>Access requests per person per month: history only, then with the recommender</td><td class="n">2.3 → 1.8</td><td class="n">3.1 → 2.5</td></tr>
       <tr><td>Wikileaks and keylogger visits blocked by the new-to-company rule</td><td class="n">100%</td><td class="n">100%</td></tr>
@@ -232,7 +234,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
       <tr><td class="n">14</td><td>Exactly 100 reviews</td><td>insiders, r4.2 / r5.2</td><td class="n">44 / 39</td><td class="n">55 / 43</td><td class="n">+11 / +4</td><td><span class="chip kept">default ranking</span></td></tr>
       <tr><td class="n">16</td><td>Recommender, tuned without labels</td><td>next-site recall@20, r4.2</td><td class="n">0.145 popularity</td><td class="n">0.211</td><td class="n">1.45×</td><td><span class="chip build">real job</span></td></tr>
       <tr><td class="n">17</td><td>Least-privilege advisor</td><td>requests per person-month</td><td class="n">2.31 / 3.07</td><td class="n">1.82 / 2.48</td><td class="n">−21% / −19%</td><td><span class="chip build">build</span></td></tr>
-      <tr><td class="n">18</td><td>Evidence rule for Granite</td><td>hit@3, flagged insiders</td><td class="n">0.93 / 0.89</td><td class="n">0.98 / 0.98</td><td class="n">+0.05 / +0.09</td><td><span class="chip build">build</span></td></tr>
+      <tr><td class="n">18</td><td>Evidence rule for Granite</td><td>hit@3, insiders flagged in time</td><td class="n">0.49 / 0.51 rarity</td><td class="n">0.66 / 0.85</td><td class="n">+0.17 / +0.34</td><td><span class="chip build">build</span></td></tr>
       <tr><td class="n">19</td><td>Early warning, day by day</td><td>flagged in time, r4.2 / r5.2</td><td class="n">33 / 28</td><td class="n">59 / 80</td><td class="n">+26 / +52</td><td><span class="chip build">headline</span></td></tr>
       <tr><td class="n">20</td><td>Analyst feedback; richer recommenders</td><td>insiders in 100 reviews</td><td class="n">55 / 43</td><td class="n">57 / 42</td><td class="n">noise</td><td><span class="chip drop">dropped</span></td></tr>
     </tbody>
@@ -325,7 +327,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
   <ul class="note">
     <li>As a detector, the recommender is no better than popularity; we tested it.</li>
     <li>Say openly that two-day sysadmin sabotage is mostly missed, and that CERT is synthetic data.</li>
-    <li>The early-warning method was picked after seeing results. The full detector we had named in advance also beat the baseline: 55% vs 28% of r5.2 insiders flagged in time.</li>
+    <li>The early-warning method was picked after seeing results. The full detector we had named in advance also beat the baseline: 54 vs 28 of 99 r5.2 insiders flagged in time.</li>
   </ul>
 </section>
 
