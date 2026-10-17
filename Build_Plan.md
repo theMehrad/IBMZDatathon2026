@@ -88,7 +88,7 @@ Fill in names. Hours count from the start of our build.
 |--------------|------------------|------------------|------------------|------------------|
 | **R1 Data and platform** (\_\_\_\_\_\_) | VM: Java 17, PySpark (no pyarrow on s390x), Docker; download r4.2. At hour 2, hand a one-month sample to R2 and R4. Spark builds 3 tables: daily counts, person-computer-day, person-site-day | r5.2 if disk allows; run the whole pipeline end to end | Docker container, GitHub repo, README | Support the demo; check the repo runs from scratch |
 | **R2 Detection** (\_\_\_\_\_\_) | Port section 1 of `outofrole_minimal.py` (the daily list) and run it on the sample | Run on r4.2 with the fixed settings below | r5.2 unchanged; results table vs baseline and chance, per attack type, analyst load | Export daily lists and per-person timelines for the dashboard |
-| **R3 Granite** (\_\_\_\_\_\_) | Both IBM labs (Granite via llama.cpp; the model file must be big-endian) | Port `case_items` from `outofrole_minimal.py` and all of `case_file.py` (evidence pack with IDs, Granite prompt, reply check, weak-evidence flag, fallback); pseudonyms | Pre-generate case files for the top 20; keep one live run | Case-file panel in the dashboard |
+| **R3 Granite** (\_\_\_\_\_\_) | Both IBM labs (Granite via llama.cpp; the model file must be big-endian) | Port `case_items` from `outofrole_minimal.py` and all of `case_file.py` (evidence pack with IDs, Granite prompt that returns only a label and fact IDs, reply check, fallback); pseudonyms | Pre-generate case files for the top 20; keep one live run | Case-file panel in the dashboard |
 | **R4 Recommender and demo** (\_\_\_\_\_\_) | Dashboard skeleton: daily list, person page, case-file panel | Port sections 3 to 5 of `outofrole_minimal.py`: ALS on person-site data, top-20 pre-approval, removal suggestions, new-to-company block | Wire everything into the dashboard | Video with on-screen proof: `uname -m` (s390x), `docker ps`, the server prompt |
 
 **Fixed detector settings (decide nothing new):**
@@ -128,7 +128,7 @@ Fill in names. Hours count from the start of our build.
 In `feasibility/reference/`:
 
 - **`outofrole_minimal.py`**: the whole system in 214 lines, and the file to port. It produces every headline number in about 20 seconds per release.
-- **`case_file.py`**: 91 lines covering the evidence pack, the Granite prompt, the reply check and the fallback. Run it to see the self-test.
+- **`case_file.py`**: 85 lines: evidence pack, Granite prompt (label and fact IDs only), reply check and fallback. Run it to see the self-test.
 - `early_warning_simple.py`: the 49-line replay behind the headline numbers.
 - `early_warning_full.py`: the full replay with baseline, chance and analyst-load comparisons.
 - `evidence_ranking.py`: evidence ranking for the case files.

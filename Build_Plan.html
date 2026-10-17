@@ -271,7 +271,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
       <div class="role-head"><b>R3 · Granite</b><span class="owner">owner:</span></div>
       <div class="blocks">
         <div class="block"><span class="h">0 to 6 h</span>Both IBM labs (Granite via llama.cpp; the model file must be big-endian).</div>
-        <div class="block"><span class="h">6 to 12 h</span>Port <code>case_items</code> from <code>outofrole_minimal.py</code> and all of <code>case_file.py</code> (evidence pack with IDs, Granite prompt, reply check, weak-evidence flag, fallback); pseudonyms.</div>
+        <div class="block"><span class="h">6 to 12 h</span>Port <code>case_items</code> from <code>outofrole_minimal.py</code> and all of <code>case_file.py</code> (evidence pack with IDs, Granite prompt that returns only a label and fact IDs, reply check, fallback); pseudonyms.</div>
         <div class="block"><span class="h">12 to 18 h</span>Pre-generate case files for the top 20; keep one live run.</div>
         <div class="block"><span class="h">18 to 24 h</span>Case-file panel in the dashboard.</div>
       </div>
@@ -343,7 +343,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
   <p class="sub">Local tests in <code>feasibility/reference/</code> on Mehrad's laptop. We rewrite on the server.</p>
   <ul>
     <li><code>outofrole_minimal.py</code>: the whole system in 214 lines, and the file to port. It produces every headline number in about 20 seconds per release.</li>
-    <li><code>case_file.py</code>: 91 lines covering the evidence pack, the Granite prompt, the reply check and the fallback. Run it to see the self-test.</li>
+    <li><code>case_file.py</code>: 85 lines: evidence pack, Granite prompt (label and fact IDs only), reply check and fallback. Run it to see the self-test.</li>
     <li><code>early_warning_simple.py</code>: the 49-line replay behind the headline numbers.</li>
     <li><code>early_warning_full.py</code>: the full replay with baseline, chance and analyst-load comparisons.</li>
     <li><code>evidence_ranking.py</code>: evidence ranking for the case files.</li>

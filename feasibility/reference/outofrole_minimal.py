@@ -208,7 +208,7 @@ print(f"3  next new sites caught by top 20: recommender {recall['recommender']:.
 print("4  access requests per person-month: " + ", ".join(f"{k} {v:.2f}" for k, v in requests.items())
       + f"; share of the recommender's extra grants later used {used_share['recommender']:.2f}")
 print("   malicious web visits that would need approval (static coverage): " + ", ".join(f"{k} {v:.1%}" for k, v in coverage.items()))
-print(f"   revocation suggestions: {stale[still].sum() / own[still].sum():.1%} of sites people hold go unused afterwards "
+print(f"   end-of-period access-review proxy: {stale[still].sum() / own[still].sum():.1%} of training person-site pairs not revisited "
       f"({stale[still].sum(1).mean():.1f} per person; {(stale[still].sum(1) > 0).mean():.0%} of people have at least one)")
 print(f"5  new-to-company rule blocks wikileaks {blocked[1]:.0%} and keylogger sites {blocked[3]:.0%}; "
       f"cost {len(nov[['user', 'day']].drop_duplicates())} normal person-days")

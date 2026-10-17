@@ -263,7 +263,7 @@ OpenAI's Codex reviewed our work four times. It found real bugs, overturned the 
 
 - **R1 Data and platform:** VM setup (Java 17, PySpark, Docker), data download, the three Spark tables, the GitHub repo and README. Done when the repo runs from scratch on LinuxONE.
 - **R2 Detection:** the daily replay and its results against the baselines, chance and each attack type, plus analyst load. Done when the results table is reproduced on the server.
-- **R3 Granite:** both IBM labs, evidence packs, the prompt, the reply check, the evidence-strength note. Done when each listed person has a checked case file.
+- **R3 Granite:** both IBM labs, evidence packs, the prompt (Granite returns only a label and fact IDs), the reply check, the evidence-strength flag. Done when each listed person has a checked case file.
 - **R4 Recommender and demo:** the least-privilege advisor, the dashboard, the video. Done when the video and link are submitted.
 
 **Cut rules.** Hour 6: if the Spark tables are not ready, start without the web log. Hour 12: freeze the detector settings. Hour 14: if the recommender is behind, ship the new-to-company block plus each person's own history. Hour 18: if Granite is slow, show pre-generated case files plus one live run. Hour 20: feature freeze.

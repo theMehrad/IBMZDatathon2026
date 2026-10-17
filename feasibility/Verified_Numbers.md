@@ -211,7 +211,14 @@ None of these changes moved the headline numbers.
 
 **Code changes after Codex round 6:**
 
-- `case_file.py` (91 lines) now fails closed. Granite returns JSON with a label from a fixed list, fact IDs and an optional note that may contain no numbers, dates, names or addresses. Code renders every fact sentence. Any other reply falls back to the deterministic case file; the self-test rejects six bad replies, including all three of Codex's slip-through examples.
+- `case_file.py` fails closed. Granite returns JSON with exactly two keys: a label from a fixed list and fact IDs. Code renders every fact sentence.
+
+**Code changes after Codex round 7:**
+
+- `case_file.py` (85 lines) has no free-text note at all, and checks the type of every value.
+- The case file always shows the top 3 ranked facts and marks the ones Granite cited.
+- The self-test rejects 12 bad replies without crashing, including notes with a made-up name or a spelled-out quantity, `facts: [{}]` and non-JSON text.
+- The 64% / 85% evidence numbers measure the evidence ranking before Granite.
 - Evidence strength is decided on the raw share, before rounding.
 - First alerts and case evidence start at replay day zero. This moved r4.2's graded C1 hit@3 from 0.66 to 0.64 and its first-alert value from 0.33 to 0.31; r5.2 is unchanged.
 - Evidence strength is now compared at the same stage (first alert) for insiders and normal staff.
