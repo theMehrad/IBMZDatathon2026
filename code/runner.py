@@ -277,7 +277,7 @@ def infer(args):
     changed = {name for name in set(bundle['code_sha256']) | set(current_hashes)
                if bundle['code_sha256'].get(name) != current_hashes.get(name)}
     if changed and not (args.allow_runner_update and changed <= {'runner.py', 'label_guide.py', 'evidence_policy.py'}):
-        raise ValueError('Code changed since pack export; prepare again or explicitly allow runner/guide updates')
+        raise ValueError('Code changed since pack export; prepare again or explicitly allow runner/guide/policy updates')
     cases = bundle['cases']
     if [c['rank'] for c in cases] != list(range(1, len(cases) + 1)):
         raise ValueError('Review ranks are not consecutive')
