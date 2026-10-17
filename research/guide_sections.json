@@ -1,0 +1,17 @@
+[
+  "Contents",
+  "1 Event requirements and deadlines",
+  "2 Team roles and minimum result",
+  "3 Register and create the LinuxONE VM",
+  "4 Configure SSH and prove the platform",
+  "5 Install Docker and start Jupyter Lab",
+  "6 Run the reference labs and local Granite",
+  "7 Obtain and inspect the CERT data",
+  "8 Configure PySpark for OutOfRole",
+  "9 Implement OutOfRole during the event",
+  "10 Troubleshooting and recovery",
+  "11 Judging evidence and final submission",
+  "Appendix A Cleaned topic transcript with timestamps",
+  "Appendix B Verification and unresolved items",
+  "Appendix C Source links and evidence register"
+]

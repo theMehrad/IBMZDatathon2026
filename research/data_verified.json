@@ -1,0 +1,20 @@
+{
+  "core_rows": {
+    "logon": 854859,
+    "device": 405380,
+    "file": 445581
+  },
+  "r42_insiders": 70,
+  "scenarios": {
+    "1": 30,
+    "2": 30,
+    "3": 10
+  },
+  "malicious_rows_by_source": {
+    "logon": 198,
+    "device": 2785,
+    "http": 3860,
+    "email": 470,
+    "file": 10
+  }
+}

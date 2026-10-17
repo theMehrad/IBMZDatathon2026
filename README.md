@@ -1,0 +1,38 @@
+# OutOfRole · The Debugging Table · IBM Z Datathon 2026
+
+Track: **AI Secured: Innovation Without Exposure.**
+
+OutOfRole spots insiders while they are still active, explains each alert with checked evidence, and trims everyone's access to what they actually need. It runs on one LinuxONE server, and people appear only as pseudonyms.
+
+## Start here
+
+1. **[`Build_Plan.md`](Build_Plan.md)** (also as a PDF): what each person builds, in what order, the cut rules, the demo, and the verified numbers.
+2. **[`feasibility/Verified_Numbers.md`](feasibility/Verified_Numbers.md)**: the only source for numbers in any slide, doc or video.
+3. **[`Data_Access_Guide.md`](Data_Access_Guide.md)**: how to download CERT r4.2 and r5.2 onto the VM.
+
+## Headline results (CERT, settings frozen on r4.2, then r5.2 run unchanged)
+
+| | r4.2 | r5.2 |
+|---|---|---|
+| Insiders flagged on a 20-name daily list before their last malicious action | 59 of 70 | 80 of 99 |
+| Same, with a 28-day personal baseline | 33 | 28 |
+| Flagged insiders with a real malicious event in the top 3 evidence items | 98% | 98% |
+| Recommender recall of next new websites, top 20 (popularity) | 21% (14.5%) | 19% (13%) |
+
+## What's in this repo
+
+| Path | What it is |
+|---|---|
+| `Build_Plan.*` | The build plan for October 17 to 18 |
+| `feasibility/OutOfRole_Feasibility.ipynb` (+ `.html`) | The full pre-event study: code, explanations and findings per step |
+| `feasibility/reference/` | The scripts behind the verified numbers. They are local reference implementations, and we rewrite them on the event server. Paths inside point to Mehrad's laptop. |
+| `feasibility/OutOfRole_Plan.*`, `feasibility/Team_Briefing.*` | Plan with findings per step; teammate explainer |
+| `feasibility/codex_review/` | Three rounds of external review and our responses |
+| `Research_Findings.md` | Published work, industry practice, LinuxONE notes, sources |
+| `Abstract_Submission.md` | The abstract as submitted |
+| `output/` | VM, SSH, Docker, Jupyter and PySpark setup guide (its Chapter 9 is superseded by the build plan) |
+| `research/` | IBM lab notebooks and setup references |
+
+## Data
+
+The CERT Insider Threat datasets are **not** in this repo, and must not be added. Their license forbids redistribution. Each teammate downloads them directly (see `Data_Access_Guide.md`). `data/` and the derived Parquet caches under `feasibility/work/` are git-ignored.

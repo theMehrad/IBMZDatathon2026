@@ -1,0 +1,16 @@
+# CERT data: license forbids redistribution. Never commit raw or derived data.
+data/
+feasibility/work/
+*.parquet
+*.csv
+!research/*.csv
+
+# local outputs and tooling
+feasibility/reference/results/
+feasibility/reference/out/
+feasibility/reference/*.txt
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
+*.log
+*.aux

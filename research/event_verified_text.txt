@@ -1,0 +1,533 @@
+/logo
+https://storage.googleapis.com/vision-hack2skill-production/innovator/USER01332752/1781543301606-WhatsAppImage20260615at10.29.40PM.webp
+
+/tags/mode/value
+HYBRID
+
+/tags/ticket/value
+FREE
+
+/title
+IBM Z Datathon 2026
+
+/registrationStart
+2026-06-19T04:30:00.000Z
+
+/registrationEnd
+2026-10-16T18:29:00.000Z
+
+/submissionStart
+2026-07-31T18:30:00.000Z
+
+/submissionEnd
+2026-10-16T18:29:00.000Z
+
+/sections/0/title
+Contact Us
+
+/sections/0/category/0/title
+Email/Phone
+
+/sections/0/category/0/data/0/value
+stemprograms@sstarsfoundation.org
+
+/sections/0/category/1/title
+Social Media
+
+/sections/0/category/1/data/0/value
+https://www.facebook.com/hack2skill/
+
+/sections/0/category/1/data/1/value
+https://www.instagram.com/hack2skill/
+
+/sections/0/category/1/data/2/value
+https://www.youtube.com/channel/UCw2br80x_dpvJoAsSCC-bGA
+
+/sections/1/title
+Event Overview
+
+/sections/1/category/0/title
+Banner
+
+/sections/1/category/0/data/0/title
+DESKTOP
+
+/sections/1/category/0/data/0/content/0/value
+https://storage.googleapis.com/vision-hack2skill-production/innovator/USER00219668/1781531892907-Themeproblemstatement.pdf6912x2304px1.webp
+
+/sections/1/category/0/data/1/title
+MOBILE
+
+/sections/1/category/1/title
+Hashtag
+
+/sections/1/category/2/title
+Event Title
+
+/sections/1/category/2/data/0/title
+IBM Z Datathon 2026
+
+/sections/1/category/2/data/0/description
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut quis condimentum leo. Fusce ac magna ac arcu condimentum dictum et eu odio. Ut sollicitudin semper suscipit.
+
+/sections/1/category/3/title
+Tag
+
+/sections/1/category/3/data/0/title
+Mode
+
+/sections/1/category/3/data/1/title
+Team Size
+
+/sections/1/category/3/data/2/title
+Ticketing Type
+
+/sections/1/category/4/title
+Eligibility & Prize pool
+
+/sections/1/category/5/title
+Notice text
+
+/sections/1/category/6/title
+CTA
+
+/sections/1/category/6/data/0/title
+Register Now
+
+/sections/1/category/6/data/0/link
+
+
+/sections/1/category/7/title
+Quick Links
+
+/sections/1/category/8/title
+Thumbnail
+
+/sections/1/category/8/data/0/title
+
+
+/sections/1/category/8/data/0/image
+https://storage.googleapis.com/vision-hack2skill-production/innovator/USER00219668/1781535587340-IBMZFlyer21.webp
+
+/sections/2/title
+About
+
+/sections/2/category/0/title
+
+
+/sections/2/category/0/data/0/title
+
+
+/sections/2/category/0/data/0/description
+IBM Z Datathon 2026 - Interactive Master Layout One of the  world's largest enterprise computing Datathons is back IBM Z Datathon 2026 A global 24-hour hybrid hackathon built intentionally for college students who want to build real, scalable systems solutions on enterprise-grade IBM Z architecture. Participants will build solutions that run on IBM Z / LinuxONE — one of the world's most secure, scalable, and powerful computing platforms — and present them to a panel of industry experts and IBM leaders. Datathon Themes Real-Time AI for Critical Decisions AI Secured: Innovation Without Exposure Wildcard: Beyond the Obvious Prize Pool $50K+ Event Dates Oct 17–18 Deadline Oct 1 Format Global Participation Model 8 In-Person Hubs Worldwide Virtual Participation Across Globe Why Participate? Credentials That Matter Earn exclusive IBM digital badges and industry-recognized certifications to fast-track your profile validation. $50K+ Active Stakes Win from a massive global prize pool distributed across specialized online and physical local hub tracks. Elite Networking Space Connect and network closely with active IBM engineers, global technical subject matter experts (SMEs), and competitive peers. Enterprise Computing Exposure Get unique, direct hands-on operational access with real enterprise mainframe technology via IBM Z systems environments. Pitch Executive Leadership Pitch your functional software architecture models straight to industry leaders and corporate decision makers to escalate your career path. Who Can Participate? College Students Worldwide Open to current undergraduate or graduate student cohorts registered across any institution globally. Online (Global) Access Complete integration paths open for developers participating remotely from any timezone globally. 8 Physical Node Hubs On-site infrastructure hubs open across targeted global metropolitan regions for physical workspace support. Free Registration Gate Zero cost entry requirements. Complete availability to foundational server tools and computational platforms for all selected innovators. Powered by IBM Organised by Shooting Stars Foundation
+
+/sections/3/title
+Datathon Journey
+
+/sections/3/category/0/title
+
+
+/sections/3/category/0/data/0/title
+
+
+/sections/3/category/0/data/0/description
+
+
+/sections/4/title
+Timeline
+
+/sections/4/category/0/title
+
+
+/sections/4/category/0/data/0/title
+Registration
+
+/sections/4/category/0/data/0/start
+2026-06-19T04:30:00.000Z
+
+/sections/4/category/0/data/0/end
+2026-10-16T18:29:00.000Z
+
+/sections/4/category/0/data/1/title
+Team Formation
+
+/sections/4/category/0/data/1/description
+Mandatory to Participate in a team of 4 -6 members
+
+/sections/4/category/0/data/1/start
+2026-06-20T18:30:00.000Z
+
+/sections/4/category/0/data/1/end
+2026-10-15T18:29:00.000Z
+
+/sections/4/category/0/data/2/title
+Find a Team / Team Member
+
+/sections/4/category/0/data/2/description
+Mandatory to participate in a team of 4 -6 members
+
+/sections/4/category/0/data/2/start
+2026-06-20T20:30:00.000Z
+
+/sections/4/category/0/data/2/end
+2026-10-15T18:29:00.000Z
+
+/sections/4/category/0/data/3/title
+Welcome & What to Expect Kickoff
+
+/sections/4/category/0/data/3/description
+Event overview, theme, prizes, referral program, Q&A
+
+/sections/4/category/0/data/3/start
+2026-07-31T14:00:00.000Z
+
+/sections/4/category/0/data/3/end
+2026-07-31T15:00:00.000Z
+
+/sections/4/category/0/data/4/title
+Abstract Submission
+
+/sections/4/category/0/data/4/start
+2026-07-31T18:30:00.000Z
+
+/sections/4/category/0/data/4/end
+2026-10-16T18:29:00.000Z
+
+/sections/4/category/0/data/5/title
+IBM Z & LinuxONE 101/Career Opportunities with IBM Z & LinuxONE
+
+/sections/4/category/0/data/5/description
+IBM Z overview, LinuxONE use cases, IBM Z Xplore. IBM Z careers, certifications, learning pathways, Q&A
+
+/sections/4/category/0/data/5/start
+2026-08-14T14:00:00.000Z
+
+/sections/4/category/0/data/5/end
+2026-08-14T15:00:00.000Z
+
+/sections/4/category/0/data/6/title
+Theme Deep Dive – AI on IBM
+
+/sections/4/category/0/data/6/description
+AI capabilities, sample projects, tools & datasets
+
+/sections/4/category/0/data/6/start
+2026-08-21T14:00:00.000Z
+
+/sections/4/category/0/data/6/end
+2026-08-21T15:00:00.000Z
+
+/sections/4/category/0/data/7/title
+Quiz 1
+
+/sections/4/category/0/data/7/description
+🧠 Quick AI on IBM Z Quiz! Just attended the Theme Deep Dive session (or curious about the theme)? Test what you know about AI on IBM Z from real-time decisioning to enterprise-scale use cases in just 10 easy questions. No prior AI experience needed, just your curiosity! 🚀
+
+/sections/4/category/0/data/7/start
+2026-08-22T18:30:00.000Z
+
+/sections/4/category/0/data/7/end
+2026-08-29T18:29:00.000Z
+
+/sections/4/category/0/data/8/title
+Theme Deep Dive – Trust & Identity
+
+/sections/4/category/0/data/8/description
+Trust & Identity concepts, example projects, datasets, resources
+
+/sections/4/category/0/data/8/start
+2026-08-28T14:00:00.000Z
+
+/sections/4/category/0/data/8/end
+2026-08-28T15:00:00.000Z
+
+/sections/4/category/0/data/9/title
+Quiz 2 - Enterprise Security on IBM Z
+
+/sections/4/category/0/data/9/description
+Based on the topics covered in the Speakers Session (Keynote Address with Sadie Revercomb, IBM Z and LinuxONE Security Product Manager)- a step up from the beginner AI quiz, testing applied understanding rather than just definitions.
+
+/sections/4/category/0/data/9/start
+2026-08-29T18:30:00.000Z
+
+/sections/4/category/0/data/9/end
+2026-09-05T18:29:00.000Z
+
+/sections/4/category/0/data/10/title
+Mini Challenge - Week 1
+
+/sections/4/category/0/data/10/description
+What Is the Mini Challenge Series? This Series is a 6-week practice run leading into IBM Z Datathon 2026 — it is NOT the Datathon itself. Each week is a smaller, standalone AI-for-Good challenge designed to build your team's technical skills and confidence before the main event. 👉 Completing mini challenge weeks does not itself decide the Datathon winners — it's preparation, mentorship and momentum so your team walks into the Datathon ready to build, integrate and pitch with confidence. Why the Mini Challenges Matter Each week is scoped to build specific skills, so by Week 6 your team has touched those skill areas which will help you for the final Datathon challenge: • Week 1- Dataset, understanding problem statement, Data analytics and turning raw data into insight • Week 2- Python, data ingestion, prompt writing, AI fundamentals • Week 3- GenAI output quality, accessibility and responsible-AI checks, Trust, Identity and security • Week 4- embeddings, similarity search and explainable matching logic (Mentor Support) • Week 5- anomaly detection and generating explainable, decision-ready alerts (Mentor Support) • Week 6- full end-to-end prototyping, architecture and a live pitch (Video pitch) (Mentor Support) Mini Challenges’ - Schedule Week-1 Friday, 4 Sep 2026 - Sun, 6 Sep 2026 (Duration 48 Hours) Week-2 Friday, 11 Sep 2026 - Sun, 13 Sep 2026 (Duration 48 Hours) Week-3 Friday, 18 Sep 2026 - Sun, 20 Sep 2026 (Duration 48 Hours) Week-4 Friday, 25 Sep 2026 - Sat, 26 Sep 2026 (Duration 24 Hours) Week-5 Friday, 2 Oct 2026 - Sat, 3 Oct 2026 (Duration 24 Hours) Week-6 Friday, 9 Oct 2026 - Sat, 10 Oct 2026 (Duration 24 Hours) 🏆How Weekly Winners Are Identified • Each week's submissions are reviewed the following weekend by the SSF team against that week's scoring rubric — Attempting Mini challenge within timeframe, problem understanding & analysis, technical implementation, AI/GenAI quality, reliability & responsible AI, innovation & UX, security implication and documentation. • A shortlist and leaderboard update are published before the next week's challenge launches. • Recognized participants get a leaderboard feature and visibility heading into Datathon participation— mini challenges' performance is a readiness signal, not a Datathon score. ✅ Before the Final Datathon The Mini Hackathon Series wraps a full week before IBM Z Datathon 2026 (17–18 Oct). Use that final week to rest, absorb mentor feedback, and lock in your Datathon strategy — you'll walk in ready.
+
+/sections/4/category/0/data/10/start
+2026-09-03T18:30:00.000Z
+
+/sections/4/category/0/data/10/end
+2026-09-06T18:29:00.000Z
+
+/sections/4/category/0/data/11/title
+Mini Challenge week 2
+
+/sections/4/category/0/data/11/description
+What Is the Mini Challenge Series? This Series is a 6-week practice run leading into IBM Z Datathon 2026- it is NOT the Datathon itself. Each week is a smaller, standalone AI-for-Good challenge designed to build your team's technical skills and confidence before the main event. 👉 Completing mini challenge weeks does not itself decide the Datathon winners- it's preparation, mentorship and momentum so your team walks into the Datathon ready to build, integrate and pitch with confidence. Why the Mini Challenges Matter Each week is scoped to build specific skills, so by Week 6 your team has touched those skill areas which will help you for the final Datathon challenge: • Week 1- Dataset, understanding problem statement, Data analytics and turning raw data into insight • Week 2- Python, data ingestion, prompt writing, AI fundamentals • Week 3- GenAI output quality, accessibility and responsible-AI checks, Trust, Identity and security • Week 4- embeddings, similarity search and explainable matching logic (Mentor Support) • Week 5- anomaly detection and generating explainable, decision-ready alerts (Mentor Support) • Week 6- full end-to-end prototyping, architecture and a live pitch (Video pitch) (Mentor Support) Mini Challenges’ - Schedule Week-1 Friday, 4 Sep 2026 - Sun, 6 Sep 2026 (Duration 48 Hours) Week-2 Friday, 11 Sep 2026 - Sun, 13 Sep 2026 (Duration 48 Hours) Week-3 Friday, 18 Sep 2026 - Sun, 20 Sep 2026 (Duration 48 Hours) Week-4 Friday, 25 Sep 2026 - Sat, 26 Sep 2026 (Duration 24 Hours) Week-5 Friday, 2 Oct 2026 - Sat, 3 Oct 2026 (Duration 24 Hours) Week-6 Friday, 9 Oct 2026 - Sat, 10 Oct 2026 (Duration 24 Hours) 🏆How Weekly Winners Are Identified • Each week's submissions are reviewed the following weekend by the SSF team against that week's scoring rubric- Attempting Mini challenge within timeframe, problem understanding & analysis, technical implementation, AI/GenAI quality, reliability & responsible AI, innovation & UX, security implication and documentation. • A shortlist and leaderboard update are published before the next week's challenge launches. • Recognized participants get a leaderboard feature and visibility heading into Datathon participatio- mini challenges' performance is a readiness signal, not a Datathon score. ✅ Before the Final Datathon The Mini Hackathon Series wraps a full week before IBM Z Datathon 2026 (17–18 Oct). Use that final week to rest, absorb mentor feedback, and lock in your Datathon strategy- you'll walk in ready.
+
+/sections/4/category/0/data/11/start
+2026-09-10T18:30:00.000Z
+
+/sections/4/category/0/data/11/end
+2026-09-13T18:29:00.000Z
+
+/sections/4/category/0/data/12/title
+Mini Challenge week 3
+
+/sections/4/category/0/data/12/description
+What Is the Mini Challenge Series? This Series is a 6-week practice run leading into IBM Z Datathon 2026- it is NOT the Datathon itself. Each week is a smaller, standalone AI-for-Good challenge designed to build your team's technical skills and confidence before the main event. 👉 Completing mini challenge weeks does not itself decide the Datathon winners- it's preparation, mentorship and momentum so your team walks into the Datathon ready to build, integrate and pitch with confidence. Why the Mini Challenges Matter Each week is scoped to build specific skills, so by Week 6 your team has touched those skill areas which will help you for the final Datathon challenge: • Week 1- Dataset, understanding problem statement, Data analytics and turning raw data into insight • Week 2- Python, data ingestion, prompt writing, AI fundamentals • Week 3- GenAI output quality, accessibility and responsible-AI checks, Trust, Identity and security • Week 4- embeddings, similarity search and explainable matching logic (Mentor Support) • Week 5- anomaly detection and generating explainable, decision-ready alerts (Mentor Support) • Week 6- full end-to-end prototyping, architecture and a live pitch (Video pitch) (Mentor Support) ✅ Before the Final Datathon The Mini Hackathon Series wraps a full week before IBM Z Datathon 2026 (17–18 Oct). Use that final week to rest, absorb mentor feedback, and lock in your Datathon strategy- you'll walk in ready.
+
+/sections/4/category/0/data/12/start
+2026-09-18T18:30:00.000Z
+
+/sections/4/category/0/data/12/end
+2026-09-20T18:29:00.000Z
+
+/sections/4/category/0/data/13/title
+IBM Z Datathon: How to Win Workshop
+
+/sections/4/category/0/data/13/description
+Solution and architecture guidance, technical feedback as part of weekly challenges Judging expectations, pitch preparation, winning project examples
+
+/sections/4/category/0/data/13/start
+2026-09-19T14:00:00.000Z
+
+/sections/4/category/0/data/13/end
+2026-09-19T15:00:00.000Z
+
+/sections/4/category/0/data/14/title
+Mini Challenge Week 4
+
+/sections/4/category/0/data/14/description
+What Is the Mini Challenge Series? This Series is a 6-week practice run leading into IBM Z Datathon 2026- it is NOT the Datathon itself. Each week is a smaller, standalone AI-for-Good challenge designed to build your team's technical skills and confidence before the main event. 👉 Completing mini challenge weeks does not itself decide the Datathon winners- it's preparation, mentorship and momentum so your team walks into the Datathon ready to build, integrate and pitch with confidence. Why the Mini Challenges Matter Each week is scoped to build specific skills, so by Week 6 your team has touched those skill areas which will help you for the final Datathon challenge: • Week 1- Dataset, understanding problem statement, Data analytics and turning raw data into insight • Week 2- Python, data ingestion, prompt writing, AI fundamentals • Week 3- GenAI output quality, accessibility and responsible-AI checks, Trust, Identity and security • Week 4- embeddings, similarity search and explainable matching logic (Mentor Support) • Week 5- anomaly detection and generating explainable, decision-ready alerts (Mentor Support) • Week 6- full end-to-end prototyping, architecture and a live pitch (Video pitch) (Mentor Support) ✅ Before the Final Datathon The Mini Hackathon Series wraps a full week before IBM Z Datathon 2026 (17–18 Oct). Use that final week to rest, absorb mentor feedback, and lock in your Datathon strategy- you'll walk in ready.
+
+/sections/4/category/0/data/14/start
+2026-09-25T18:30:00.000Z
+
+/sections/4/category/0/data/14/end
+2026-09-26T18:29:00.000Z
+
+/sections/4/category/0/data/15/title
+Mini Challenge week 5
+
+/sections/4/category/0/data/15/description
+What Is the Mini Challenge Series? This Series is a 6-week practice run leading into IBM Z Datathon 2026- it is NOT the Datathon itself. Each week is a smaller, standalone AI-for-Good challenge designed to build your team's technical skills and confidence before the main event. 👉 Completing mini challenge weeks does not itself decide the Datathon winners- it's preparation, mentorship and momentum so your team walks into the Datathon ready to build, integrate and pitch with confidence. Why the Mini Challenges Matter Each week is scoped to build specific skills, so by Week 6 your team has touched those skill areas which will help you for the final Datathon challenge: • Week 1- Dataset, understanding problem statement, Data analytics and turning raw data into insight • Week 2- Python, data ingestion, prompt writing, AI fundamentals • Week 3- GenAI output quality, accessibility and responsible-AI checks, Trust, Identity and security • Week 4- embeddings, similarity search and explainable matching logic (Mentor Support) • Week 5- anomaly detection and generating explainable, decision-ready alerts (Mentor Support) • Week 6- full end-to-end prototyping, architecture and a live pitch (Video pitch) (Mentor Support) ✅ Before the Final Datathon The Mini Hackathon Series wraps a full week before IBM Z Datathon 2026 (17–18 Oct). Use that final week to rest, absorb mentor feedback, and lock in your Datathon strategy- you'll walk in ready.
+
+/sections/4/category/0/data/15/start
+2026-10-02T18:30:00.000Z
+
+/sections/4/category/0/data/15/end
+2026-10-03T18:29:00.000Z
+
+/sections/4/category/0/data/16/title
+Mini Challenge week 6
+
+/sections/4/category/0/data/16/description
+What Is the Mini Challenge Series? This Series is a 6-week practice run leading into IBM Z Datathon 2026- it is NOT the Datathon itself. Each week is a smaller, standalone AI-for-Good challenge designed to build your team's technical skills and confidence before the main event. 👉 Completing mini challenge weeks does not itself decide the Datathon winners- it's preparation, mentorship and momentum so your team walks into the Datathon ready to build, integrate and pitch with confidence. Why the Mini Challenges Matter Each week is scoped to build specific skills, so by Week 6 your team has touched those skill areas which will help you for the final Datathon challenge: • Week 1- Dataset, understanding problem statement, Data analytics and turning raw data into insight • Week 2- Python, data ingestion, prompt writing, AI fundamentals • Week 3- GenAI output quality, accessibility and responsible-AI checks, Trust, Identity and security • Week 4- embeddings, similarity search and explainable matching logic (Mentor Support) • Week 5- anomaly detection and generating explainable, decision-ready alerts (Mentor Support) • Week 6- full end-to-end prototyping, architecture and a live pitch (Video pitch) (Mentor Support) ✅ Before the Final Datathon The Mini Hackathon Series wraps a full week before IBM Z Datathon 2026 (17–18 Oct). Use that final week to rest, absorb mentor feedback, and lock in your Datathon strategy- you'll walk in ready.
+
+/sections/4/category/0/data/16/start
+2026-10-08T18:30:00.000Z
+
+/sections/4/category/0/data/16/end
+2026-10-10T18:29:00.000Z
+
+/sections/4/category/0/data/17/title
+IBM Z Datathon - Get Your LinuxONE System Ready (Mandatory for participants)
+
+/sections/4/category/0/data/17/start
+2026-10-16T13:45:00.000Z
+
+/sections/4/category/0/data/17/end
+2026-10-16T15:00:00.000Z
+
+/sections/4/category/0/data/18/title
+IBM Z Datathon 2026 Global Kick-off
+
+/sections/4/category/0/data/18/CTALink
+https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=M212a2wwYXZqNnRqbjY4OTZrZjJrNzFobXIgdmFpZGVoaXN1dGhhckBzc3RhcnNmb3VuZGF0aW9uLm9yZw&tmsrc=vaidehisuthar%40sstarsfoundation.org
+
+/sections/4/category/0/data/18/start
+2026-10-17T03:15:00.000Z
+
+/sections/4/category/0/data/18/end
+2026-10-17T04:30:00.000Z
+
+/sections/4/category/0/data/19/title
+IBM Z Datathon - Project Submissions
+
+/sections/4/category/0/data/19/start
+2026-10-17T04:30:00.000Z
+
+/sections/4/category/0/data/19/end
+2026-10-18T16:30:00.000Z
+
+/sections/4/category/0/data/20/title
+Feedback Survery
+
+/sections/4/category/0/data/20/start
+2026-10-18T04:30:00.000Z
+
+/sections/4/category/0/data/20/end
+2026-10-23T18:29:00.000Z
+
+/sections/4/category/0/data/21/title
+IBM Z Datathon Virtual Closing Ceremony
+
+/sections/4/category/0/data/21/start
+2026-10-18T05:00:00.000Z
+
+/sections/4/category/0/data/21/end
+2026-10-18T05:30:00.000Z
+
+/sections/4/category/0/data/22/title
+Global Closing Ceremony
+
+/sections/4/category/0/data/22/start
+2026-10-18T05:30:00.000Z
+
+/sections/4/category/0/data/22/end
+2026-10-18T18:29:00.000Z
+
+/sections/5/title
+Explore the IBM Z Datathon Hub
+
+/sections/5/category/0/title
+
+
+/sections/5/category/0/data/0/title
+
+
+/sections/5/category/0/data/0/description
+IBM Z Datathon Hub Link Explore the IBM Z Datathon hub for past participants' feedback, learning resources, the event journey, and everything you need to compete with confidence. Visit the Official Event Page →
+
+/sections/6/title
+2025 Highlights
+
+/sections/6/category/0/title
+
+
+/sections/6/category/0/data/0/title
+
+
+/sections/6/category/0/data/0/description
+IBM Z Datathon - 2025 Highlights & Video Dashboard 2025 IBM Z Datathon Highlights 15,500 Registered Students 1,385 Active Teams 44 Countries Covered 5 In-Person Venues Event Broadcast Watch the 2025 IBM Z Datathon official recap and solution review video Global Winners Podiums Second Prize TEAM_ONL487 Hackasaurs First Prize TEAM_ONL319 Life Aspirant's Third Prize TEAM_ONL486 Gradient Ascent
+
+/sections/7/title
+FAQs
+
+/sections/7/category/0/title
+
+
+/sections/7/category/0/data/0/title
+What is the IBM Z Datathon 2026?
+
+/sections/7/category/0/data/0/description
+The IBM Z Datathon 2026 is a global, 24-hours event organised by Shooting Stars Foundation (SSF) in partnership with IBM. It brings together college students from around the world to build innovative AI-powered solutions using IBM Z and LinuxONE infrastructure. Participants work in teams to solve real-world challenges across three themes: Real-Time AI for Critical Decisions, AI Secured: Innovation Without Exposure, and a Wildcard category for bold and original ideas — all under the overarching "AI for Good" mission. The event runs across 8 in-person university hubs globally (India, South Africa, UK, Malaysia, Australia, USA) plus a fully open virtual track, making it accessible to students everywhere.
+
+/sections/7/category/0/data/1/title
+Who can participate in the IBM Z Datathon?
+
+/sections/7/category/0/data/1/description
+The IBM Z Datathon is open exclusively to college and university students worldwide — undergraduate and postgraduate. You do not need prior experience with IBM Z or mainframe technologies to participate. Students from any discipline are welcome — whether you come from computer science, data science, business, design, or any other field. Diverse, cross-functional teams are highly encouraged. The candidate should be a currently enrolled student. Students from all countries may participate in the online (virtual) track. In-person participation is tied to your nearest registered hub college.
+
+/sections/7/category/0/data/2/title
+How do I register for the Datathon?
+
+/sections/7/category/0/data/2/description
+Registration is free. Visit the official event page at starhacks.org/ibm-z-datathon-2026 and click the Register button. You will be prompted to select your participation track — Virtual (global, open to all) or one of the 8 In-Person hubs (Bangalore, Chennai, London, Malaysia, Australia, South Africa, Dallas, or New York). Individual registration is required first. Once registered, your team lead must complete the Team Registration Form on H2S platform. If you do not yet have a team, check the team formation section under Timelines. Registration deadline: October 1, 2026 [midnight]. After this date, registrations will be placed on a waitlist.
+
+/sections/7/category/0/data/3/title
+Do I register as an individual or as a team?
+
+/sections/7/category/0/data/3/description
+Both steps are required. Every participant must first register individually through the main registration form on starhacks.org. The recommended team size is 4 to 6 members. Once your team is formed, the designated team lead must complete a separate Team Registration Form, listing all members. If you do not have teammates yet, explore the Team formation section after individual registration on the H2S platform.
+
+/sections/7/category/0/data/4/title
+What are the Datathon themes for 2026?
+
+/sections/7/category/0/data/4/description
+There are three challenge themes for IBM Z Datathon 2026: 1. Real-Time AI for Critical Decisions (Detect. Decide. Respond.) — Build AI systems that analyse streaming data, identify risk, and support high-stakes decisions as events unfold. 2. AI Secured: Innovation Without Exposure (Powerful AI. Protected Data.) — Create privacy-preserving AI that learns from sensitive datasets while protecting identity, trust, and compliance. 3. Wildcard: Beyond the Obvious (Your Boldest AI + Data Idea.) — Push boundaries with a novel, data-driven AI solution that is responsible, technically ambitious, and wildly innovative. All themes fall under the overarching mission of AI for Good. Your solution must demonstrate why IBM Z / LinuxONE is the right platform for your idea.
+
+/sections/7/category/0/data/5/title
+What technology and infrastructure will be provided?
+
+/sections/7/category/0/data/5/description
+Registered participants will receive access to IBM Z / LinuxONE computing infrastructure at no cost. This is a major advantage — you get to work on the same enterprise-grade platform that powers the world's most critical industries. IBM Z Subject Matter Experts (SMEs) will be available as mentors throughout the datathon window via the Discord helpdesk to support you with technical queries. You must arrange your own laptop, stable internet/WiFi, and basic development tools. Open-source datasets, public APIs, and standard libraries are permitted, provided their use is legal and properly licensed. A mandatory "Get Your LinuxONE System Ready" technical setup session will be held on October 16, 2026 (the day before the Datathon). Attendance is compulsory for all participating teams.
+
+/sections/7/category/0/data/6/title
+What is the "Get Your LinuxONE System Ready" session and is it mandatory?
+
+/sections/7/category/0/data/6/description
+Yes — this session is mandatory for all registered participants. It is scheduled for October 16, 2026, and will run across all time zones simultaneously: The session helps you set up access credentials, test your connection to the IBM LinuxONE system, troubleshoot any environment issues, and understand the submission platform. Technical issues discovered after the Datathon starts may not be eligible for extensions, so early setup is critical.
+
+/sections/7/category/0/data/7/title
+What does the Datathon schedule look like?
+
+/sections/7/category/0/data/7/description
+The IBM Z Datathon 2026 follows a structured pre-event, event, and post-event schedule: Pre-event schedule: Oct 1 — Registration Deadline TBD — Team formation Deadline Query resolution session How to win Datathon Virtual engagement activities ( Mini hackathons, quizzes, technical sessions through Industry experts etc) Oct 5 — Abstract Submission Deadline Oct 16 — Mandatory LinuxONE System Readiness Session Event schedule: Oct 17 — Global Opening Ceremony + Datathon Day 1 Begins Oct 18 — Final Submissions + Global Closing Ceremony Post-event schedule: Oct 23 — Feedback Survey Deadline Oct 28 — Career Panel + Winner Announcement Session Nov 18 — IBM Z Day (Winning teams will get a chance to showcase their projects/prototype during the annual IBM Z Day global celebration) All times are region-specific — your Hub POC and official communications will share the localised schedule for your location.
+
+/sections/7/category/0/data/8/title
+What tasks must I complete before the Datathon begins?
+
+/sections/7/category/0/data/8/description
+Complete the following before October 17, 2026: A. Every team member must register individually via the main registration form. B. The team lead must submit the Team Registration Form with all member details. C. If you need a team, visit the team formation section on H2S — team formation closes before abstract submission. D. All teams must submit an abstract (problem statement + proposed approach) by October 5, 2026. E. Every participant must attend the "Get Your LinuxONE System Ready" mandatory session on October 16. F. Join the official IBM Z Datathon Discord server for announcements, mentor access, and team coordination.
+
+/sections/7/category/0/data/9/title
+What are the prizes and how are winners selected?
+
+/sections/7/category/0/data/9/description
+The IBM Z Datathon 2026 offers a total prize pool of $50,000+ USD, distributed across multiple categories: • Online Regional Champions: APAC, EMEA, and Americas tracks (1st, 2nd, 3rd place per region) • In-Person Hub Champions: Top 3 teams at each of the 8 in-person hubs (Bangalore, Chennai, London, Malaysia, Australia, South Africa, Dallas, New York) • Special Awards: Most Innovative AI University, Highest Participation Award, Best IBM Z Advocacy Winners are evaluated on innovation, technical complexity, alignment with the AI for Good theme, scalability, why the solution runs on IBM Z / LinuxONE, and presentation quality. Judges are the IBM Subject matter experts. Beyond prize money, winners receive IBM Z Day feature exposure, recognition in the IBM Z online community, LinkedIn social amplification, and career-boosting visibility.
+
+/sections/7/category/0/data/10/title
+Can we start building our solution before the Datathon begins?
+
+/sections/7/category/0/data/10/description
+You are encouraged to arrive prepared. Teams may — and should — research their problem space, explore datasets, develop their abstract, and plan their architecture before October 17. However, the actual code and solution must be built during the official hackathon window (October 17–18, 2026). Continuation hacks — submitting a project that was substantially completed before the event — are not permitted. Re-using prior personal projects or commercial codebases as your core submission is also disallowed. Open-source libraries, public APIs, and IBM-provided tools are fully permitted.
+
+/sections/7/category/0/data/11/title
+What is the submission and evaluation process?
+
+/sections/7/category/0/data/11/description
+All submissions must be made through the official Hack2Skill platform (Abstract submission section) before the close of Datathon Day 2 on October 18, 2026. A complete submission includes: a working demo or prototype, source code repository link, a short project description, and a presentation/pitch deck. Entries are shared with the IBM judges for initial review. Final evaluation considers: innovation and creativity, technical implementation and complexity, relevance and impact (AI for Good), why IBM Z is the right platform, scalability and feasibility, and presentation clarity. Submissions must be on time and complete to be eligible. Incomplete or late submissions may be disqualified at the judges' discretion.
+
+/sections/7/category/0/data/12/title
+How does the hybrid (in-person + virtual) format work?
+
+/sections/7/category/0/data/12/description
+Regardless of your track (virtual or in-person), all teams compete for the same prizes and receive the same IBM Z infrastructure access.
+
+/sections/7/category/0/data/13/title
+How do I get support and ask questions during the Datathon?
+
+/sections/7/category/0/data/13/description
+The primary support channel is the official IBM Z Datathon Discord Server. Use it to: receive timely announcements, get help with team formation, access IBM Z resources and learning materials, and reach IBM SME mentors during the live event. For region-specific coordination, official WhatsApp groups will be active for each hub (India, Malaysia, South Africa, UK, USA, Australia). For general queries, you can email the SSF team at stemprograms@sstarsfoundation.org Please avoid using personal messages to individual team members for support queries — use official channels so your question can be addressed by the right person quickly. All FAQs, the Participant Guidebook, and session links will be available on the H2S platform. Discord channel can be used for any query resolution support during the event.
+
+/sections/7/category/0/data/14/title
+What badges and certifications can I earn?
+
+/sections/7/category/0/data/14/description
+All participants who meet the eligibility criteria receive a Certificate of Participation, recognising their involvement in a globally competitive IBM-powered event. Winners and special award recipients receive Certificates of Achievement tailored to their award category. Additionally, participants are strongly encouraged to earn IBM Open Badges through IBM Z Xplore (learn.ibm.com/z) before and during the event. These industry-recognised digital credentials validate your IBM Z and LinuxONE skills and directly enhance your professional profile on LinkedIn and in job applications. Educators, mentors, SSF volunteers, and Campus Ambassadors also receive dedicated recognition certificates acknowledging their contributions to the event.
+
+/sections/7/category/0/data/15/title
+Who do I contact if I have more questions?
+
+/sections/7/category/0/data/15/description
+For additional support, join the official Discord or email at stemprograms@sstarsfoundation.org
+
+/termsAndCondition/data/0/title
+I accept the Liability Waiver form above
+
+/termsAndCondition/data/0/link
+https://drive.google.com/file/d/1PNvjjwgiEKUDTzqzUrCLNR2F4npul76O/view?usp=sharing
+
+/termsAndCondition/data/1/title
+I have read and agree to the official rules and guidelines
+
+/termsAndCondition/data/1/link
+https://www.starhacks.org/ibmzdatathon-official-rule

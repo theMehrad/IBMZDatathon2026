@@ -1,0 +1,12 @@
+[
+  {
+    "file": "r4.2.tar.bz2",
+    "sha256": "586446b00e83ce5cdabf9dc889b0b6e7a9f44556cee3c03d39445d790122556c",
+    "verified": true
+  },
+  {
+    "file": "answers.tar.bz2",
+    "sha256": "ed21bf921def01e97326b314f2d1fa77651a945bd31bf513095f8ac7658c9ddd",
+    "verified": true
+  }
+]

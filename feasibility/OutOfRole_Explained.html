@@ -1,0 +1,1012 @@
+<title>OutOfRole Explained</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: a field manual. Sticky contents rail on wide screens, one column on phones.
+   Every section = a short answer you can read in a minute, plus optional "go deeper" panels. */
+:root {
+  --bg: #f4f6f9; --surface: #ffffff; --sunk: #eaeef4;
+  --ink: #121821; --ink-2: #485364; --ink-3: #69758a; --rule: #d9e0e9;
+  --accent: #1d5fd1; --accent-soft: #e3ecfb; --flag: #b4470f; --flag-soft: #fbeadf; --ok: #19744a; --ok-soft: #e1f2e9;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --normal: #c3cad4;
+  --heat-lo: #eef4fc; --heat-hi: #0d366b;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1218; --surface: #151b24; --sunk: #1b2330;
+  --ink: #e7ecf2; --ink-2: #b2bccb; --ink-3: #8b97a8; --rule: #283242;
+  --accent: #79a8ff; --accent-soft: #1b2a45; --flag: #f29159; --flag-soft: #3a2418; --ok: #5fd39b; --ok-soft: #14301f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --normal: #475263;
+  --heat-lo: #1a2433; --heat-hi: #a9cdf7; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e1218; --surface: #151b24; --sunk: #1b2330;
+  --ink: #e7ecf2; --ink-2: #b2bccb; --ink-3: #8b97a8; --rule: #283242;
+  --accent: #79a8ff; --accent-soft: #1b2a45; --flag: #f29159; --flag-soft: #3a2418; --ok: #5fd39b; --ok-soft: #14301f;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --normal: #475263;
+  --heat-lo: #1a2433; --heat-hi: #a9cdf7; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; }
+@media (max-width: 900px) { .wrap { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
+
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start; font-size: 14px; }
+nav.toc .eyebrow { margin-bottom: 8px; }
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: toc; }
+nav.toc a { display: block; padding: 5px 10px; border-radius: 6px; color: var(--ink-2); text-decoration: none; border-left: 2px solid transparent; }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--sunk); color: var(--ink); }
+nav.toc a.on { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); }
+@media (max-width: 900px) {
+  nav.toc { position: static; }
+  nav.toc ol { grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; gap: 6px; padding-bottom: 6px; }
+  nav.toc a { border-left: 0; border: 1px solid var(--rule); background: var(--surface); }
+}
+
+main { min-width: 0; display: grid; gap: 56px; }
+section { scroll-margin-top: 20px; display: grid; gap: 16px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(34px, 5.4vw, 56px); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: clamp(26px, 3.4vw, 34px); font-weight: 600; }
+h3 { font-size: 20px; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.lead { font-size: 19px; color: var(--ink-2); max-width: 62ch; }
+.muted { color: var(--ink-3); }
+strong { font-weight: 600; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--mono); font-size: 0.92em; }
+
+/* hero */
+.hero { display: grid; gap: 18px; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+.hero .pitch { font-size: 21px; max-width: 58ch; color: var(--ink); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.fact { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; }
+.fact b { font-family: var(--display); font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fact span { font-size: 14px; color: var(--ink-2); }
+.howto { font-size: 15px; color: var(--ink-2); background: var(--sunk); border-radius: 10px; padding: 12px 16px; max-width: none; }
+
+/* depth panels */
+details.deep { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
+details.deep > summary { cursor: pointer; list-style: none; padding: 12px 16px; display: flex; gap: 10px; align-items: baseline; font-weight: 600; }
+details.deep > summary::-webkit-details-marker { display: none; }
+details.deep > summary::before { content: "+"; font-family: var(--mono); color: var(--accent); width: 1ch; flex: none; }
+details.deep[open] > summary::before { content: "\2212"; }
+details.deep > summary .tag { margin-left: auto; font-family: var(--mono); font-weight: 400; font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+details.deep > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 10px; }
+details.deep > .body { padding: 0 16px 16px 37px; display: grid; gap: 12px; }
+@media (max-width: 600px) { details.deep > .body { padding-left: 16px; } details.deep > summary .tag { display: none; } }
+.stack { display: grid; gap: 10px; }
+
+/* cards & grids */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; display: grid; gap: 8px; align-content: start; }
+.card h3 { font-size: 18px; }
+.chip { display: inline-block; font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--sunk); color: var(--ink-2); white-space: nowrap; }
+.chip.flag { background: var(--flag-soft); color: var(--flag); }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.acc { background: var(--accent-soft); color: var(--accent); }
+.callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 10px 10px 0; max-width: 72ch; }
+.callout.flag { border-color: var(--flag); background: var(--flag-soft); }
+.callout.ok { border-color: var(--ok); background: var(--ok-soft); }
+
+/* tables */
+.tw { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); background: var(--sunk); }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.log td, table.log th { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+table.log td.hot { color: var(--flag); font-weight: 500; }
+.sim { font-family: var(--mono); font-size: 12px; color: var(--ink-3); }
+
+/* tabs */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs button, .seg button { font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.tabs button[aria-selected="true"], .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tabs button:focus-visible, .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+
+/* flow diagram */
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; counter-reset: st; }
+.flow .st { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px; display: grid; gap: 4px; position: relative; }
+.flow .st b { font-family: var(--display); font-size: 17px; font-weight: 600; }
+.flow .st span { font-size: 13px; color: var(--ink-2); }
+.flow .st .chip { justify-self: start; }
+.flow .st.key { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.flow-note { font-size: 13px; color: var(--ink-3); }
+
+/* charts */
+.chart { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 14px; display: grid; gap: 10px; min-width: 0; }
+.chart .ch-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: baseline; justify-content: space-between; }
+.chart .ch-title { font-weight: 600; }
+.chart .ch-sub { font-size: 13px; color: var(--ink-3); }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart svg text { font-family: var(--body); fill: var(--ink-2); }
+.chart svg .lbl { font-size: 12.5px; fill: var(--ink); }
+.chart svg .val { font-size: 12px; font-variant-numeric: tabular-nums; fill: var(--ink-2); }
+.chart svg .axis { font-size: 11px; fill: var(--ink-3); }
+.chart svg .grid { stroke: var(--rule); stroke-width: 1; }
+.chart svg .grp { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; fill: var(--ink-3); text-transform: uppercase; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+#tip { position: fixed; pointer-events: none; z-index: 10; background: var(--ink); color: var(--bg); font-size: 13px; line-height: 1.4; padding: 7px 10px; border-radius: 8px; max-width: 280px; opacity: 0; transition: opacity 0.08s; }
+#tip.on { opacity: 1; }
+
+/* recommender demo */
+.mx { border-collapse: separate; border-spacing: 4px; width: auto; font-size: 13px; }
+.mx th, .mx td { border: 0; padding: 6px 8px; text-align: center; border-radius: 6px; }
+.mx th { background: transparent; text-transform: none; letter-spacing: 0; font-size: 12px; }
+.mx td.v { background: var(--sunk); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.mx td.v.hi { background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.mx td.new { outline: 2px dashed var(--flag); color: var(--flag); font-weight: 600; background: var(--flag-soft); }
+.mx td.ok2 { outline: 2px dashed var(--ok); color: var(--ok); font-weight: 600; background: var(--ok-soft); }
+.mx td.who { text-align: left; white-space: nowrap; }
+
+/* timeline */
+.tl { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+.tl div { height: 26px; border-radius: 4px; background: var(--sunk); }
+.tl div.w { background: var(--accent-soft); }
+.tl div.a { background: var(--flag); }
+.tl-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); font-family: var(--mono); }
+
+.score { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 14px; align-items: start; }
+.score .pts { font-family: var(--display); font-size: 30px; font-weight: 700; color: var(--accent); line-height: 1; text-align: center; }
+.score .pts small { display: block; font-family: var(--mono); font-size: 11px; font-weight: 400; color: var(--ink-3); margin-top: 4px; }
+.ref { font-family: var(--mono); font-size: 0.72em; vertical-align: super; line-height: 0; text-decoration: none; margin-left: 1px; }
+.ref:hover, .ref:focus-visible { text-decoration: underline; }
+.seg-solo { font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); cursor: pointer; }
+.seg-solo[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.seg-solo:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#qsim-table td, #qsim-table th { padding: 6px 10px; }
+.sources ol { margin: 0; padding-left: 28px; display: grid; gap: 6px; font-size: 14px; }
+.sources li { padding-left: 4px; }
+.sources li:target { background: var(--accent-soft); border-radius: 6px; }
+footer { font-size: 13px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 16px; display: grid; gap: 6px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <div class="eyebrow">OutOfRole</div>
+  <ol>
+    <li><a href="#mission">1. The mission</a></li>
+    <li><a href="#insider">2. Problem employees</a></li>
+    <li><a href="#today">3. How it's done today</a></li>
+    <li><a href="#data">4. The data</a></li>
+    <li><a href="#pipeline">5. Pipeline &amp; tools</a></li>
+    <li><a href="#baseline">6. The baseline</a></li>
+    <li><a href="#recommender">7. The recommender</a></li>
+    <li><a href="#more">8. More signals</a></li>
+    <li><a href="#origins">9. Where methods came from</a></li>
+    <li><a href="#catalog">10. Every method tried</a></li>
+    <li><a href="#results">11. Results</a></li>
+    <li><a href="#stacking">12. Combining</a></li>
+    <li><a href="#trust">13. Can we trust it?</a></li>
+    <li><a href="#judges">14. Judges &amp; edge</a></li>
+    <li><a href="#plan">15. Tomorrow</a></li>
+    <li><a href="#glossary">16. Glossary</a></li>
+    <li><a href="#sources">17. Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">The Debugging Table · IBM Z Datathon 2026 · AI Secured track</div>
+  <h1>OutOfRole, explained from zero</h1>
+  <p class="pitch">We rank every employee by how far their computer activity has drifted from their own normal and from people like them, so a small security team reviews the right people first. Each flag comes with a plain-English reason written by an AI running on the same IBM server as the data.</p>
+  <div class="facts">
+    <div class="fact"><b>20 of 20</b><span>top-ranked people were real insiders for our best single signal, on both datasets</span></div>
+    <div class="fact"><b>55 vs 44</b><span>insiders found among 100 people reviewed: our fused ranking vs the simple baseline (43 vs 39 on the harder dataset)</span></div>
+    <div class="fact"><b>27 of 30</b><span>"snoopers" surfaced by counting the weeks someone logs into unusual computers</span></div>
+    <div class="fact"><b>0 bytes</b><span>of employee logs leave the LinuxONE server, including for the AI explanations</span></div>
+  </div>
+  <p class="howto">How to read this page: each section opens with the short version. Panels marked <b>+</b> open the details, math and evidence. Skip them on a first read; come back when you own that part tomorrow. All numbers come from our study notebook <a class="ref" href="#src-0">[0]</a> on the CMU CERT benchmark <a class="ref" href="#src-1">[1]</a>, in its final version after three rounds of outside review (section 13). Sample data rows are simulated in the real file formats.</p>
+</header>
+
+<!-- 1 -->
+<section id="mission">
+  <div class="eyebrow">1 · The mission</div>
+  <h2>What we're doing, in one minute</h2>
+  <p class="lead">Some employees misuse access they legitimately have: they read records they have no business reading, or copy files on their way out the door. Their logins are valid, so passwords and firewalls don't stop them. We catch them by watching <em>behavior</em>.</p>
+  <div class="grid2">
+    <div class="card"><span class="chip acc">Input</span><h3>Activity logs</h3><p>Who logged into which computer and when, USB drives plugged in, files copied, websites visited, plus the org chart.</p></div>
+    <div class="card"><span class="chip acc">Engine</span><h3>Several detectors</h3><p>Each detector looks for one kind of strange behavior. We also tested a recommender system, the kind Netflix uses; section 7 shows what it did and didn't add.</p></div>
+    <div class="card"><span class="chip acc">Output</span><h3>A short review list</h3><p>One ranked list of people to check, with the reasons behind each score, an experimental view for out-of-role logins, and an AI-written explanation an analyst can verify.</p></div>
+  </div>
+  <details class="deep"><summary>Why this matters: real cases<span class="tag">2 min</span></summary><div class="body">
+    <div class="tw"><table>
+      <tr><th>Case</th><th>What happened</th><th>Why behavior analytics would help</th></tr>
+      <tr><td>Desjardins (bank, Canada)</td><td>One employee leaked data on about <b>9.7 million people</b> over at least 26 months. Police found it, not the bank.</td><td>The regulator noted the bank had no user-behavior analytics in place.</td></tr>
+      <tr><td>Texas HHSC (state agency)</td><td>Employees opened <b>61,104</b> public-assistance accounts "without a clear business reason". Seven were fired.</td><td>Access that doesn't fit a person's job is exactly what our "out-of-role" queue looks for.</td></tr>
+      <tr><td>IBM Cost of a Data Breach 2025</td><td>Malicious insiders were the costliest starting point for a breach: <b>$4.92M</b> on average.</td><td>Earlier detection shortens how long an insider operates.</td></tr>
+    </table></div>
+    <p class="muted">Sources: Canadian privacy regulator, PIPEDA Findings 2020-005 <a class="ref" href="#src-2">[2]</a>; Texas Tribune, Jan 2025 <a class="ref" href="#src-3">[3]</a>; IBM Cost of a Data Breach 2025 summary <a class="ref" href="#src-4">[4]</a>.</p>
+  </div></details>
+</section>
+
+<!-- 2 -->
+<section id="insider">
+  <div class="eyebrow">2 · Problem employees</div>
+  <h2>What is a "problematic employee", and how do we know?</h2>
+  <p class="lead">Security teams call them <strong>insider threats</strong>: people inside the organization who use legitimate access to cause harm, on purpose (stealing, leaking, sabotage) or by snooping where they shouldn't.</p>
+  <div class="callout"><b>How do we know who is a real insider?</b> In real companies you rarely do. Confirmed cases come from investigations, HR complaints or police, months later, so there are almost no labels to train on. That's why most of our system works <b>without labels</b>. For testing, we use a benchmark where the answer is known: CMU's CERT dataset <a class="ref" href="#src-1">[1]</a>, a simulated company where a "red team" planted insiders and recorded exactly who they are.</div>
+  <h3>The four kinds of insider in our data</h3>
+  <div class="grid2">
+    <div class="card"><span class="chip" style="background:color-mix(in srgb, var(--s1) 18%, transparent);color:var(--ink)">Scenario 1 · Leaker</span><p>Never worked late or used USB drives. Suddenly logs in after hours, plugs in a USB drive, uploads data to wikileaks.org, then quits.</p><p class="muted">30 in r4.2, 29 in r5.2. Sudden spike.</p></div>
+    <div class="card"><span class="chip" style="background:color-mix(in srgb, var(--s2) 18%, transparent);color:var(--ink)">Scenario 2 · Job-hunter thief</span><p>Browses job sites and competitors, then copies files to USB far more than usual over about two months, then quits.</p><p class="muted">30 in each release. Slow drift; the hardest.</p></div>
+    <div class="card"><span class="chip" style="background:color-mix(in srgb, var(--s3) 18%, transparent);color:var(--ink)">Scenario 3 · Angry sysadmin</span><p>Downloads a keylogger, plants it on the supervisor's PC by USB, logs in as the supervisor, sends a panic email, quits.</p><p class="muted">10 in each release. Sudden spike.</p></div>
+    <div class="card"><span class="chip" style="background:color-mix(in srgb, var(--s4) 22%, transparent);color:var(--ink)">Scenario 4 · Snooper</span><p>Logs into other people's computers, searches their files and emails them home, more often over three months. Never leaves.</p><p class="muted">30 in r5.2 only. Out-of-role access.</p></div>
+  </div>
+  <details class="deep"><summary>See a simulated leaker's year on one line<span class="tag">illustration</span></summary><div class="body">
+    <p>Each block is one month for a simulated employee. Light blocks are normal work; dark orange is the attack. The training window (left) never contains attacks, so the system learns this person's normal first.</p>
+    <div class="tl" aria-label="Simulated timeline: 7 normal months, then 2 attack months">
+      <div class="w"></div><div class="w"></div><div class="w"></div><div class="w"></div><div class="w"></div><div class="w"></div><div class="w"></div><div class="a"></div><div class="a"></div><div></div><div></div><div></div>
+    </div>
+    <div class="tl-labels"><span>Jan</span><span>train ends</span><span>attack</span><span>leaves</span><span>Dec</span></div>
+    <div class="tw"><table>
+      <tr><th>Signal</th><th>Normal months</th><th>Attack weeks</th><th>Which detector sees it</th></tr>
+      <tr><td>After-hours logins</td><td class="num">0 per week</td><td class="num">4 per week</td><td>Baseline, own-history percentile</td></tr>
+      <tr><td>USB connects</td><td class="num">0</td><td class="num">6</td><td>Baseline, own-history percentile</td></tr>
+      <tr><td>wikileaks.org visits</td><td class="num">0 (and 0 for everyone else)</td><td class="num">3</td><td>Rare site, recommender (peer-of-item)</td></tr>
+    </table></div>
+    <p class="sim">Simulated numbers for teaching. The real r4.2 leakers look like this: all 30 visited wikileaks.org, and no normal employee did.</p>
+  </div></details>
+  <details class="deep"><summary>Why we never use "left the company"<span class="tag">a trap</span></summary><div class="body">
+    <p>In r4.2, all 70 insiders leave the company, and only 155 of 1,000 employees leave in total. A detector that just asked "did they quit?" would look brilliant. But you only know someone quit <em>after</em> the damage is done, so it's hindsight, not detection. Using information from the future is called <strong>leakage</strong>, and judges who know this dataset will check for it.</p>
+  </div></details>
+</section>
+
+<!-- 3 -->
+<section id="today">
+  <div class="eyebrow">3 · How it's done today</div>
+  <h2>The regular ways of catching insiders</h2>
+  <p class="lead">Companies mostly use four tools. Each catches something; each leaves a gap our project targets.</p>
+  <div class="tw"><table>
+    <tr><th>Approach</th><th>How it works</th><th>Good at</th><th>Gap</th></tr>
+    <tr><td><b>Fixed rules</b> (data-loss prevention)</td><td>"Alert if someone copies over 50 files to USB" or "after-hours USB use".</td><td>Simple, explainable</td><td>Same threshold for everyone; floods analysts; misses anything slow. Our hand rule found only 6 insiders in its top 20.</td></tr>
+    <tr><td><b>Access control and reviews</b></td><td>Managers approve who may open what; periodic access reviews.</td><td>Prevents obvious misuse</td><td>Insiders use access they already have. It can't see <em>how</em> access is used.</td></tr>
+    <tr><td><b>Behavior baselines</b> (UEBA products)</td><td>Compare each person with their own history and their peers; score unusual days.</td><td>Sudden changes</td><td>Weak on slow drift and on "touched the wrong thing" when volume looks normal.</td></tr>
+    <tr><td><b>Supervised machine learning</b></td><td>Train a classifier on past confirmed cases.</td><td>Repeats of known attacks</td><td>Needs many labeled cases (rare), and it memorizes known attacks. We measured this (section 13).</td></tr>
+  </table></div>
+  <p>Our project starts from the third row, which is the honest <strong>baseline</strong>, and adds what it misses: each person's history expressed as weekly percentiles, weekly drift detectors for slow attacks, and a persistence signal for repeated out-of-role logins, combined without labels. We also tested a recommender, and report honestly how little it added.</p>
+  <details class="deep"><summary>How commercial products do it (and what we borrowed)<span class="tag">industry</span></summary><div class="body">
+    <ul class="stack" style="margin:0;padding-left:18px">
+      <li><b>Microsoft Sentinel UEBA</b> <a class="ref" href="#src-14">[14]</a> compares each user to their 20 closest peers and shows plain flags like "first time user performed action" or "uncommon among peers".</li>
+      <li><b>Microsoft Purview Insider Risk</b> <a class="ref" href="#src-15">[15]</a> only spotlights an alert with a high score <em>and</em> several corroborating conditions; users are pseudonymized by default.</li>
+      <li><b>Splunk and Exabeam</b> <a class="ref" href="#src-16">[16]</a><a class="ref" href="#src-17">[17]</a> keep separate detections that each add risk to a person, with reasons listed for the analyst.</li>
+    </ul>
+    <p>We tested that idea against a single fused ranking at the same review budget. Separate lists won only when one attack type needed its own list (section 12), so our default is a fused ranking with a corroboration flag, plus a separate view for out-of-role logins.</p>
+  </div></details>
+</section>
+
+<!-- 4 -->
+<section id="data">
+  <div class="eyebrow">4 · The data</div>
+  <h2>What's in the data, and how we use it</h2>
+  <p class="lead">The CERT Insider Threat Test Dataset from Carnegie Mellon <a class="ref" href="#src-1">[1]</a> is the standard public benchmark. Real companies never release access logs for privacy reasons, so everyone uses this simulated company.</p>
+  <div class="grid2">
+    <div class="card"><h3>r4.2 <span class="chip">main</span></h3><p><b>1,000</b> employees · Jan 2010 to May 2011 · <b>70</b> insiders (scenarios 1-3) · 15 GB unpacked, 28.4 million web visits</p></div>
+    <div class="card"><h3>r5.2 <span class="chip">second test</span></h3><p><b>2,000</b> employees · <b>99</b> insiders · adds scenario 4 (snoopers) · 37 GB unpacked</p></div>
+  </div>
+  <h3>The files and their columns</h3>
+  <p class="muted">Rows below are <b>simulated</b> in the exact CERT column format (the dataset's license limits copying real rows). Highlighted values are what a detector would notice.</p>
+  <div class="tabs" role="tablist" aria-label="Data files">
+    <button role="tab" id="tab-logon" aria-selected="true" aria-controls="pn-logon">logon.csv</button>
+    <button role="tab" id="tab-device" aria-selected="false" aria-controls="pn-device">device.csv</button>
+    <button role="tab" id="tab-file" aria-selected="false" aria-controls="pn-file">file.csv</button>
+    <button role="tab" id="tab-http" aria-selected="false" aria-controls="pn-http">http.csv</button>
+    <button role="tab" id="tab-email" aria-selected="false" aria-controls="pn-email">email.csv</button>
+    <button role="tab" id="tab-ldap" aria-selected="false" aria-controls="pn-ldap">LDAP/2010-01.csv</button>
+  </div>
+  <div id="pn-logon" role="tabpanel" aria-labelledby="tab-logon" class="stack">
+    <div class="tw"><table class="log"><tr><th>id</th><th>date</th><th>user</th><th>pc</th><th>activity</th></tr>
+      <tr><td>{S1A2-B3C4-0001}</td><td>06/14/2010 07:52:10</td><td>SIM0101</td><td>PC-0101</td><td>Logon</td></tr>
+      <tr><td>{S1A2-B3C4-0002}</td><td>06/14/2010 17:31:44</td><td>SIM0101</td><td>PC-0101</td><td>Logoff</td></tr>
+      <tr><td>{S1A2-B3C4-0003}</td><td>06/14/2010 21:09:05</td><td>SIM0101</td><td>PC-0101</td><td>Logon</td></tr>
+      <tr><td>{S1A2-B3C4-0004}</td><td>06/15/2010 19:20:37</td><td>SIM0102</td><td class="hot">PC-0144</td><td>Logon</td></tr>
+    </table></div>
+    <p>~855,000 rows in r4.2. We use <b>Logon</b> rows: count logins per day, after-hours logins (before 7:00 or from 19:00), and which computers each person uses. Row 3 is a 21:09 login; row 4 is someone logging into a computer that isn't theirs.</p>
+  </div>
+  <div id="pn-device" role="tabpanel" aria-labelledby="tab-device" class="stack" hidden>
+    <div class="tw"><table class="log"><tr><th>id</th><th>date</th><th>user</th><th>pc</th><th>activity</th></tr>
+      <tr><td>{S1A2-D9E8-0101}</td><td>06/14/2010 21:14:52</td><td>SIM0101</td><td>PC-0101</td><td class="hot">Connect</td></tr>
+      <tr><td>{S1A2-D9E8-0102}</td><td>06/14/2010 21:40:03</td><td>SIM0101</td><td>PC-0101</td><td>Disconnect</td></tr>
+    </table></div>
+    <p>~405,000 rows. A USB drive plugged in (Connect) or removed. We count connects per day and after hours.</p>
+  </div>
+  <div id="pn-file" role="tabpanel" aria-labelledby="tab-file" class="stack" hidden>
+    <div class="tw"><table class="log"><tr><th>id</th><th>date</th><th>user</th><th>pc</th><th>filename</th><th>content</th></tr>
+      <tr><td>{S1A2-F7G6-0201}</td><td>06/14/2010 21:16:30</td><td>SIM0101</td><td>PC-0101</td><td class="hot">Q2_forecast.xlsx</td><td>50-4B-03-04 budget revenue ...</td></tr>
+      <tr><td>{S1A2-F7G6-0202}</td><td>06/14/2010 21:17:02</td><td>SIM0101</td><td>PC-0101</td><td class="hot">client_list.docx</td><td>D0-CF-11-E0 contract renewal ...</td></tr>
+    </table></div>
+    <p>~446,000 rows. In r4.2 every row is a file copied to a USB drive. (In r5.2 we keep only rows marked "to removable media" so the meaning matches.) We count copies per day.</p>
+  </div>
+  <div id="pn-http" role="tabpanel" aria-labelledby="tab-http" class="stack" hidden>
+    <div class="tw"><table class="log"><tr><th>id</th><th>date</th><th>user</th><th>pc</th><th>url</th><th>content</th></tr>
+      <tr><td>{S1A2-H5J4-0301}</td><td>06/14/2010 09:02:11</td><td>SIM0101</td><td>PC-0101</td><td>http://news-site.com/markets/a817.html</td><td>shares rose quarter ...</td></tr>
+      <tr><td>{S1A2-H5J4-0302}</td><td>06/14/2010 21:25:48</td><td>SIM0101</td><td>PC-0101</td><td class="hot">http://wikileaks.org/submit/x93.html</td><td>upload documents ...</td></tr>
+      <tr><td>{S1A2-H5J4-0303}</td><td>06/15/2010 12:41:09</td><td>SIM0103</td><td>PC-0103</td><td class="hot">http://monster.com/jobs/a22.html</td><td>senior analyst role ...</td></tr>
+    </table></div>
+    <p>14.5 GB and 28.4 million rows in r4.2, the biggest file and the reason we use Spark. We cut each URL down to its site (wikileaks.org) and count visits per person per site. The whole log has only <b>475 distinct sites</b>.</p>
+  </div>
+  <div id="pn-email" role="tabpanel" aria-labelledby="tab-email" class="stack" hidden>
+    <div class="tw"><table class="log"><tr><th>id</th><th>date</th><th>user</th><th>pc</th><th>to</th><th>cc</th><th>bcc</th><th>from</th><th>size</th><th>attachments</th><th>content</th></tr>
+      <tr><td>{S1A2-E3K2-0401}</td><td>06/16/2010 10:05:31</td><td>SIM0104</td><td>PC-0104</td><td class="hot">sim.home@webmail.com</td><td></td><td></td><td>sim0104@company.com</td><td>2,481,330</td><td>3</td><td>notes ...</td></tr>
+    </table></div>
+    <p>1.4 GB. Not used in the core build yet (a stretch goal): it would help with snoopers who email files home.</p>
+  </div>
+  <div id="pn-ldap" role="tabpanel" aria-labelledby="tab-ldap" class="stack" hidden>
+    <div class="tw"><table class="log"><tr><th>employee_name</th><th>user_id</th><th>role</th><th>functional_unit</th><th>department</th><th>team</th><th>supervisor</th></tr>
+      <tr><td>Simulated Person A</td><td>SIM0101</td><td>Financial Analyst</td><td>Finance</td><td>Planning</td><td>Team 4</td><td>Simulated Person K</td></tr>
+      <tr><td>Simulated Person B</td><td>SIM0102</td><td>Financial Analyst</td><td>Finance</td><td>Planning</td><td>Team 4</td><td>Simulated Person K</td></tr>
+    </table></div>
+    <p>One snapshot per month (the org chart). We use it for <b>peer groups</b>: each person is compared with their own team, a median of 21 people. Columns trimmed here; the real file also has email and business unit.</p>
+  </div>
+
+  <details class="deep" open><summary>How raw logs become the tables our detectors read<span class="tag">the key step</span></summary><div class="body">
+    <p>Spark reads all the raw files and produces three small tables. Every detector works from these.</p>
+    <div class="grid2">
+      <div class="stack"><b>A. Daily counts per person</b>
+        <div class="tw"><table class="log"><tr><th>user</th><th>day</th><th>logins</th><th>after-hrs</th><th>usb</th><th>files</th><th>web</th><th>pcs</th></tr>
+          <tr><td>SIM0101</td><td>06/11</td><td>1</td><td>0</td><td>0</td><td>0</td><td>212</td><td>1</td></tr>
+          <tr><td>SIM0101</td><td>06/14</td><td>2</td><td class="hot">1</td><td class="hot">1</td><td class="hot">2</td><td>198</td><td>1</td></tr>
+        </table></div></div>
+      <div class="stack"><b>B. Who used which computer</b>
+        <div class="tw"><table class="log"><tr><th>user</th><th>pc</th><th>login days</th></tr>
+          <tr><td>SIM0101</td><td>PC-0101</td><td>101</td></tr>
+          <tr><td>SIM0102</td><td>PC-0102</td><td>99</td></tr>
+          <tr><td>SIM0102</td><td class="hot">PC-0144</td><td class="hot">3</td></tr>
+        </table></div></div>
+      <div class="stack"><b>C. Who visited which site</b>
+        <div class="tw"><table class="log"><tr><th>user</th><th>site</th><th>visits</th></tr>
+          <tr><td>SIM0101</td><td>news-site.com</td><td>1,840</td></tr>
+          <tr><td>SIM0101</td><td class="hot">wikileaks.org</td><td class="hot">3</td></tr>
+          <tr><td>SIM0103</td><td>monster.com</td><td>61</td></tr>
+        </table></div></div>
+    </div>
+    <p class="sim">Simulated rows. Table A feeds the baselines and percentiles; B feeds the recommender and the ownership rule; C feeds the recommender and the rare-site check.</p>
+  </div></details>
+
+  <details class="deep"><summary>Train and test: why we split by date<span class="tag">evaluation basics</span></summary><div class="body">
+    <p>We <b>train</b> (learn what normal looks like) only on months <em>before</em> any attack began, then <b>test</b> on everything after. Like learning what your house sounds like at night before the burglar shows up.</p>
+    <div class="tw"><table><tr><th>Release</th><th>Train window</th><th>First attack</th><th>Test window</th></tr>
+      <tr><td>r4.2</td><td>Jan 2 to May 31, 2010 (150 days)</td><td>June 10, 2010</td><td>June 2010 to May 2011 (351 days)</td></tr>
+      <tr><td>r5.2</td><td>Jan 2 to Mar 31, 2010 (89 days)</td><td>April 16, 2010</td><td>April 2010 to May 2011 (428 days)</td></tr>
+    </table></div>
+    <p>The answer key is used only to <b>grade</b>, never to build a detector (the one exception, a trained combiner, is marked and tested separately in section 13).</p>
+  </div></details>
+</section>
+
+<!-- 5 -->
+<section id="pipeline">
+  <div class="eyebrow">5 · Pipeline and tools</div>
+  <h2>The whole flow, and what each tool does</h2>
+  <p class="lead">Everything below runs inside one IBM LinuxONE server provided by the event. Logs go in at the left; a short, explained review list comes out at the right.</p>
+  <div class="flow">
+    <div class="st"><span class="chip">1</span><b>Raw logs</b><span>logon, USB, file, web, org chart</span></div>
+    <div class="st"><span class="chip">2</span><b>Spark</b><span>15-37 GB into three small tables, in under a minute on a laptop</span></div>
+    <div class="st"><span class="chip">3</span><b>Baselines</b><span>each person vs their own normal: the bar to beat</span></div>
+    <div class="st key"><span class="chip acc">4</span><b>Signal families</b><span>own-history spikes, weekly drift, peers, rare sites, recommender</span></div>
+    <div class="st key"><span class="chip acc">5</span><b>Fused ranking</b><span>one list of people to review, plus an out-of-role view</span></div>
+    <div class="st"><span class="chip">6</span><b>Granite</b><span>writes a cited explanation; code checks the numbers</span></div>
+    <div class="st"><span class="chip">7</span><b>Analyst</b><span>reviews a dashboard in Jupyter</span></div>
+  </div>
+  <p class="flow-note">Steps run left to right. The highlighted steps are where our project is new.</p>
+  <h3>What each tool does (open any one)</h3>
+  <div class="stack">
+    <details class="deep"><summary>IBM LinuxONE and the Telum chip<span class="tag">required by the event</span></summary><div class="body"><p>IBM's enterprise server, the kind banks and hospitals run their core records on. Its processor type is <code>s390x</code> (laptops are x86 or ARM). The Telum processor has an AI accelerator built onto the chip. <b>Why it matters to us:</b> detection and the AI explanation run right next to the sensitive data, so logs never leave the machine. That is the theme of our track, "Innovation without exposure". Setup and accelerator details: <a class="ref" href="#src-22">[22]</a><a class="ref" href="#src-23">[23]</a>.</p></div></details>
+    <details class="deep"><summary>Docker and Jupyter<span class="tag">where we work</span></summary><div class="body"><p><b>Docker</b> packages a complete software setup (Python, libraries, notebook server) into a <em>container</em> that runs the same anywhere. The event hands us one. <b>Jupyter</b> is a notebook in the browser: write a few lines of Python, run them, see the result underneath. We build, test and demo there.</p></div></details>
+    <details class="deep"><summary>Apache Spark (PySpark)<span class="tag">big data</span></summary><div class="body"><p>Spark processes data too big for one computer's memory by splitting it into chunks and working on them in parallel. PySpark is its Python interface. "Local mode" uses all the cores of a single machine, so no cluster is needed. The 14.5 GB web log would crash a normal pandas script, which loads the whole file into memory; Spark reads it in pieces and keeps only the columns we ask for. On LinuxONE we install Java 17 and PySpark ourselves, and avoid pandas UDFs because the Arrow library doesn't exist for s390x.</p></div></details>
+    <details class="deep"><summary>Spark MLlib ALS (the recommender)<span class="tag">section 7</span></summary><div class="body"><p>ALS ("alternating least squares") is the recommender algorithm from our Big Data course lab. It learns a hidden "taste profile" for every person and every item from who used what <a class="ref" href="#src-24">[24]</a>. We used it in reverse: an access the recommender would never suggest for you is surprising. Section 7 shows how much that actually helped.</p></div></details>
+    <details class="deep"><summary>pandas and scikit-learn<span class="tag">everyday ML</span></summary><div class="body"><p><b>pandas</b> is Python's table library; once Spark shrinks the data, pandas handles the small tables. <b>scikit-learn</b> is the standard machine-learning library: it gives us Isolation Forest, LOF, logistic regression and the scoring metrics.</p></div></details>
+    <details class="deep"><summary>Isolation Forest, LOF, autoencoder<span class="tag">anomaly detectors</span></summary><div class="body"><ul class="stack" style="margin:0;padding-left:18px"><li><b>Isolation Forest</b> makes random cuts through the data; odd points get separated in very few cuts.</li><li><b>LOF (Local Outlier Factor)</b> asks whether a point sits in a much emptier neighborhood than its neighbors do. On weekly data it found 12 to 13 of the 30 job-hunters, which almost nothing else found.</li><li><b>Autoencoder</b>: a small neural network trained to compress and rebuild normal weeks. It rebuilds unusual weeks badly, and the error is the score. It can run on the Telum chip through IBM's TensorFlow or PyTorch plugins.</li></ul></div></details>
+    <details class="deep"><summary>Stouffer fusion<span class="tag">how signals combine</span></summary><div class="body"><p>Each detector's ranking becomes a p-value (how rare it is to score this high). Within each family of similar detectors we keep the strongest, then add the families' evidence on a z-scale (Stouffer's method) <a class="ref" href="#src-19">[19]</a>. Grouping first stops near-duplicate detectors from outvoting the rest. It uses no labels.</p></div></details>
+    <details class="deep"><summary>IBM Granite with llama.cpp<span class="tag">the explanation</span></summary><div class="body"><p>Granite is IBM's open large language model; llama.cpp runs it on the server's own CPU, with no internet AI service. We give it only an <b>evidence pack</b> (facts with IDs, like "E2: 6 USB connects this week, usual is 0") and require it to cite them. Code then checks that every number it wrote exists in the pack <a class="ref" href="#src-20">[20]</a>. Log text is treated as data, never instructions <a class="ref" href="#src-21">[21]</a>, and names are replaced with IDs. Running Granite on s390x: <a class="ref" href="#src-26">[26]</a>.</p></div></details>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="baseline">
+  <div class="eyebrow">6 · The baseline</div>
+  <h2>Why we need a baseline, and what it already catches</h2>
+  <p class="lead">A <strong>baseline</strong> is the simplest reasonable method. Anything fancier only counts if it beats it. Weather forecasters know this: "tomorrow will be like today" is surprisingly hard to beat.</p>
+  <div class="grid2">
+    <div class="card"><h3>Hand rule</h3><p>"Count the days someone used USB after hours."</p><p><span class="chip">top 20: 6 insiders</span> <span class="chip">AUC 0.77</span></p></div>
+    <div class="card"><h3>Personal baseline</h3><p>"How unusual is today compared with <em>your own</em> normal?" for each count, over each day and over rolling 28 days.</p><p><span class="chip ok">top 20: 20 insiders</span> <span class="chip ok">AUC 0.96</span></p></div>
+  </div>
+  <div class="callout ok"><b>The baseline is strong.</b> On r4.2 it catches all 30 leakers and nearly all sysadmins: the "sudden spike" attacks. Every addition after this has to earn its place against it.</div>
+  <div class="callout flag"><b>Its blind spot:</b> only <b>2 to 5 of the 30 job-hunters</b> reach its top 100. They change slowly, and their volume looks normal. Snoopers (r5.2) are invisible too: logging into someone else's computer adds one login, not a spike.</div>
+  <details class="deep"><summary>The math of "unusual for you", in plain words<span class="tag">z-score</span></summary><div class="body">
+    <p>For every person and every count (say USB connects), take their average and spread during the training months. A test day's score is how many "spreads" above their average it sits. Example: someone averages 0.2 USB connects a day with a spread of 0.5. A day with 6 connects scores (6 - 0.2) / (0.5 + 1) = 3.9. We add 1 to the spread so people with zero history don't get infinite scores. Each person's final score is their worst day.</p>
+    <p>The 28-day version compares a rolling four-week total with what the person's usual daily rate predicts, which helps a little with slow ramps.</p>
+  </div></details>
+</section>
+
+<!-- 7 -->
+<section id="recommender">
+  <div class="eyebrow">7 · The recommender</div>
+  <h2>The recommender: what it is, and what it really added</h2>
+  <p class="lead">Netflix learns your taste from what you watch and recommends what people like you watched. We learned each employee's "taste" in websites and computers, then flipped it: <strong>an access the recommender would never suggest for you is suspicious.</strong> We tested it carefully. The honest answer: it adds a little, not a lot.</p>
+  <div class="callout"><b>What "out-of-profile destination" means.</b> A destination is a website (or a computer). Your profile is the set of places people with habits like yours visit. A finance analyst on wikileaks.org, or an IT admin on keylogger sites, is far outside that profile, so the recommender flags it.</div>
+  <h3>A tiny example</h3>
+  <div class="tw" style="width:fit-content;max-width:100%"><table class="mx">
+    <tr><th></th><th>news</th><th>bank-portal</th><th>excel-tips</th><th>github</th><th>stackoverflow</th><th>wikileaks</th></tr>
+    <tr><td class="who">Ana · finance</td><td class="v hi">310</td><td class="v hi">95</td><td class="v ok2">new</td><td class="v">0</td><td class="v">0</td><td class="v">0</td></tr>
+    <tr><td class="who">Ben · finance</td><td class="v hi">280</td><td class="v hi">120</td><td class="v hi">40</td><td class="v">0</td><td class="v">0</td><td class="v new">new</td></tr>
+    <tr><td class="who">Chen · engineer</td><td class="v hi">150</td><td class="v">0</td><td class="v">0</td><td class="v hi">400</td><td class="v hi">220</td><td class="v">0</td></tr>
+    <tr><td class="who">Dev · engineer</td><td class="v hi">170</td><td class="v">0</td><td class="v">0</td><td class="v hi">380</td><td class="v hi">260</td><td class="v">0</td></tr>
+  </table></div>
+  <p class="sim">Simulated visit counts for teaching.</p>
+  <div class="grid2">
+    <div class="card"><span class="chip ok">forgiven</span><p><b>Ana visits excel-tips for the first time.</b> A naive "new site" rule would flag her. The recommender sees that people with her taste (Ben) use it, so it rates the visit as normal.</p></div>
+    <div class="card"><span class="chip flag">flagged</span><p><b>Ben visits wikileaks.</b> Nobody with his taste, and nobody at all, visits it. Very high surprise.</p></div>
+  </div>
+  <h3>How much did it contribute? Three measurements</h3>
+  <div class="grid2">
+    <div class="card"><span class="chip">1 · its own job</span><h3>Predicting normal browsing</h3><p>Before asking whether it catches insiders, we asked whether it learns anything: can it predict which <em>new</em> sites a normal employee will visit? Its average rank for the sites people actually visited next was <b>35.9%</b>, against <b>35.5%</b> for simply guessing the most popular sites (50% is random). On the harder dataset: 35.8% vs 38.3%. <b>In this simulated company, "taste" barely exists beyond popularity.</b></p></div>
+    <div class="card"><span class="chip">2 · as one ingredient</span><h3>Inside a combined model</h3><p>Added to the other signals, it helps a little: <b>+4 insiders</b> in the top 70 over a naive "new site" check in an early test (41 to 45), <b>+1</b> once our best signals are in (51 to 52), and on the harder dataset <b>45 to 49</b> when added on top of naive novelty.</p></div>
+    <div class="card"><span class="chip flag">3 · as its own review list</span><h3>A dedicated queue</h3><p>Given its own share of a 100-person review budget, it found 5 insiders the other lists missed but pushed out 11 others: <b>53 found with it, 59 without</b> on the harder dataset. On r4.2: 42 with it, 41 without, and 44 with a plain rare-site list instead.</p></div>
+  </div>
+  <details class="deep"><summary>Why not RMSE?<span class="tag">your question</span></summary><div class="body">
+    <p>RMSE (root mean squared error) measures how far predicted numbers are from true numbers. Catching insiders is a <em>ranking</em> task: there is no number to predict, only an order of people. So for detection we compare rankings with and without the recommender (measurements 2 and 3).</p>
+    <p>For the recommender's own job we did compute RMSE on a visit/no-visit grid. It came out <em>worse</em> than popularity (0.539 vs 0.426 on r4.2), because implicit-feedback scores are preferences, not probabilities. That is why implicit recommenders are judged by ranking, the percentile rank in measurement 1 <a class="ref" href="#src-13">[13]</a>.</p>
+  </div></details>
+  <h3>The colleague's-computer story, corrected</h3>
+  <div class="grid2">
+    <div class="card"><span class="chip flag">what we first thought</span><p>On r5.2 the recommender caught only 7 of 30 snoopers, people who log into colleagues' computers, while an ownership rule caught 30. We concluded that collaborative filtering forgives a colleague's computer because the colleague is similar.</p></div>
+    <div class="card"><span class="chip ok">what the controlled test showed</span><p>Our reviewer asked us to count all three the same way: weeks of logins to unusual computers, discounted for people who already roamed. <b>Ownership, naive and recommender versions each caught 27 of 30.</b> The real difference was how we counted (persistence over weeks), not the scoring idea. Ownership only sharpens the top of the list (17 vs 14 insiders in the top 20).</p></div>
+  </div>
+  <div class="callout ok"><b>Our verdict.</b> We keep the recommender as an optional piece of evidence ("nobody in your peer group visits this site") inside the fused ranking. We present it honestly as an idea we tested that added less than we hoped. The evidence trail that changed our design is part of our pitch.</div>
+  <details class="deep"><summary>How ALS actually learns a "taste"<span class="tag">for the curious</span></summary><div class="body">
+    <p>Picture the person-by-site table above with millions of cells. ALS finds, for every person, a short list of 16 numbers (their taste vector), and for every site 16 numbers (its profile), so that a person's vector times a site's profile approximates how much they use it. It alternates: fix the sites and solve for people, then fix the people and solve for sites, until it settles. That's the "alternating least squares".</p>
+    <p>"Implicit feedback" means we have no ratings, only usage counts, so heavier use counts as more confidence <a class="ref" href="#src-13">[13]</a>. Our settings: 16 taste numbers, confidence weight 10, regularization 0.1, trained only on the training months.</p>
+    <p><b>Peer-of-item</b>, the variant we kept: for a new site, find the most similar previous visitor <a class="ref" href="#src-12">[12]</a><a class="ref" href="#src-11">[11]</a>. It is a strong ranking signal on its own (AUC 0.84 on r4.2; on r5.2 it puts all 29 leakers and all 10 sysadmins in its top 100), largely because many attack sites had no previous visitors at all.</p>
+  </div></details>
+  <details class="deep"><summary>Prior work<span class="tag">for the pitch</span></summary><div class="body">
+    <p>Scoring access by how unexpected it is under a collaborative-filtering model has been used against hospital-record snooping (Menon and colleagues, 2014) <a class="ref" href="#src-9">[9]</a>, and Google's insider-detection system Facade <a class="ref" href="#src-11">[11]</a> builds on matrix factorization of who-accessed-what. Our contribution is a controlled measurement of how much, and how little, it adds on a public benchmark.</p>
+  </div></details>
+</section>
+
+<!-- 8 -->
+<section id="more">
+  <div class="eyebrow">8 · More signals</div>
+  <h2>The signals that carry the system</h2>
+  <p class="lead">Different attacks leave different footprints, so we use a small team of detector families. Each is good at one kind of attack and blind to others; the fused ranking combines them.</p>
+  <div class="grid2">
+    <div class="card"><span class="chip acc">sudden spike</span><h3>Own-history percentile</h3><p>Each week, for each count: what share of your own past weeks were lower? A week where several counts beat everything you did before is a spike <a class="ref" href="#src-5">[5]</a>. <b>The best top-of-list signal on both datasets</b>: its top 20 were all insiders (39.4 of 70 and 40.3 of 99 in the top 70).</p></div>
+    <div class="card"><span class="chip acc">slow drift</span><h3>Weekly LOF, unusual weeks</h3><p>Weekly LOF found <b>12 to 13 of 30 job-hunters</b> on r4.2 and 11 on r5.2, the hardest attack type. Counting how many weeks were unusual found 19.5 of 30 snoopers on r5.2.</p></div>
+    <div class="card"><span class="chip acc">out-of-role (experimental)</span><h3>Persistent logins to unusual computers</h3><p>The weeks someone logs into computers they didn't use before, discounted for people whose job already involved roaming. <b>27 to 30 of 30 snoopers</b> in the top 100 on r5.2. Designed after seeing r5.2, so it is shown as an experimental view.</p></div>
+    <div class="card"><span class="chip acc">unusual destination</span><h3>Rare sites + recommender</h3><p>Visits to sites under 1% of staff visited: 41 of 70 on r4.2. Recommender peer-of-item: 31 of 99 on r5.2. Each wins on one dataset; both catch leakers and the sysadmins.</p></div>
+  </div>
+  <details class="deep"><summary>Also tried: peers, more windows, other models<span class="tag">supporting signals</span></summary><div class="body">
+    <ul class="stack" style="margin:0;padding-left:18px">
+      <li><b>Team peer comparison</b> (the reviewer's suggestion for "covering a colleague's duties"): useful but moderate alone (14 of its top 20 were insiders).</li>
+      <li><b>7- and 56-day windows</b>, worst-3-days averages, <b>Isolation Forest</b>: each strong alone, mostly overlapping with the baseline.</li>
+      <li><b>Popularity-corrected recommender</b> and a simple <b>28-day site-visit lift</b>: did not help, so they were dropped.</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- origins -->
+<section id="origins">
+  <div class="eyebrow">9 · Where methods came from</div>
+  <h2>How we decided what to try, and what to keep</h2>
+  <p class="lead">No method got in on faith. Each came from somewhere specific: our course, a reviewer's critique, published research, commercial products, or our own test results. Each stayed only if our tests on the CERT data backed it.</p>
+  <div class="tw"><table>
+    <tr><th>Where the idea came from</th><th>What it suggested</th><th>What our tests showed</th><th>Decision</th></tr>
+    <tr><td><b>Our abstract + CS 6350 Lab 3</b> <a class="ref" href="#src-24">[24]</a></td><td>Use an ALS recommender on who-used-what, flag what it wouldn't suggest</td><td>Predicts normal browsing no better than popularity (35.9% vs 35.5%); +1 to +4 insiders in combined models; its own queue cost 6 insiders on r5.2</td><td><span class="chip acc">optional</span> evidence only</td></tr>
+    <tr><td><b>A reviewer's critique</b> (another AI)</td><td>Prove low recommender scores relate to attacks; add peer groups; watch for leakage</td><td>Naive "new" check +2, recommender +4 (39, 41, 45). Team peers: 14 of top 20. No attack falls in training</td><td><span class="chip ok">adopted</span> protocol and ablations</td></tr>
+    <tr><td><b>Le &amp; Zincir-Heywood 2021</b> <a class="ref" href="#src-5">[5]</a></td><td>Weekly data; each week as a percentile of the person's own history; unsupervised ensembles</td><td>Own-history percentile: top 20 all insiders on both datasets. Weekly LOF: 12 to 13 of 30 job-hunters</td><td><span class="chip ok">keep</span> core detectors</td></tr>
+    <tr><td><b>Le et al. 2019, Le thesis 2021</b> <a class="ref" href="#src-6">[6]</a></td><td>Job-hunters are the hardest scenario (12.5 to 74% detected)</td><td>Ours: 0 to 16 of 30 in the top 100, depending on method</td><td><span class="chip">say so</span> in the pitch</td></tr>
+    <tr><td><b>Tuor et al. 2017</b> <a class="ref" href="#src-7">[7]</a></td><td>Autoencoder-style anomaly scores, explained feature by feature</td><td>Weekly autoencoder: 39 of 70, like the baseline</td><td><span class="chip acc">optional</span> Telum demo</td></tr>
+    <tr><td><b>Garchery &amp; Granitzer 2020</b> <a class="ref" href="#src-8">[8]</a></td><td>First-seen novelty catches job-hunters</td><td>Naive novelty alone: AUC 0.58 to 0.59; +2 in a combined model</td><td><span class="chip">comparison</span> only</td></tr>
+    <tr><td><b>Menon 2014, Chen et al. (CADS)</b> <a class="ref" href="#src-9">[9]</a> <a class="ref" href="#src-10">[10]</a></td><td>Collaborative filtering against hospital-record snooping</td><td>Precedent for our idea</td><td><span class="chip">cite</span> honestly</td></tr>
+    <tr><td><b>Microsoft (Modell et al.), Google Facade</b> <a class="ref" href="#src-12">[12]</a> <a class="ref" href="#src-11">[11]</a></td><td>Score access by distance to the item's previous users; filter common items</td><td>Peer-of-item AUC 0.84 vs 0.71 for plain ALS; rare-site visits 41 of 70 on r4.2</td><td><span class="chip ok">keep</span> inside the fusion</td></tr>
+    <tr><td><b>Hu, Koren &amp; Volinsky</b> <a class="ref" href="#src-13">[13]</a></td><td>Judge implicit-feedback recommenders by ranking, not error</td><td>Percentile-rank test showed the model is at the popularity baseline</td><td><span class="chip ok">used</span> as the test</td></tr>
+    <tr><td><b>Sentinel, Purview, Splunk, Exabeam, Google SecOps</b> <a class="ref" href="#src-14">[14]</a><a class="ref" href="#src-15">[15]</a><a class="ref" href="#src-16">[16]</a><a class="ref" href="#src-17">[17]</a><a class="ref" href="#src-18">[18]</a></td><td>Peer groups; separate detections with reasons; spotlight corroborated alerts</td><td>Separate queues won only on r5.2 (53 vs 43 at 100 reviews), lost on r4.2 (42 vs 55). Corroborated people: 11 of 11 insiders (r4.2), 14 of 20 (r5.2)</td><td><span class="chip ok">adopt</span> corroboration flag; out-of-role view</td></tr>
+    <tr><td><b>Outlier-ensemble statistics</b> <a class="ref" href="#src-19">[19]</a></td><td>Combine detectors family by family (Fisher, Stouffer, Cauchy)</td><td>Family-first Stouffer, frozen on r4.2, beat the baseline on both datasets at 100 reviews (55 vs 44, 43 vs 39)</td><td><span class="chip ok">adopt</span> default ranking</td></tr>
+    <tr><td><b>Audit-LLM, OWASP</b> <a class="ref" href="#src-20">[20]</a> <a class="ref" href="#src-21">[21]</a></td><td>LLM explanations drift from facts; logs can carry injected instructions</td><td>Not tested yet</td><td><span class="chip ok">adopt</span> evidence pack, code checks</td></tr>
+    <tr><td><b>Our own r5.2 test</b></td><td>Snoopers need their own signal</td><td>Counting weeks of logins to unusual computers: 27 to 30 of 30 snoopers</td><td><span class="chip acc">experimental</span> view</td></tr>
+    <tr><td><b>Outside review (Codex, 3 rounds)</b></td><td>Check for bugs, leakage and overclaims</td><td>Found 4 real bugs; overturned 3 headline claims (section 13)</td><td><span class="chip ok">fixed</span> and re-run</td></tr>
+  </table></div>
+</section>
+
+<!-- catalog -->
+<section id="catalog">
+  <div class="eyebrow">10 · Every method tried</div>
+  <h2>Each method: how it works, and how it went</h2>
+  <p class="lead">Every method we tried, including the ones that failed, with the final numbers after outside review. Open any card for how it works, where it came from, and the numbers from our tests.</p>
+  <div class="seg" role="group" aria-label="Filter methods" id="cat-filter">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="keep" aria-pressed="false">Kept in the build</button>
+    <button type="button" data-f="support" aria-pressed="false">Supporting / optional</button>
+    <button type="button" data-f="drop" aria-pressed="false">Dropped</button>
+  </div>
+  <div class="stack" id="cat-list"></div>
+  <p class="muted">Numbers: r4.2 unless marked r5.2. "Found" = insiders in the top 70. Every number comes from our study notebook <a class="ref" href="#src-0">[0]</a>.</p>
+</section>
+
+<!-- 9 -->
+<section id="results">
+  <div class="eyebrow">11 · Results</div>
+  <h2>How each approach does on its own</h2>
+  <p class="lead">Every employee gets one score per approach; we sort and check the top of the list against the answer key. Switch datasets to see what held up.</p>
+  <div class="chart" id="ch-approach">
+    <div class="ch-head"><div><div class="ch-title">Insiders found in each approach's top 70</div><div class="ch-sub" id="ch-approach-sub"></div></div>
+      <div class="seg" role="group" aria-label="Dataset"><button type="button" data-rel="r42" aria-pressed="true">r4.2</button><button type="button" data-rel="r52" aria-pressed="false">r5.2</button></div></div>
+    <div id="ch-approach-svg"></div>
+    <details class="deep"><summary>Show as a table<span class="tag">same numbers</span></summary><div class="body"><div class="tw" id="tb-approach"></div></div></details>
+  </div>
+  <div class="callout"><b>Read it like this:</b> no single approach is good at everything. Own-history percentiles and the baselines lead because leakers are numerous and spiky. The fused ranking combines the families. The out-of-role signal looks small here but catches the group the others miss, as the next chart shows.</div>
+  <div class="chart" id="ch-heat">
+    <div class="ch-head"><div><div class="ch-title">Which attacks each detector catches</div><div class="ch-sub">Share of each scenario's insiders in the detector's top 100</div></div>
+      <div class="seg" role="group" aria-label="Dataset"><button type="button" data-rel="r52" aria-pressed="true">r5.2</button><button type="button" data-rel="r42" aria-pressed="false">r4.2</button></div></div>
+    <div id="ch-heat-svg"></div>
+  </div>
+  <div class="callout ok"><b>This is why we combine.</b> Each row lights up a different column: own-history percentile for leakers and sysadmins, weekly persistence for snoopers, weekly LOF for job-hunters, rare sites and peer-of-item for leakers and sysadmins.</div>
+  <details class="deep"><summary>What the metrics mean<span class="tag">P@20, AP, AUC</span></summary><div class="body">
+    <ul class="stack" style="margin:0;padding-left:18px">
+      <li><b>P@20</b>: of the top 20 people flagged, the share who are real insiders. What an analyst feels on day one.</li>
+      <li><b>Found in top 70</b>: how many insiders appear in the first 70 names (r4.2 has 70 insiders; r5.2 has 99). When scores tie, we report the expected count, so a few numbers are fractional.</li>
+      <li><b>AP (average precision)</b>: one number for the whole ranking that rewards putting insiders near the top. 1.0 is perfect.</li>
+      <li><b>AUC</b>: the chance a random insider ranks above a random normal employee. 0.5 is a coin flip, 1.0 is perfect.</li>
+      <li><b>Top 100 by scenario</b>: how many insiders of one type make the first 100 names, which shows <em>what</em> a detector catches.</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- 10 -->
+<section id="stacking">
+  <div class="eyebrow">12 · Combining</div>
+  <h2>How we combine detectors, and which way won</h2>
+  <p class="lead">We compared three ways of combining detectors at the same review budget. The answer depends on the mix of threats, so we chose the one that beat the baseline on both datasets.</p>
+  <div class="chart" id="ch-steps">
+    <div class="ch-head"><div><div class="ch-title">Adding signals to a trained combiner (r4.2)</div><div class="ch-sub">Insiders found in the top 70, out of 70</div></div></div>
+    <div id="ch-steps-svg"></div>
+  </div>
+  <p>Each added signal helps a little. But this combiner is <b>trained on labels</b>, and section 13 shows it breaks on attacks it never saw.</p>
+  <div class="grid2">
+    <div class="card"><span class="chip">way 1</span><h3>Trained combiner</h3><p>Learns how much to trust each detector from labeled past cases. Best in testing (63 and 55 insiders among 100 reviewed), but it needs labels, and with job-hunters hidden from training it caught only 4 to 7 of 30.</p></div>
+    <div class="card" style="border-color:var(--accent)"><span class="chip acc">way 2 · our default</span><h3>Fused ranking, no labels</h3><p>Family-first Stouffer fusion, chosen on r4.2 and frozen before the second test. It beat the baseline on <b>both</b> datasets: 55 vs 44 and 43 vs 39 insiders among 100 reviewed.</p></div>
+    <div class="card"><span class="chip">way 3</span><h3>Specialist queues</h3><p>Each detector fills its own review list. Won on r5.2 (53 vs 43) because snoopers needed their own list; lost on r4.2 (42 vs 55). We keep the idea only as a separate out-of-role view.</p></div>
+  </div>
+  <div class="chart" id="ch-budget">
+    <div class="ch-head"><div><div class="ch-title">Insiders found among exactly 100 people reviewed</div><div class="ch-sub" id="ch-budget-sub"></div></div>
+      <div class="seg" role="group" aria-label="Dataset"><button type="button" data-rel="r42" aria-pressed="true">r4.2</button><button type="button" data-rel="r52" aria-pressed="false">r5.2</button></div></div>
+    <div id="ch-budget-svg"></div>
+  </div>
+  <div class="callout ok"><b>The decision:</b> the fused ranking is the default list, because it beat the simple baseline on both datasets with no labels. Out-of-role logins get their own experimental view, because blending hides them (see below). The trained combiner is shown only as a reference that needs labels.</div>
+  <div class="card" id="qsim">
+    <span class="chip acc">try it</span>
+    <h3>Queue simulator: 12 simulated employees</h3>
+    <p>This shows <em>when</em> separate lists beat a blended score: when an attacker scores high on only one signal. Each employee has a score from 0 to 100 on four detectors. <b>Specialist queues</b> take the top scorers of each detector; a <b>blended score</b> averages the four and reviews the same number of people. Pick the slots per queue, then reveal who the insiders are.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+      <span class="muted">Slots per queue</span>
+      <div class="seg" role="group" aria-label="Slots per queue" id="qsim-k"><button type="button" data-k="1" aria-pressed="true">1</button><button type="button" data-k="2" aria-pressed="false">2</button><button type="button" data-k="3" aria-pressed="false">3</button></div>
+      <button type="button" id="qsim-reveal" class="seg-solo" aria-pressed="false">Reveal who the insiders are</button>
+    </div>
+    <div class="tw"><table id="qsim-table"></table></div>
+    <div class="grid2" id="qsim-out"></div>
+    <p class="sim">All 12 people and their scores are invented for teaching. On real data, this situation happened on r5.2 (snoopers): queues found 53 vs the fused ranking's 43 among 100 reviewed. On r4.2, with no such attack type, the fused ranking won 55 vs 42.</p>
+  </div>
+  <details class="deep"><summary>Why blending hides specialists<span class="tag">the key lesson</span></summary><div class="body">
+    <p>When you combine several detectors, a person flagged strongly by only one of them gets pulled back toward normal by the others. That's fine for spiky leakers, whom everyone flags, but costly for snoopers, whom only the out-of-role signal sees. Folded into the fused score, it kept only 4 to 8 of 30 snoopers in the top 100; as its own list, 20 of its 25 slots were snoopers. That's why out-of-role logins get their own view.</p>
+  </div></details>
+</section>
+
+<!-- 11 -->
+<section id="trust">
+  <div class="eyebrow">13 · Can we trust it?</div>
+  <h2>The tests that keep us honest</h2>
+  <p class="lead">It's easy to fool yourself with machine learning. We ran four checks, and each one changed the design.</p>
+  <div class="chart" id="ch-hidden">
+    <div class="ch-head"><div><div class="ch-title">Hide the job-hunters from training: how many does each method still catch?</div><div class="ch-sub">r4.2, job-hunters in the top 100, out of 30</div></div></div>
+    <div id="ch-hidden-svg"></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><span class="chip flag">test 1 · unseen attack</span><p>Gradient boosting scored 60 of 70, too good to be true. With job-hunters hidden from training it caught 4 of 30. A label-free sum caught 16. Generalization drops sharply for attack types a model never saw.</p></div>
+    <div class="card"><span class="chip flag">test 2 · a second dataset</span><p>We froze the pipeline and ran it unchanged on r5.2. The fused ranking and own-history percentiles held; the queue design and the recommender story did not.</p></div>
+    <div class="card"><span class="chip ok">test 3 · no peeking</span><p>Training ends before the first attack, the week containing each cutoff is dropped, and "left the company" is never used. Some choices were still made with r4.2's answers in view, which is why r5.2 was the real test.</p></div>
+    <div class="card"><span class="chip ok">test 4 · outside review</span><p>Another AI model (Codex) reviewed the full study three times. It found 4 real bugs: an unbalanced hold-out test, a leaked training week, tie luck from user-ID order, and a silently swapped comparison. All were fixed and re-run, overturning 3 headline claims.</p></div>
+  </div>
+  <details class="deep"><summary>What we still can't claim<span class="tag">say it in the pitch</span></summary><div class="body">
+    <ul class="stack" style="margin:0;padding-left:18px">
+      <li><b>Retrospective, not real-time</b>: each person is scored over the whole test period; how quickly we'd catch someone isn't measured.</li>
+      <li><b>Job-hunters stay hard</b>: 0 to 16 of 30 in the top 100, depending on the method. Published research reports 12.5 to 74% <a class="ref" href="#src-6">[6]</a>.</li>
+      <li><b>The data is simulated</b>. Labeled real insider logs are very rare; LANL releases real authentication logs with red-team labels, a good third test.</li>
+      <li><b>The out-of-role view and the build plan</b> were shaped after seeing r5.2, so they need an untouched test.</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- 12 -->
+<section id="judges">
+  <div class="eyebrow">14 · Judges and our edge</div>
+  <h2>How we score on each judging criterion</h2>
+  <p class="lead">Four criteria, 10 points each, judged by IBM experts from a 3-minute video <a class="ref" href="#src-25">[25]</a>. Here's our case for each, and the evidence we'll show.</p>
+  <div class="stack">
+    <div class="card score"><div class="pts">10<small>pts</small></div><div class="stack"><h3>Value to the community and theme fit</h3><p>We protect people whose records sit in banks, hospitals and agencies (61,104 benefit accounts in Texas; 9.7 million people at Desjardins), and the data never leaves the platform: "Innovation without exposure", literally.</p>
+      <details class="deep"><summary>Evidence and risks</summary><div class="body"><p><b>Show:</b> one real-case slide; the "data stays on LinuxONE" architecture. <b>Risk:</b> sounding like surveillance. <b>Answer:</b> analysts review a short, explained list; names are pseudonymized; the system recommends and a human decides.</p></div></details></div></div>
+    <div class="card score"><div class="pts">10<small>pts</small></div><div class="stack"><h3>Novelty and originality</h3><p>Most teams will build fraud detection (IBM's own lab is credit-card fraud). Ours combines own-history percentiles, a persistence signal for out-of-role logins and label-free fusion, and shows the evidence that changed our design, including a recommender idea we tested and honestly scaled back.</p>
+      <details class="deep"><summary>Evidence and risks</summary><div class="body"><p><b>Show:</b> the recommender test (at the popularity baseline; its queue cost 6 insiders) and the colleague's-computer correction (27 vs 27 vs 27). <b>Risk:</b> "your original idea didn't work". <b>Answer:</b> testing it properly and changing course is the rigor judges look for; the core system beat the baseline on both datasets.</p></div></details></div></div>
+    <div class="card score"><div class="pts">10<small>pts</small></div><div class="stack"><h3>Technical design and use of LinuxONE</h3><p>Spark processes 15+ GB on LinuxONE; scikit-learn detectors, ALS and Stouffer fusion; Granite runs locally with llama.cpp; everything in the event's Docker container; at least two open-source AI frameworks.</p>
+      <details class="deep"><summary>Evidence and risks</summary><div class="body"><p><b>Show:</b> <code>uname -m</code> printing s390x, <code>docker ps</code>, Spark running, Granite's cited explanation, and (if time allows) an autoencoder scored on the Telum chip. Both required IBM labs completed. <b>Risk:</b> setup eats the day. <b>Answer:</b> the setup owner starts at 8 AM with the setup guide.</p></div></details></div></div>
+    <div class="card score"><div class="pts">10<small>pts</small></div><div class="stack"><h3>Execution and pitch</h3><p>A clear story (problem, data, idea, proof, platform) in under 3 minutes, with a live demo recorded on LinuxONE and each teammate's role named.</p>
+      <details class="deep"><summary>Evidence and risks</summary><div class="body"><p><b>Show:</b> one flagged person end to end, from raw log row to fused rank to Granite's explanation, plus the honest results table. <b>Three numbers:</b> 20 of 20 (best signal's top 20), 55 vs 44 (fused ranking vs baseline at 100 reviews), 27 of 30 (snoopers by persistence).</p></div></details></div></div>
+  </div>
+  <div class="callout"><b>Bonus prize, AI Innovation Excellence:</b> judged on originality and technical sophistication. Our case: an evidence-driven design with label-free fusion, a persistence signal for out-of-role access, and an evaluation discipline few student teams show (baseline, unseen-attack test, second dataset, outside review).</div>
+  <h3>Our competitive edge, in short</h3>
+  <div class="grid2">
+    <div class="card"><b>Honest evidence</b><p>We beat a strong baseline, test on unseen attacks and a second dataset, and had an outside reviewer find our bugs.</p></div>
+    <div class="card"><b>Evidence changed the design</b><p>We show exactly why we scaled back our original recommender idea, with numbers.</p></div>
+    <div class="card"><b>Explainable by design</b><p>Every flag has its signal contributions and a cited Granite explanation an analyst can check in seconds.</p></div>
+    <div class="card"><b>Platform-native privacy</b><p>Logs, models and the language model all stay on one LinuxONE server, the theme of our track.</p></div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section id="plan">
+  <div class="eyebrow">15 · Tomorrow</div>
+  <h2>The build plan and who owns what</h2>
+  <div class="tw"><table>
+    <tr><th>When (Sat)</th><th>What</th><th>Owner (team decides)</th></tr>
+    <tr><td>8:00 to 10:00</td><td>Server setup (Docker, Jupyter, Java 17, PySpark); both required IBM labs</td><td>Setup / everyone for labs</td></tr>
+    <tr><td>10:00 to 12:00</td><td>Spark loads the logs into the three tables; baselines scored</td><td>Data</td></tr>
+    <tr><td>12:00 to 18:00</td><td>Signal families and the fused ranking; the out-of-role view; the honest results table</td><td>Detection</td></tr>
+    <tr><td>Evening</td><td>Granite evidence packs and explanations for the top people; dashboard page</td><td>AI and app</td></tr>
+    <tr><td>Overnight to Sun 9:00</td><td>Screenshots on LinuxONE, README, slides, the 3-minute video; submit early (portal closes 1:29 PM)</td><td>Pitch</td></tr>
+  </table></div>
+  <details class="deep"><summary>The fallback if we fall behind<span class="tag">keep the demo safe</span></summary><div class="body">
+    <p>Priority order: (1) baselines, own-history percentiles and the fused ranking running on LinuxONE; (2) the out-of-role view; (3) Granite explanations, pre-generated for 10 people; (4) the dashboard. A smaller system that runs beats a bigger one that doesn't.</p>
+  </div></details>
+</section>
+
+<!-- 14 -->
+<section id="glossary">
+  <div class="eyebrow">16 · Glossary</div>
+  <h2>Words you'll hear tomorrow</h2>
+  <div class="tw"><table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td>Insider threat</td><td>Someone with legitimate access who misuses it.</td></tr>
+    <tr><td>Baseline</td><td>The simplest reasonable method; the bar to beat.</td></tr>
+    <tr><td>Train / test</td><td>Learn normal on early months; grade on later months.</td></tr>
+    <tr><td>Leakage</td><td>Accidentally using information you wouldn't have at the time.</td></tr>
+    <tr><td>z-score</td><td>How many "spreads" above your own average a value sits.</td></tr>
+    <tr><td>Percentile of own history</td><td>Share of your past weeks that were lower than this week.</td></tr>
+    <tr><td>Recommender / ALS</td><td>Learns taste from who-used-what; we flag what it would never suggest.</td></tr>
+    <tr><td>Peer-of-item</td><td>How similar you are to the nearest previous user of a site.</td></tr>
+    <tr><td>Ownership rule</td><td>Logins to someone else's personal computer, week after week.</td></tr>
+    <tr><td>Persistence signal</td><td>The weeks someone logs into computers they didn't use before, discounted for people who already roamed.</td></tr>
+    <tr><td>Fused ranking (Stouffer)</td><td>One list built by combining the evidence of each detector family, with no labels.</td></tr>
+    <tr><td>Isolation Forest / LOF / autoencoder</td><td>Anomaly detectors that need no labels.</td></tr>
+    <tr><td>Precision at 20 (P@20)</td><td>Share of the top 20 flagged who are real insiders.</td></tr>
+    <tr><td>AP / AUC</td><td>Whole-ranking quality scores; 1.0 is perfect, AUC 0.5 is a coin flip.</td></tr>
+    <tr><td>Leave-one-scenario-out</td><td>Hide one attack type during training to simulate a new attack.</td></tr>
+    <tr><td>Stouffer's method</td><td>A statistical way to combine evidence from several tests into one score.</td></tr>
+    <tr><td>s390x / Telum</td><td>LinuxONE's processor type / its on-chip AI accelerator.</td></tr>
+    <tr><td>Granite / llama.cpp</td><td>IBM's open language model / the program that runs it locally.</td></tr>
+  </table></div>
+</section>
+
+<!-- sources -->
+<section id="sources" class="sources">
+  <div class="eyebrow">17 · Sources</div>
+  <h2>Sources</h2>
+  <p class="muted">Every outside claim on this page links here. Every result number comes from source 0, our own tests.</p>
+  <ol start="0">
+    <li id="src-0">OutOfRole feasibility notebook (executed Oct 16, 2026): <code>feasibility/OutOfRole_Feasibility.ipynb</code>, with the plan in <code>OutOfRole_Plan.pdf</code>.</li>
+    <li id="src-1">CMU SEI, Insider Threat Test Dataset (releases r4.2, r5.2 and answer key). <a href="https://kilthub.cmu.edu/articles/dataset/Insider_Threat_Test_Dataset/12841247">kilthub.cmu.edu</a></li>
+    <li id="src-2">Office of the Privacy Commissioner of Canada, PIPEDA Findings #2020-005 (Desjardins). <a href="https://www.priv.gc.ca/en/opc-actions-and-decisions/investigations/investigations-into-businesses/2020/pipeda-2020-005/">priv.gc.ca</a></li>
+    <li id="src-3">Texas Tribune, Texas HHSC employees accessed 61,104 accounts, Jan 17, 2025. <a href="https://www.texastribune.org/2025/01/17/texas-hhsc-food-stamp-fraud-data-breach/">texastribune.org</a></li>
+    <li id="src-4">Baker Donelson, Ten key insights from IBM's Cost of a Data Breach Report 2025. <a href="https://www.bakerdonelson.com/ten-key-insights-from-ibms-cost-of-a-data-breach-report-2025">bakerdonelson.com</a></li>
+    <li id="src-5">D. C. Le and N. Zincir-Heywood, Anomaly Detection for Insider Threats Using Unsupervised Ensembles, IEEE TNSM, 2021. <a href="https://web.cs.dal.ca/~lcd/pubs/TNSM2021.pdf">PDF</a></li>
+    <li id="src-6">D. C. Le, N. Zincir-Heywood and M. Heywood, DISSECT 2019 <a href="https://web.cs.dal.ca/~lcd/pubs/lcd_dissect19.pdf">PDF</a>; D. C. Le, PhD thesis, Dalhousie, 2021 <a href="https://web.cs.dal.ca/~mheywood/Thesis/DucLe2021.pdf">PDF</a>.</li>
+    <li id="src-7">A. Tuor et al., Deep Learning for Unsupervised Insider Threat Detection in Structured Cybersecurity Data Streams, 2017. <a href="https://arxiv.org/abs/1710.00811">arXiv:1710.00811</a></li>
+    <li id="src-8">M. Garchery and M. Granitzer, ADSAGE: Anomaly Detection in Sequences of Attributed Graph Edges, 2020. <a href="https://arxiv.org/pdf/2007.06985">arXiv:2007.06985</a></li>
+    <li id="src-9">A. K. Menon et al., Detecting inappropriate access to electronic health records using collaborative filtering, Machine Learning, 2014. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3967851/">PMC</a></li>
+    <li id="src-10">Y. Chen, S. Nyemba and B. Malin, community anomaly detection in collaborative systems (CADS). <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3905623">PMC</a></li>
+    <li id="src-11">Google, Facade: High-Precision Insider Threat Detection Using Deep Contextual Anomaly Detection, 2024. <a href="https://arxiv.org/abs/2412.06700">arXiv:2412.06700</a></li>
+    <li id="src-12">F. Modell et al., Microsoft Research, graph-based anomalous access detection, 2021. <a href="https://www.microsoft.com/en-us/research/uploads/prod/2022/01/modell_paper.pdf">PDF</a></li>
+    <li id="src-13">Y. Hu, Y. Koren and C. Volinsky, Collaborative Filtering for Implicit Feedback Datasets, ICDM 2008. <a href="http://yifanhu.net/PUB/cf.pdf">PDF</a></li>
+    <li id="src-14">Microsoft, Identify threats with entity behavior analytics (Sentinel UEBA). <a href="https://learn.microsoft.com/en-us/azure/sentinel/identify-threats-with-entity-behavior-analytics">learn.microsoft.com</a></li>
+    <li id="src-15">Microsoft, Insider Risk Management policies (Purview). <a href="https://learn.microsoft.com/purview/insider-risk-management-policies">learn.microsoft.com</a></li>
+    <li id="src-16">Splunk, Default risk incident rules in Splunk Enterprise Security. <a href="https://help.splunk.com/en/splunk-enterprise-security-7/risk-based-alerting/7.3/identify-threat/default-risk-incident-rules-in-splunk-enterprise-security">help.splunk.com</a></li>
+    <li id="src-17">Exabeam, Get to know a user profile (Advanced Analytics). <a href="https://docs.exabeam.com/en/cloud-delivered-advanced-analytics/all/user-guide/153664-get-to-know-a-user-profile.html">docs.exabeam.com</a></li>
+    <li id="src-18">Google Security Operations, Risk analytics overview. <a href="https://docs.cloud.google.com/chronicle/docs/detection/risk-analytics-overview">docs.cloud.google.com</a></li>
+    <li id="src-19">C. Aggarwal, Outlier Ensembles (keynote slides). <a href="https://www.charuaggarwal.net/odd.pdf">PDF</a></li>
+    <li id="src-20">Audit-LLM: Multi-Agent Collaboration for Log-based Insider Threat Detection, 2024. <a href="https://arxiv.org/html/2408.08902">arXiv:2408.08902</a></li>
+    <li id="src-21">OWASP GenAI Security Project, LLM01: Prompt Injection. <a href="https://genai.owasp.org/llmrisk/llm01-prompt-injection/">genai.owasp.org</a></li>
+    <li id="src-22">LinuxONE Community Cloud, jupyter-lab-ml (the event's notebook image and reference labs). <a href="https://github.com/linuxone-community-cloud/jupyter-lab-ml">github.com</a></li>
+    <li id="src-23">IBM, ibm-zdnn-plugin (TensorFlow on the Telum accelerator). <a href="https://github.com/IBM/ibm-zdnn-plugin">github.com</a></li>
+    <li id="src-24">Apache Spark, Collaborative Filtering (ALS) in MLlib. <a href="https://spark.apache.org/docs/latest/ml-collaborative-filtering.html">spark.apache.org</a></li>
+    <li id="src-25">IBM Z Datathon 2026 Participant Guidebook (rules and judging rubric). <a href="https://docs.google.com/document/d/1tt0ZhUyirXDtHIEum3JhG-ZIj6y-YpUc5e15mPT78w4/edit">Google Docs</a></li>
+    <li id="src-26">llama.cpp, Building on IBM Z (s390x). <a href="https://github.com/ggml-org/llama.cpp/blob/master/docs/build-s390x.md">github.com</a></li>
+  </ol>
+</section>
+
+<footer>
+  <span>Numbers from the OutOfRole feasibility notebook (Oct 16, 2026; final version after three rounds of outside review), CMU SEI CERT Insider Threat Test Dataset r4.2 and r5.2. Sample rows are simulated.</span>
+  <span>Deeper reading: OutOfRole_Plan.pdf (plan and changes), OutOfRole_Feasibility.ipynb (code and outputs), codex_review/ (the outside review), Research_Findings (sources).</span>
+</footer>
+</main>
+</div>
+<div id="tip" role="tooltip"></div>
+
+
+<script>
+/* ---------- method catalog (final numbers from the study notebook, after outside review) ---------- */
+(function () {
+  const R = n => `<a class="ref" href="#src-${n}">[${n}]</a>`;
+  const M = [
+    { n: "Hand rule: after-hours USB days", f: "support", fam: "baseline", how: "Counts the days a person plugged in a USB drive before 7:00 or after 19:00.", src: "Common data-loss-prevention practice; our reference point.", res: "P@20 0.30, 33.5 of 70 found, AUC 0.77. r5.2: P@20 0.05, 4 of 99.", dec: "Reference only. It shows why fixed rules flood analysts." },
+    { n: "Personal baseline, daily (z-score)", f: "keep", fam: "baseline", how: "For each count, how many spreads today sits above the person's own training average; the counts are summed and the person's worst day is their score.", src: "Standard behavior-analytics practice " + R(14) + ".", res: "P@20 1.00, 38 of 70, AUC 0.94. All 30 leakers, only 2 of 30 job-hunters. r5.2: P@20 0.75, 32 of 99.", dec: "Kept as the bar every addition must beat." },
+    { n: "Personal baseline, 28-day window", f: "keep", fam: "baseline", how: "Compares a rolling four-week total with what the person's own daily rate predicts.", src: "Our extension, aimed at slow ramps.", res: "P@20 1.00, 38 of 70, AP 0.728, AUC 0.96; 5 of 30 job-hunters. r5.2: P@20 0.90, 36 of 99, AP 0.428. Among 100 people reviewed: 44 (r4.2), 39 (r5.2).", dec: "Kept as the baseline row in our results table." },
+    { n: "Naive novelty: new computers and sites", f: "drop", fam: "novelty", how: "For each active day, the number of distinct computers or websites the person never used during training.", src: "First-seen novelty, as in Garchery &amp; Granitzer " + R(8) + ".", res: "Alone: AUC 0.58 (computers), 0.59 (sites). In a combined model: 39 to 41 found (+2).", dec: "Kept only as the comparison for the recommender." },
+    { n: "Recommender (ALS) on websites", f: "support", fam: "recommender", how: "ALS learns a 16-number taste for every person and site from visit counts. A new site's surprise is 1 minus its predicted affinity, so a site similar people use is forgiven.", src: "Our abstract; CS 6350 Lab 3 " + R(24) + "; precedent in Menon 2014 " + R(9) + ".", res: "Its own job: predicts normal staff's first-time sites no better than popularity (percentile rank 35.9% vs 35.5%). Alone: AUC 0.71 vs 0.59 naive, but P@20 0.00. In a combined model: +4 over naive (41 to 45); on r5.2, 45 to 49 when added to naive.", dec: "Optional evidence inside the fused ranking; not a pillar." },
+    { n: "Recommender (ALS) on computers", f: "drop", fam: "recommender", how: "The same model on who logs into which computer.", src: "Our abstract.", res: "AUC 0.58, the same as naive. Counted the same way as the ownership rule (weekly, with a roaming discount), it catches 27 of 30 snoopers, exactly like the naive check.", dec: "Dropped: adds nothing over simpler counting." },
+    { n: "Rare sites", f: "keep", fam: "novelty", how: "Counts visits to sites that under 1% of staff visited in training.", src: "Google Facade: filtering accesses common to many users cut false positives over 20x " + R(11) + ".", res: "r4.2: P@20 0.50, 41 of 70; wikileaks.org was visited by exactly 30 users in the whole log, all leakers. r5.2: P@20 0.10, 8.1 of 99. As a review queue it beat the recommender's queue on r4.2 (44 vs 42).", dec: "Kept inside the fused ranking." },
+    { n: "Team peer comparison", f: "support", fam: "behavior", how: "Each person against their team on the same day, and their rolling 28-day totals against the team's median (teams of about 21 from the org chart).", src: "The reviewer's critique; peer groups in Microsoft Sentinel " + R(14) + ".", res: "Daily: P@20 0.70 (14 of the top 20), 27 of 70. 28-day: P@20 0.10.", dec: "Supporting signal and useful context for explanations." },
+    { n: "Extra windows: 7 and 56 days, worst 3 days", f: "support", fam: "behavior", how: "The baseline idea over shorter and longer windows, and averaged over a person's three worst days.", src: "Our extension.", res: "7-day: P@20 1.00, 37 of 70. 56-day: P@20 1.00, 39. Worst 3 days: P@20 1.00, 39. Mostly the same people as the baseline.", dec: "Supporting inputs to the fusion." },
+    { n: "Isolation Forest (daily)", f: "support", fam: "model", how: "Random cuts through each day's personal deviations; odd days get separated in very few cuts.", src: "A standard comparison model in CERT studies " + R(5) + R(7) + ".", res: "r4.2: P@20 0.95, 37 of 70. r5.2: P@20 0.70, 30 of 99.", dec: "Supporting." },
+    { n: "Autoencoder (day and week)", f: "support", fam: "model", how: "A small neural network learns to compress and rebuild normal days or weeks; a badly rebuilt period scores high.", src: "Le &amp; Zincir-Heywood " + R(5) + "; Tuor et al. " + R(7) + ".", res: "Day: P@20 1.00, 39 of 70. Week: P@20 0.85, 39 of 70, but only 1 of 30 job-hunters.", dec: "Optional: our best candidate for showing the Telum AI accelerator " + R(23) + "." },
+    { n: "LOF on weekly data", f: "keep", fam: "model", how: "Asks whether a person's week sits in a much emptier neighborhood than its neighbors do.", src: "Weekly granularity from Le &amp; Zincir-Heywood " + R(5) + ".", res: "r4.2: 12 to 13 of 30 job-hunters in its top 100, the most of any single detector (P@20 0.35 to 0.45). r5.2: 11 of 30 job-hunters.", dec: "Kept: the slow-drift family." },
+    { n: "Recommender peer-of-item (websites)", f: "support", fam: "recommender", how: "For a new site, how similar you are to the most similar person who visited it before. If nobody like you ever has, surprise is high.", src: "Microsoft (Modell et al.) " + R(12) + "; Google Facade " + R(11) + ".", res: "r4.2: AUC 0.84, but P@20 0.45 and 17 of 70. r5.2: 31 of 99, all 29 leakers and all 10 sysadmins in its top 100. Counted the same way, a plain rare-new-site count beats it on r4.2 (P@20 0.81 vs 0.45) and loses on r5.2 (11.4 vs 31 found).", dec: "Kept inside the fused ranking; each wins on one dataset." },
+    { n: "Recommender popularity (lift) correction", f: "drop", fam: "recommender", how: "Divides predicted affinity by how popular the item is, since implicit ALS favors popular items.", src: "Hu, Koren &amp; Volinsky " + R(13) + "; Facade's lift score " + R(11) + ".", res: "Websites: AUC 0.74 but P@20 0.00. Computers: AUC 0.57.", dec: "Dropped." },
+    { n: "28-day site-visit lift", f: "drop", fam: "recommender", how: "The rise in visits to each site over 28 days against the person's own rate, optionally weighted by recommender surprise.", src: "Our idea for catching job-hunters.", res: "AUC 0.55 and 0.62. Our simple version's window bookkeeping was rough, so this isn't a fair test of the idea.", dec: "Dropped for now." },
+    { n: "Own-history percentile (week)", f: "keep", fam: "behavior", how: "For each week and count, the share of your own training weeks that were lower. A week where several counts beat everything you did before is a spike.", src: "Le &amp; Zincir-Heywood 2021 " + R(5) + ".", res: "Best top of the list on both datasets: r4.2 P@20 1.00, 39.4 of 70, AP 0.666; r5.2 P@20 1.00, 40.3 of 99, AP 0.477 (all 29 leakers). In a combined model: 47 to 51; hidden job-hunters 8 to 12 of 30.", dec: "Kept: the sudden-spike family." },
+    { n: "Unusual-weeks count", f: "keep", fam: "behavior", how: "The number of weeks with two or more counts above anything the person did in training.", src: "Le &amp; Zincir-Heywood " + R(5) + ", counted over time for slow attacks.", res: "r4.2: 12.5 of 30 job-hunters in its top 100. r5.2: 19.5 of 30 snoopers.", dec: "Kept in the drift family." },
+    { n: "Weekly persistence on unusual computers", f: "keep", fam: "rule", how: "The weeks someone logs into computers they didn't use before, divided by (1 + 50 x their training rate of logging in away from their main computer).", src: "Our r5.2 findings and the outside reviewer's controlled test.", res: "r5.2: 27 of 30 snoopers in the top 100 (P@20 0.70). Requiring the computer to be someone else's personal one (the ownership rule) keeps 27 and lifts P@20 to 0.85; with its original discount it reached 30 of 30.", dec: "Kept as the experimental out-of-role view. Designed after seeing r5.2." },
+    { n: "Trained combiner (logistic regression)", f: "support", fam: "fusion", how: "Learns how much to trust each detector from labeled cases; every person is scored by a model that never saw them (5-fold cross-validation).", src: "Standard stacking; supervised setups in Le et al. " + R(6) + ".", res: "r4.2: up to 52 of 70 (AP 0.857); 63 among 100 reviewed. r5.2: up to 49 of 99; 55 among 100. With one attack type hidden, r5.2 hidden leakers range from 0 to 28 of 29.", dec: "A reference that needs labels; not the headline." },
+    { n: "Gradient boosting combiner", f: "drop", fam: "fusion", how: "Many small decision trees, each fixing the previous ones' mistakes.", src: "Standard machine learning.", res: "60 of 70 found, AP 0.94, but only 4 of 30 hidden job-hunters.", dec: "Dropped: it doesn't generalize to unseen attacks." },
+    { n: "Rank sum and robust-z sum", f: "drop", fam: "fusion", how: "Adds up each detector's rank, or its robust z-score.", src: "Common practice.", res: "Rank sums dilute the baseline (P@20 0.55). Robust-z sum: P@20 1.00, 41 of 70; with no attack-label fitting it caught 16 of 30 hidden job-hunters, the best of any method.", dec: "Dropped as the headline. It showed that label-free combining generalizes better." },
+    { n: "Family fusion, industry style", f: "support", fam: "fusion", how: "Strongest signal per family of detectors, then combined (Google's rule: strongest + 0.2 x the rest); spotlight people corroborated by several families.", src: "Google SecOps " + R(18) + "; Microsoft Purview " + R(15) + ".", res: "Average of family maxima: 43 of 70. Corroborated by 2+ families above the 99th percentile: 11 of 11 were insiders (r4.2), 14 of 20 (r5.2).", dec: "Kept as a \"high confidence\" flag on the ranked list." },
+    { n: "Statistical fusion: family-first Stouffer", f: "keep", fam: "fusion", how: "Turns each detector's rank into a p-value, keeps the best per family (adjusted for family size), then adds the families' evidence on a z-scale.", src: "Outlier-ensemble methods " + R(19) + ".", res: "r4.2: P@20 1.00, 45 of 70, AP 0.784. Frozen and rerun on r5.2: P@20 0.90, 38 of 99, AP 0.478. Among 100 people reviewed it beat the baseline on both: 55 vs 44 and 43 vs 39.", dec: "Adopted: the default ranking." },
+    { n: "Specialist queues", f: "support", fam: "fusion", how: "Each detector fills its own review list, and each alert carries that detector's reason.", src: "Splunk risk-based alerting " + R(16) + ", Exabeam " + R(17) + ", Sentinel insights " + R(14) + ".", res: "Among 100 reviewed: r5.2 53 (vs fused ranking 43), r4.2 42 (vs 55). Removing the recommender's queue on r5.2 raised it to 59.", dec: "Kept only as the separate out-of-role view." },
+    { n: "Threshold-sized queues", f: "drop", fam: "fusion", how: "Alert only when a person's robust z-score on a signal is 6 or more, a preset choice.", src: "Our design choice.", res: "Far too strict: 10 alerts on r4.2 (8 insiders), 7 on r5.2 (6 insiders).", dec: "Dropped: we use a fixed review budget." },
+  ];
+  const VERD = { keep: ["kept", "ok"], support: ["supporting / optional", "acc"], drop: ["dropped", "flag"] };
+  const list = document.getElementById("cat-list");
+  list.innerHTML = M.map(m => `<details class="deep" data-f="${m.f}"><summary>${m.n} <span class="chip ${VERD[m.f][1]}">${VERD[m.f][0]}</span><span class="tag">${m.fam}</span></summary><div class="body">
+    <p><b>How it works.</b> ${m.how}</p><p><b>Where it came from.</b> ${m.src}</p><p><b>What our tests showed.</b> ${m.res}</p><p><b>Decision.</b> ${m.dec}</p></div></details>`).join("");
+  const counts = { all: M.length, keep: 0, support: 0, drop: 0 }; M.forEach(m => counts[m.f]++);
+  const btns = Array.from(document.querySelectorAll("#cat-filter button"));
+  btns.forEach(b => { b.textContent += ` (${counts[b.dataset.f]})`; b.addEventListener("click", () => {
+    btns.forEach(o => o.setAttribute("aria-pressed", o === b ? "true" : "false"));
+    list.querySelectorAll("details").forEach(d => { d.hidden = !(b.dataset.f === "all" || d.dataset.f === b.dataset.f); });
+  }); });
+})();
+/* ---------- queue simulator (invented employees) ---------- */
+(function () {
+  const Q = ["Spike", "Drift", "Out-of-role", "Destination"];
+  const E = [
+    { n: "Ana", r: "Finance", s: [92, 30, 5, 88], t: "Leaker", why: "after-hours USB + wikileaks" },
+    { n: "Ben", r: "Sales", s: [20, 85, 10, 15], t: "Job-hunter", why: "USB use creeping up for weeks" },
+    { n: "Chen", r: "Engineering", s: [15, 20, 96, 8], t: "Snooper", why: "logs into colleagues' PCs weekly" },
+    { n: "Dev", r: "IT sysadmin", s: [70, 15, 60, 90], t: "Sysadmin", why: "keylogger sites, supervisor's PC" },
+    { n: "Eli", r: "IT support", s: [55, 50, 45, 50], t: "Normal", why: "busy everywhere, nothing extreme" },
+    { n: "Fay", r: "Accounting", s: [60, 40, 20, 35], t: "Normal", why: "quarter-end overtime" },
+    { n: "Gus", r: "Marketing", s: [10, 12, 8, 70], t: "Normal", why: "new vendor website for a campaign" },
+    { n: "Hana", r: "Finance", s: [25, 60, 15, 20], t: "Normal", why: "gradually taking on a new role" },
+    { n: "Ivan", r: "Legal", s: [5, 8, 4, 6], t: "Normal", why: "quiet, regular routine" },
+    { n: "Jo", r: "HR", s: [35, 25, 30, 25], t: "Normal", why: "ordinary month" },
+    { n: "Kim", r: "Operations", s: [45, 35, 40, 40], t: "Normal", why: "a little above average on everything" },
+    { n: "Lee", r: "Engineering", s: [12, 18, 70, 10], t: "Normal", why: "covering a colleague's desk this month" },
+  ];
+  E.forEach(e => { e.avg = e.s.reduce((a, b) => a + b, 0) / 4; });
+  let k = 1, reveal = false;
+  const $ = s => document.querySelector(s);
+  function draw() {
+    const picks = Q.map((_, q) => E.slice().sort((a, b) => b.s[q] - a.s[q]).slice(0, k));
+    const inQ = new Map(); picks.forEach((ps, q) => ps.forEach(e => { if (!inQ.has(e.n)) inQ.set(e.n, []); inQ.get(e.n).push(Q[q]); }));
+    const N = inQ.size;
+    const blend = E.slice().sort((a, b) => b.avg - a.avg).slice(0, N); const inB = new Set(blend.map(e => e.n));
+    const bar = (v, on) => `<div style="display:flex;align-items:center;gap:6px"><div style="flex:1;min-width:48px;height:8px;border-radius:4px;background:var(--sunk);overflow:hidden"><div style="width:${v}%;height:100%;background:${on ? "var(--accent)" : "var(--normal)"}"></div></div><span class="mono" style="width:2.2em;text-align:right${on ? ";color:var(--accent);font-weight:600" : ""}">${v}</span></div>`;
+    let h = `<tr><th>Employee</th>${Q.map(q => `<th>${q}</th>`).join("")}<th>Blended avg</th><th>Truth</th></tr>`;
+    E.forEach(e => {
+      h += `<tr><td style="white-space:nowrap"><b>${e.n}</b> <span class="muted">${e.r}</span></td>`;
+      e.s.forEach((v, q) => { h += `<td style="min-width:110px">${bar(v, picks[q].includes(e))}</td>`; });
+      h += `<td class="num"><span class="mono"${inB.has(e.n) ? ' style="color:var(--flag);font-weight:600"' : ""}>${e.avg.toFixed(1)}</span></td>`;
+      h += `<td>${reveal ? `<span class="chip ${e.t === "Normal" ? "" : "flag"}">${e.t}</span>` : '<span class="muted">?</span>'}</td></tr>`;
+    });
+    $("#qsim-table").innerHTML = h;
+    const ins = arr => arr.filter(e => e.t !== "Normal").length;
+    const qPeople = E.filter(e => inQ.has(e.n));
+    const qList = qPeople.map(e => `<li><b>${e.n}</b> <span class="chip acc">${inQ.get(e.n).join(" + ")}</span>${reveal ? ` <span class="chip ${e.t === "Normal" ? "" : "flag"}">${e.t}</span> <span class="muted">${e.why}</span>` : ""}</li>`).join("");
+    const bList = blend.map(e => `<li><b>${e.n}</b> <span class="chip">avg ${e.avg.toFixed(1)}</span>${reveal ? ` <span class="chip ${e.t === "Normal" ? "" : "flag"}">${e.t}</span> <span class="muted">${e.why}</span>` : ""}</li>`).join("");
+    $("#qsim-out").innerHTML = `
+      <div class="card" style="border-color:var(--accent)"><b>Specialist queues review ${N} people</b>${reveal ? `<p><span class="chip ok">${ins(qPeople)} of 4 insiders found</span></p>` : ""}<ul class="stack" style="margin:0;padding-left:18px">${qList}</ul></div>
+      <div class="card"><b>Blended score reviews the same ${N}</b>${reveal ? `<p><span class="chip ${ins(blend) === 4 ? "ok" : "flag"}">${ins(blend)} of 4 insiders found</span></p>` : ""}<ul class="stack" style="margin:0;padding-left:18px">${bList}</ul></div>
+      ${reveal ? `<p style="grid-column:1/-1" class="callout ${k === 1 ? "ok" : ""}">${k === 1 ? `With one slot per queue, the queues find all four insiders in four reviews. The blend finds two: Chen the snooper scores 96 on out-of-role access but averages only ${E.find(x => x.n === "Chen").avg.toFixed(1)}, so busy-but-innocent Eli and Kim outrank him.` : k === 2 ? "With two slots, the queues still have all four insiders, plus two innocent people whose single signal is high (Hana's role change, Lee covering a desk). Their queue reason tells the analyst what to check. The blend has found three of the four." : "With three slots, both approaches reach all four insiders, but the queues got there first and every alert says why. In real use, queues let a small team stop early."}</p>` : ""}`;
+  }
+  document.querySelectorAll("#qsim-k button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("#qsim-k button").forEach(o => o.setAttribute("aria-pressed", o === b ? "true" : "false"));
+    k = +b.dataset.k; draw();
+  }));
+  $("#qsim-reveal").addEventListener("click", e => { reveal = !reveal; e.currentTarget.setAttribute("aria-pressed", reveal ? "true" : "false"); e.currentTarget.textContent = reveal ? "Hide the answers" : "Reveal who the insiders are"; draw(); });
+  draw();
+})();
+</script>
+
+<script>
+(function () {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs = {}, text) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; };
+  const tip = $("#tip");
+  function bindTip(node, html) {
+    node.addEventListener("pointermove", e => { tip.innerHTML = html; tip.classList.add("on"); const x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8); tip.style.left = x + "px"; tip.style.top = (e.clientY + 14) + "px"; });
+    node.addEventListener("pointerleave", () => tip.classList.remove("on"));
+  }
+  const num = v => Number.isInteger(v) ? String(v) : v.toFixed(1);
+
+  /* data tabs */
+  $$('[role="tab"]').forEach(t => t.addEventListener("click", () => {
+    $$('[role="tab"]').forEach(o => { o.setAttribute("aria-selected", o === t ? "true" : "false"); $("#" + o.getAttribute("aria-controls")).hidden = o !== t; });
+  }));
+
+  /* ---------- final numbers from the notebook (after outside review) ---------- */
+  const APPROACH = [
+    { g: "Baselines", n: "Hand rule: after-hours USB days", r42: [0.30, 33.5, 0.272], r52: [0.05, 4, 0.114] },
+    { g: "Baselines", n: "Personal baseline, daily", r42: [1.00, 38, 0.680], r52: [0.75, 32, 0.358] },
+    { g: "Baselines", n: "Personal baseline, 28-day", r42: [1.00, 38, 0.728], r52: [0.90, 36, 0.428] },
+    { g: "Novelty", n: "New website (naive)", r42: [0.05, 2, 0.099], r52: [0.10, 3.8, 0.072] },
+    { g: "Novelty", n: "Rare website (<1% of staff)", r42: [0.50, 41, 0.391], r52: [0.10, 8.1, 0.088] },
+    { g: "Recommender", n: "Recommender: surprising website", r42: [0.00, 5, 0.122], r52: [0.05, 4, 0.073] },
+    { g: "Recommender", n: "Recommender: peer-of-item website", r42: [0.45, 17, 0.364], r52: [0.35, 31, 0.259] },
+    { g: "Recommender", n: "Recommender: surprising computer", r42: [0.15, 10.3, 0.099], r52: [0.10, 11, 0.119] },
+    { g: "Our signals", n: "Own-history percentile (week)", r42: [1.00, 39.4, 0.666], r52: [1.00, 40.3, 0.477] },
+    { g: "Our signals", n: "Unusual-weeks count", r42: [0.20, 24.3, 0.325], r52: [0.17, 20.1, 0.219] },
+    { g: "Our signals", n: "Weekly LOF", r42: [0.35, 14, 0.169], r52: [0.45, 14, 0.138] },
+    { g: "Our signals", n: "Ownership / persistence (r5.2)", r42: [0.00, 2, 0.078], r52: [0.80, 30, 0.272] },
+    { g: "Combined", n: "Fused ranking (Stouffer, our default)", r42: [1.00, 45, 0.784], r52: [0.90, 38, 0.478] },
+  ];
+  const TOTAL = { r42: 70, r52: 99 };
+  const HEAT = {
+    r42: { cols: ["Leaker", "Job-hunter", "Sysadmin"], tot: [30, 30, 10], rows: [
+      ["Personal baseline, 28-day", [30, 5, 9]], ["Own-history percentile", [30, 4.9, 8.1]], ["Unusual-weeks count", [22.4, 12.5, 1.1]], ["Weekly LOF", [4, 13, 0]],
+      ["Rare website", [30, 1.9, 10]], ["Recommender: peer-of-item website", [22.6, 3, 9.6]], ["Persistence on unusual computers", [3, 3, 6]], ["Fused ranking (Stouffer)", [30, 15, 10]] ] },
+    r52: { cols: ["Leaker", "Job-hunter", "Sysadmin", "Snooper"], tot: [29, 30, 10, 30], rows: [
+      ["Personal baseline, 28-day", [25, 5, 7, 2]], ["Own-history percentile", [29, 5.4, 9, 1.3]], ["Unusual-weeks count", [1, 4, 1, 19.5]], ["Weekly LOF", [1, 11, 2, 2]],
+      ["Rare website", [5.1, 1.2, 5.2, 0.2]], ["Recommender: peer-of-item website", [29, 0, 10, 0]], ["Persistence on unusual computers", [1, 1, 0, 27]], ["Fused ranking (Stouffer)", [29, 4, 10, 0]] ] },
+  };
+  const STEPS = [
+    { n: "Baseline + rare sites", v: 39, note: "AP 0.733" },
+    { n: "+ naive \"new\" check", v: 41, note: "AP 0.759: +2" },
+    { n: "+ recommender instead", v: 45, note: "AP 0.785: +4 over naive" },
+    { n: "All behavior signals + weekly LOF/AE", v: 47, note: "AP 0.800" },
+    { n: "+ own-history percentiles", v: 51, note: "AP 0.836" },
+    { n: "+ own-history + recommender", v: 51, note: "AP 0.857: +0" },
+  ];
+  const BUDGET = {
+    r42: { sub: "r4.2: 1,000 staff, 70 insiders", rows: [["Trained combiner (needs labels)", 63, false], ["Fused ranking (our default)", 55, true], ["Baseline: 28-day personal", 44, false], ["Own-history percentile", 43, false], ["Four specialist queues", 42, false], ["Queues without the recommender queue", 41, false]] },
+    r52: { sub: "r5.2: 2,000 staff, 99 insiders (adds snoopers)", rows: [["Trained combiner (needs labels)", 55, false], ["Queues without the recommender queue", 59, false], ["Four specialist queues", 53, false], ["Own-history percentile", 44.6, false], ["Fused ranking (our default)", 43, true], ["Baseline: 28-day personal", 39, false]] },
+  };
+  const HIDDEN = [
+    ["Gradient boosting (trained)", 4], ["Logistic regression (trained)", 5], ["Trained + own-history percentiles", 12], ["Trained + own-history + peer-of-item", 16], ["No attack-label fitting: robust sum", 16],
+  ];
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const bar = (L, y, w, h, fill) => el("path", { d: `M${L},${y} h${Math.max(0, w - 4)} a4,4 0 0 1 4,4 v${h - 8} a4,4 0 0 1 -4,4 h-${Math.max(0, w - 4)} z`, fill });
+  function axis(svg, x, H, ticks) { ticks.forEach(t => { svg.append(el("line", { x1: x(t), x2: x(t), y1: 0, y2: H - 22, class: "grid" })); svg.append(el("text", { x: x(t), y: H - 6, "text-anchor": "middle", class: "axis" }, t)); }); }
+
+  function approach(rel) {
+    const box = $("#ch-approach-svg"); box.innerHTML = "";
+    $("#ch-approach-sub").textContent = rel === "r42" ? "r4.2: 1,000 staff, 70 insiders. Label shows P@20 (share of top 20 who are insiders)." : "r5.2: 2,000 staff, 99 insiders. Label shows P@20.";
+    const W = 760, L = 260, R = 110, rowH = 24, gTop = 18;
+    let y = 6, rows = [], lastG = null;
+    APPROACH.forEach(a => { if (a.g !== lastG) { y += lastG ? 14 : 0; rows.push({ grp: a.g, y }); y += gTop; lastG = a.g; } rows.push({ a, y }); y += rowH; });
+    const H = y + 26, x = v => L + (W - L - R) * v / 70;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Insiders found in top 70 by approach" });
+    axis(svg, x, H, [0, 10, 20, 30, 40, 50, 60, 70]);
+    rows.forEach(r => {
+      if (r.grp) { svg.append(el("text", { x: 0, y: r.y + 12, class: "grp" }, r.grp)); return; }
+      const [p20, hits, ap] = r.a[rel], cy = r.y + 4;
+      svg.append(el("text", { x: L - 10, y: cy + 11, "text-anchor": "end", class: "lbl" }, r.a.n));
+      svg.append(bar(L, cy, Math.max(2, x(hits) - L), 16, r.a.g === "Combined" ? css("--s3") : r.a.g === "Recommender" ? css("--s2") : css("--s1")));
+      svg.append(el("text", { x: x(hits) + 6, y: cy + 12, class: "val" }, `${num(hits)}   P@20 ${p20.toFixed(2)}`));
+      const hit = el("rect", { x: 0, y: r.y, width: W, height: rowH, fill: "transparent" }); svg.append(hit);
+      bindTip(hit, `<b>${r.a.n}</b><br>${num(hits)} of ${TOTAL[rel]} insiders in its top 70<br>P@20 ${p20.toFixed(2)} · AP ${ap.toFixed(3)}`);
+    });
+    box.append(svg);
+    const t = ["<table><tr><th>Approach</th><th class=num>Found in top 70</th><th class=num>P@20</th><th class=num>AP</th></tr>"];
+    APPROACH.forEach(a => { const [p, h, ap] = a[rel]; t.push(`<tr><td>${a.n}</td><td class=num>${num(h)} of ${TOTAL[rel]}</td><td class=num>${p.toFixed(2)}</td><td class=num>${ap.toFixed(3)}</td></tr>`); });
+    $("#tb-approach").innerHTML = t.join("") + "</table>";
+  }
+
+  function mix(a, b, t) { const pa = a.replace("#", ""), pb = b.replace("#", ""); const c = i => Math.round(parseInt(pa.substr(i, 2), 16) * (1 - t) + parseInt(pb.substr(i, 2), 16) * t); return `rgb(${c(0)},${c(2)},${c(4)})`; }
+  function lum(rgb) { const m = rgb.match(/\d+/g).map(Number); return (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) / 255; }
+  function heat(rel) {
+    const d = HEAT[rel], box = $("#ch-heat-svg"); box.innerHTML = "";
+    const L = 260, cw = Math.min(120, (760 - L) / d.cols.length), rh = 34, top = 30, W = L + cw * d.cols.length + 4, H = top + rh * d.rows.length + 4;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Share of each scenario caught by each detector" });
+    const lo = css("--heat-lo"), hi = css("--heat-hi");
+    d.cols.forEach((c, j) => svg.append(el("text", { x: L + cw * j + cw / 2, y: 18, "text-anchor": "middle", class: "lbl" }, c)));
+    d.rows.forEach(([name, vals], i) => {
+      const y = top + rh * i;
+      svg.append(el("text", { x: L - 10, y: y + rh / 2 + 4, "text-anchor": "end", class: "lbl" }, name));
+      vals.forEach((v, j) => {
+        const f = v / d.tot[j], fill = mix(lo, hi, Math.pow(f, 0.85));
+        const r = el("rect", { x: L + cw * j + 2, y: y + 2, width: cw - 4, height: rh - 4, rx: 5, fill }); svg.append(r);
+        const tx = el("text", { x: L + cw * j + cw / 2, y: y + rh / 2 + 4, "text-anchor": "middle", class: "val" }, `${num(v)}/${d.tot[j]}`);
+        tx.style.fill = lum(fill) < 0.55 ? "#ffffff" : "#10233f"; tx.style.pointerEvents = "none"; svg.append(tx);
+        bindTip(r, `<b>${name}</b><br>${num(v)} of ${d.tot[j]} ${d.cols[j].toLowerCase()}s in its top 100 (${Math.round(f * 100)}%)`);
+      });
+    });
+    box.append(svg);
+  }
+
+  function steps() {
+    const box = $("#ch-steps-svg"); box.innerHTML = "";
+    const W = 760, L = 270, R = 170, rh = 30, H = rh * STEPS.length + 30, x = v => L + (W - L - R) * v / 70;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Insiders found as signals are added" });
+    axis(svg, x, H, [0, 10, 20, 30, 40, 50, 60, 70]);
+    STEPS.forEach((s, i) => {
+      const y = i * rh + 6, rec = /recommender/.test(s.n);
+      if (i === 3) svg.append(el("line", { x1: 0, x2: W, y1: y - 4, y2: y - 4, stroke: css("--rule"), "stroke-dasharray": "4 4" }));
+      svg.append(el("text", { x: L - 10, y: y + 13, "text-anchor": "end", class: "lbl" }, s.n));
+      svg.append(bar(L, y, x(s.v) - L, 18, rec ? css("--s2") : css("--s1")));
+      svg.append(el("text", { x: x(s.v) + 6, y: y + 13, class: "val" }, `${s.v}   ${s.note}`));
+      const hit = el("rect", { x: 0, y: y - 3, width: W, height: rh, fill: "transparent" }); svg.append(hit);
+      bindTip(hit, `<b>${s.n}</b><br>${s.v} of 70 insiders in the top 70<br>${s.note}`);
+    });
+    box.append(svg);
+  }
+
+  function budget(rel) {
+    const d = BUDGET[rel], box = $("#ch-budget-svg"); box.innerHTML = "";
+    $("#ch-budget-sub").textContent = d.sub + ". Every method reviews exactly 100 different people.";
+    const W = 760, L = 270, R = 60, rh = 30, H = rh * d.rows.length + 30, x = v => L + (W - L - R) * v / 70;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Insiders found among 100 people reviewed" });
+    axis(svg, x, H, [0, 10, 20, 30, 40, 50, 60, 70]);
+    d.rows.forEach(([n, v, mine], i) => {
+      const y = i * rh + 6;
+      svg.append(el("text", { x: L - 10, y: y + 13, "text-anchor": "end", class: "lbl" }, n));
+      const b = bar(L, y, x(v) - L, 18, mine ? css("--s3") : css("--s1")); svg.append(b);
+      svg.append(el("text", { x: x(v) + 6, y: y + 13, class: "val" }, num(v)));
+      bindTip(b, `<b>${n}</b><br>${num(v)} insiders among 100 people reviewed`);
+    });
+    box.append(svg);
+  }
+
+  function hidden() {
+    const box = $("#ch-hidden-svg"); box.innerHTML = "";
+    const W = 760, L = 280, R = 60, rh = 30, H = rh * HIDDEN.length + 30, x = v => L + (W - L - R) * v / 30;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Job-hunters caught when hidden from training" });
+    axis(svg, x, H, [0, 5, 10, 15, 20, 25, 30]);
+    HIDDEN.forEach(([n, v], i) => {
+      const y = i * rh + 6;
+      svg.append(el("text", { x: L - 10, y: y + 13, "text-anchor": "end", class: "lbl" }, n));
+      const b = bar(L, y, x(v) - L, 18, /No attack-label/.test(n) ? css("--s3") : css("--s1")); svg.append(b);
+      svg.append(el("text", { x: x(v) + 6, y: y + 13, class: "val" }, `${v} of 30`));
+      bindTip(b, `<b>${n}</b><br>${v} of 30 hidden job-hunters in its top 100`);
+    });
+    box.append(svg);
+  }
+
+  function wire(chartId, fn) {
+    const btns = $$(`#${chartId} .seg button`);
+    btns.forEach(b => b.addEventListener("click", () => { btns.forEach(o => o.setAttribute("aria-pressed", o === b ? "true" : "false")); fn(b.dataset.rel); }));
+  }
+  function drawAll() {
+    approach($("#ch-approach .seg [aria-pressed=true]").dataset.rel);
+    heat($("#ch-heat .seg [aria-pressed=true]").dataset.rel);
+    budget($("#ch-budget .seg [aria-pressed=true]").dataset.rel);
+    steps(); hidden();
+  }
+  wire("ch-approach", approach); wire("ch-heat", heat); wire("ch-budget", budget);
+  drawAll();
+  new MutationObserver(drawAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+
+  const links = $$("nav.toc a"), secs = links.map(a => $(a.getAttribute("href")));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); } }), { rootMargin: "-30% 0px -60% 0px" });
+  secs.forEach(s => s && io.observe(s));
+})();
+</script>
