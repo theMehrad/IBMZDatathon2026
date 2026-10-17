@@ -1,43 +1,66 @@
 # OutOfRole · The Debugging Table · IBM Z Datathon 2026
 
-Track: **AI Secured: Innovation Without Exposure.**
+OutOfRole catches employees who misuse their access while they are still active, explains each alert with checked evidence (IBM Granite), and advises on access with a recommender. It runs on one LinuxONE server.
 
-OutOfRole spots insiders while they are still active, explains each alert with checked evidence, and suggests which access each person should keep pre-approved. It runs on one LinuxONE server, and people appear only as pseudonyms.
+**Headline:** in a day-by-day replay of 2,000 employees' logs, a 20-name daily list caught **80 of 99 insiders while still active**, twice a standard baseline (40).
 
-## Start here
+## Which file do I need?
 
-0. **[`Team_Guide.md`](Team_Guide.md)** (also as a PDF): the teammate guide: what we built, results backed by data, how we checked them, and a FAQ.
-0. **[`Proposal_Update.md`](Proposal_Update.md)** (also as a PDF): the reworded proposal for the final submission, field by field within the form's limits, plus the 30-second pitch.
-1. **[`OutOfRole_In_Plain_Words.md`](OutOfRole_In_Plain_Words.md)** (also as a PDF): the whole project in three pages, in plain words.
-1. **[`Build_Plan.md`](Build_Plan.md)** (also as a PDF): what each person builds, in what order, the cut rules, the demo, and the verified numbers.
-2. **[`feasibility/Verified_Numbers.md`](feasibility/Verified_Numbers.md)**: the only source for numbers in any slide, doc or video.
-3. **[`Data_Access_Guide.md`](Data_Access_Guide.md)**: how to download CERT r4.2 and r5.2 onto the VM.
-
-## Headline results (CERT, settings frozen on r4.2, then r5.2 run unchanged)
-
-| | r4.2 | r5.2 |
+| I want to... | Open | Form |
 |---|---|---|
-| Insiders flagged on a 20-name daily list before their last malicious action | 59 of 70 | 80 of 99 |
-| Same, 28-day personal baseline on the same 20-name list | 59 | 40 |
-| Insiders flagged in time with a real malicious event in their top 3 evidence items (evidence up to the flag day) | 64% | 85% |
-| Recommender recall of next new websites, top 20 (popularity) | 21% (14.5%) | 19% (13%) |
-| Snoopers in the top 100 of the end-of-period snooping review (recommender) | no snoopers | 27 of 30 |
+| Understand the project in 5 minutes | `1_Read_First/OutOfRole_Summary.pdf` | 3 pages |
+| Understand everything: methods, results, checks, FAQ | `1_Read_First/OutOfRole_Team_Guide.pdf`, or the Team Guide page (online, collapsible) | 11 pages |
+| Know what I build at the event, and when | `2_Event_Day/Build_Plan.pdf`, or the Build Plan page | 6 pages |
+| Set up the VM and download the data | `2_Event_Day/LinuxONE_Setup_Guide.pdf` and `2_Event_Day/Data_Download_Guide.pdf` | guides |
+| Do the two IBM labs (Granite, AI on Z) | `2_Event_Day/IBM_Lab_Materials/` | notebooks |
+| Write the final submission or the pitch | `3_Submission/Proposal_Final_Wording.pdf` | 2 pages |
+| See what we originally submitted | `3_Submission/Proposal_As_Submitted_Oct15.md` | 1 page |
+| Run the code | `4_Code/` (see "The code" below) | Python |
+| Check a number before quoting it | `5_Evidence/Verified_Numbers.md` | every number with its source |
+| Read the full study with code and outputs | `5_Evidence/Study_Notebook.ipynb` (GitHub shows it) | notebook |
+| See how the study evolved and why | `5_Evidence/Study_Report.pdf` | 5 pages |
+| Find a published source or real-world case | `5_Evidence/Research_Sources.md` | list |
+| See the outside reviews | `5_Evidence/Reviews/` (11 rounds) | Markdown |
 
-## What's in this repo
+## The online pages
 
-| Path | What it is |
-|---|---|
-| `Build_Plan.*` | The build plan for October 17 to 18 |
-| `feasibility/OutOfRole_Feasibility.ipynb` (+ `.html`) | The full pre-event study: code, explanations and findings per step |
-| `feasibility/reference/outofrole_minimal.py`, `case_file.py` | The whole build in about 300 lines: the daily list, evidence, recommender, access advice, and the Granite reply check. Port these to LinuxONE. |
-| `feasibility/reference/` | The scripts behind the verified numbers. They are local reference implementations, and we rewrite them on the event server. Paths inside point to Mehrad's laptop. |
-| `feasibility/OutOfRole_Plan.*`, `feasibility/Team_Briefing.*` | Plan with findings per step; teammate explainer |
-| `feasibility/codex_review/` | Eleven rounds of external review (Codex) and our responses. Round 11: simple, impressive and connected to the proposal, all yes and certain |
-| `Research_Findings.md` | Published work, industry practice, LinuxONE notes, sources |
-| `Abstract_Submission.md` | The abstract as submitted |
-| `output/` | VM, SSH, Docker, Jupyter and PySpark setup guide (its Chapter 9 is superseded by the build plan) |
-| `research/` | IBM lab notebooks and setup references |
+These are private claude.ai pages. Share each one from its Share menu before sending the link.
+
+| Page | Use it for | Link |
+|---|---|---|
+| **OutOfRole Team Guide** | Start here: the whole project, collapsible, with FAQ | https://claude.ai/artifact/JoDjs32y8userQWpMLJfyP |
+| **OutOfRole Build Plan** | Event day: roles, hours, cut rules, demo | https://claude.ai/artifact/R2z3vjiUdhJJm1J4hGszDC |
+| **OutOfRole Deep Dive** | Optional: interactive simulators and the full method catalog | https://claude.ai/artifact/1doUJaccJU4xsBGJbHcx4L |
+
+Their source files are in `6_Web_Pages/`.
+
+## The code
+
+Run in this order (Python 3.11 with pandas, numpy, scipy and pyspark; Java 17 for Spark):
+
+| Step | File | What it does | Part of the project |
+|---|---|---|---|
+| 0 | `4_Code/build_tables.py 4.2` | Spark turns the raw logs into three tables in `data/cache/` | Data |
+| 1 | `4_Code/outofrole_minimal.py 4.2` | The whole system; prints every headline number in about 20 seconds | Daily list (lines 43 to 94), snooping review (97 to 122), evidence ranking (124 to 186), recommender and access advice (188 to 215), new-site rule (217 to 221) |
+| 2 | `4_Code/case_file.py` | The Granite step: evidence pack, prompt, reply check, fallback; runs a self-test | Case files |
+| optional | `4_Code/checks/followup_checks.py 4.2` | Resampling, rolling baseline, role changes, monthly retraining | Robustness |
+| reference | `4_Code/experiments/` | The original study scripts behind the evidence | Evidence |
+
+The same methods, with explanations, are in the notebook: Step 1 (tables), Step 3 (baseline), Steps 10 and 19 (daily list), Step 13 (snooping), Steps 16 and 17 (recommender and access), Step 18 (evidence), and Part 3 (the one-file run).
 
 ## Data
 
-The CERT Insider Threat datasets are **not** in this repo, and must not be added. Their license forbids redistribution. Each teammate downloads them directly (see `Data_Access_Guide.md`). `data/` and the derived Parquet caches under `feasibility/work/` are git-ignored.
+Not in this repo: the CERT license forbids redistribution. Each teammate downloads it (`2_Event_Day/Data_Download_Guide.pdf`) into `data/`. The LANL dataset (real login logs with red-team labels) goes in `data/lanl/`. Everything under `data/` is git-ignored.
+
+## Folder map
+
+| Folder | Holds |
+|---|---|
+| `1_Read_First/` | The summary and the team guide |
+| `2_Event_Day/` | Build plan, setup and data guides, IBM lab materials |
+| `3_Submission/` | The proposal as submitted and the final wording |
+| `4_Code/` | The build code, checks and study experiments |
+| `5_Evidence/` | Verified numbers, study report, notebook, sources, reviews |
+| `6_Web_Pages/` | Sources of the three online pages |
+
+Older drafts and setup scraps live in `9_Archive/` on Mehrad's laptop and are not in the repo. Review rounds 1 to 11 mention files by their names at the time; the table above gives today's names.

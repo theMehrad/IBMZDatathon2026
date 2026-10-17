@@ -1,16 +1,20 @@
 # CERT data: license forbids redistribution. Never commit raw or derived data.
 data/
-feasibility/work/
 *.parquet
 *.csv
 !research/*.csv
 
 # local outputs and tooling
-feasibility/reference/results/
-feasibility/reference/out/
-feasibility/reference/*.txt
+4_Code/experiments/results/
+4_Code/experiments/out/
+4_Code/experiments/results_r*.txt
 __pycache__/
 .ipynb_checkpoints/
 .DS_Store
 *.log
 *.aux
+
+# kept on disk, not in the repo: history and duplicate formats
+9_Archive/
+2_Event_Day/LinuxONE_Setup_Guide.docx
+5_Evidence/Study_Notebook.html
