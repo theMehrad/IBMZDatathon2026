@@ -13,6 +13,14 @@ subtitle: "The Debugging Table · IBM Z Datathon 2026 · October 17 to 18"
 
 **Pitch line:** "Most insider tools find the culprit after they've left. Ours put 80 of 99 insiders on a 20-name daily list while they were still active, before about half of their malicious actions. Granite, on the same server, writes a case file citing the real evidence. A recommender trims everyone's access to what they actually need."
 
+\newpage
+
+# Level by level: what happens and what it buys us
+
+Each level runs on the output of the one above it. Grey bars show the reference (chance or the previous best), and teal bars show the level. Release r4.2 has 70 insiders among 1,000 staff; r5.2 has 99 among 2,000. "Chance" at L1 is the expected number of insiders in 100 randomly chosen people.
+
+![](figures/levels.png){ width=84% }
+
 # Numbers we tested
 
 CERT data. Settings were frozen on r4.2, then r5.2 was run unchanged. Each number was reproduced with independent code.

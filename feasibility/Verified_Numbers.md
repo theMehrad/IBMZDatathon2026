@@ -95,6 +95,7 @@ Script: `least_privilege_full.py`.
 - Own-history percentile: P@20 1.00 on both releases.
 - Frozen family-first Stouffer, insiders found in 100 reviews: 55 vs 44 for R2 (r4.2), 43 vs 39 (r5.2).
 - Out-of-role persistence view: 27 to 30 of 30 snoopers in the top 100 (r5.2).
+- Chance reference for 100 reviews: 100 people drawn at random contain 7 insiders on average on r4.2 (70 of 1,000) and 4.95 on r5.2 (99 of 2,000). This is arithmetic, used as L1's reference in the level-by-level visual.
 
 ## 7. Step ladder: the number at each step and the improvement
 
