@@ -8,10 +8,10 @@ subtitle: "The Debugging Table · IBM Z Datathon 2026 · October 17 to 18"
 **OutOfRole spots insiders while they are still active, explains each alert with checked evidence, and suggests which access each person should keep pre-approved.** It all runs on one LinuxONE server, and people appear only as pseudonyms (U-017).
 
 1. **Early warning (the headline).** Replay the logs day by day. Compare each person with their own normal weeks; the 20 most unusual people form a daily review list.
-2. **Granite case files.** For each person on the list, code picks the evidence ("new to this person, rarest first"). Granite writes the explanation citing it, and code checks every number before anyone sees it.
+2. **Granite case files.** For each person on the list, code ranks the evidence ("new to this person, rarest first"). Granite picks a label from a fixed list and the supporting facts; code writes every fact sentence and rejects any other reply.
 3. **Least-privilege advisor (the recommender).** A recommender predicts which websites each person is likely to use next. Those can be pre-approved; anything else goes to a reviewer. Sites no one in the company visited during the training months are blocked.
 
-**Pitch line:** "In a day-by-day replay of 2,000 employees' logs, OutOfRole put 80 of 99 insiders on a 20-name daily review list while their attacks were under way, twice as many as a standard 28-day baseline on the same 20-name list, and on average about half of each one's malicious actions came after the flag. Granite, on the same server, writes a case file citing the evidence. A recommender suggests which access to pre-approve, so reviewers see fewer routine requests."
+**Pitch line:** "In a day-by-day replay of 2,000 employees' logs, OutOfRole put 80 of 99 insiders on a 20-name daily review list while their attacks were under way, twice as many as a standard 28-day baseline on the same 20-name list, and on average about half of each one's malicious actions came after the flag. Granite, on the same server, labels each case and picks the supporting evidence, which code writes into a checked case file. A recommender suggests which access to pre-approve, so reviewers see fewer routine requests."
 
 \newpage
 
@@ -110,7 +110,7 @@ Fill in names. Hours count from the start of our build.
 # Demo (3 minutes)
 
 1. The replay plays. A leaker joins the daily list on the day of the first wikileaks upload.
-2. Click the person. Granite's case file streams in, and each number turns green once the code confirms it.
+2. Click the person. The case file appears: Granite's label, the top-ranked evidence written by code, and the facts Granite cited marked. Then show a bad reply being rejected and replaced by the fallback.
 3. Access panel: 20 pre-approved sites. A request for wikileaks.org is blocked as new to the company.
 
 # Say this, not that
