@@ -105,7 +105,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 <header>
   <div class="eyebrow">The Debugging Table · IBM Z Datathon 2026 · Oct 17 to 18</div>
   <h1>OutOfRole build plan</h1>
-  <p class="lede">OutOfRole spots insiders while they are still active, explains each alert with checked evidence, and trims everyone's access to what they actually need. It all runs on one LinuxONE server, and people appear only as pseudonyms (U-017).</p>
+  <p class="lede">OutOfRole spots insiders while they are still active, explains each alert with checked evidence, and suggests which access each person should keep pre-approved. It all runs on one LinuxONE server, and people appear only as pseudonyms (U-017).</p>
 </header>
 
 <section>
@@ -113,9 +113,9 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
   <div class="parts">
     <div class="part"><span class="tag">Headline</span><b>Early warning</b><p>Replay the logs day by day. Compare each person with their own normal weeks; the 20 most unusual people form a daily review list.</p></div>
     <div class="part"><span class="tag">Explain</span><b>Granite case files</b><p>Code picks the evidence ("new to this person, rarest first"). Granite writes the explanation citing it, and code checks every number before anyone sees it.</p></div>
-    <div class="part"><span class="tag">Prevent</span><b>Least-privilege advisor</b><p>A recommender predicts which websites each person will need next and pre-approves them. Anything else needs a request; sites nobody here has visited are blocked.</p></div>
+    <div class="part"><span class="tag">Prevent</span><b>Least-privilege advisor</b><p>A recommender predicts which websites each person is likely to use next, so those can be pre-approved. Anything else goes to a reviewer; sites nobody here has visited are blocked.</p></div>
   </div>
-  <p class="pitch">"Most insider tools find the culprit after they've left. Ours put 80 of 99 insiders on a 20-name daily list while they were still active, before about half of their malicious actions. Granite, on the same server, writes a case file citing the real evidence. A recommender trims everyone's access to what they actually need."</p>
+  <p class="pitch">"Most insider tools find the culprit after they've left. Ours put 80 of 99 insiders on a 20-name daily list while they were still active, twice as many as a standard 28-day baseline, and on average about half of each one's malicious actions came after the flag. Granite, on the same server, writes a case file citing the evidence. A recommender suggests which access to pre-approve, so reviewers see fewer routine requests."</p>
 </section>
 
 <section id="levels">
@@ -161,9 +161,9 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
       <div class="lvl-text"><span class="lvl-id">L4</span><b>Early warning</b><p>Replay the logs one day at a time, using only the past. The 20 highest running scores form that day's review list.</p></div>
       <div class="lvl-bars">
         <div class="metric">Insiders on the list before their last malicious action</div>
-        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:47.1%"></i></div><div class="track2"><i class="b1" style="width:84.3%"></i></div></div><span class="vals">L1 33 → <b>59</b> <em class="chg">+26</em></span></div>
-        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:28.3%"></i></div><div class="track2"><i class="b1" style="width:80.8%"></i></div></div><span class="vals">L1 28 → <b>80</b> <em class="chg">+52</em></span></div>
-        <p class="lvl-note">Chance gives about 3. About half of each insider's malicious actions (54%, 48%) come after the flag. Leakers are flagged the same day; job-hunters and snoopers after 1.5 to 3 weeks. Analyst load is about 5 new names a week.</p>
+        <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:84.3%"></i></div><div class="track2"><i class="b1" style="width:84.3%"></i></div></div><span class="vals">L1 59 → <b>59</b> <em class="chg">tie</em></span></div>
+        <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:40.4%"></i></div><div class="track2"><i class="b1" style="width:80.8%"></i></div></div><span class="vals">L1 40 → <b>80</b> <em class="chg">+40</em></span></div>
+        <p class="lvl-note">Grey is the 28-day baseline at similar list churn. Under our running rule it gets only 33 and 28, and a random score gets 10 and 11. On average, about half of each insider's labelled malicious actions (54%, 48%) came on later days. Median delay: 0 days for leakers (most were already listed) and 1.5 to 3 weeks for job-hunters and snoopers. Analyst load is about 5 new names a week.</p>
       </div>
     </div>
 
@@ -174,18 +174,18 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
         <div class="metric">Insiders flagged in time with a real malicious event in their top 3 items (evidence up to the flag day)</div>
         <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:49%"></i></div><div class="track2"><i class="b1" style="width:66%"></i></div></div><span class="vals">rarity 49% → <b>66%</b> <em class="chg">+17</em></span></div>
         <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:51%"></i></div><div class="track2"><i class="b1" style="width:85%"></i></div></div><span class="vals">rarity 51% → <b>85%</b> <em class="chg">+34</em></span></div>
-        <p class="lvl-note">Leakers, sysadmins and snoopers: 85 to 100%. Job-hunters are the hard case (33% and 70%); on r4.2 the recommender points at their evidence better (75%), so a mixed rule is being tested.</p>
+        <p class="lvl-note">Leakers, sysadmins and snoopers: 85 to 100%. Job-hunters are the hard case (33% and 70%). Adding the recommender's top item as a third evidence slot (tested after the fact) lifts r4.2 to 78% (job-hunters 56%) and leaves r5.2 at 85%.</p>
       </div>
     </div>
 
     <div class="stage">Prevent</div>
     <div class="lvl">
-      <div class="lvl-text"><span class="lvl-id">L6</span><b>Least-privilege advisor</b><p>The recommender predicts each person's next websites and pre-approves them. Anything else needs a request; sites nobody here has visited are blocked.</p></div>
+      <div class="lvl-text"><span class="lvl-id">L6</span><b>Least-privilege advisor</b><p>The recommender predicts each person's next websites, so those can be pre-approved; anything else goes to a reviewer. Sites nobody here has visited are blocked.</p></div>
       <div class="lvl-bars">
         <div class="metric">Next new websites caught by the top 20 guesses (bar scale 0 to 30%)</div>
         <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:48.3%"></i></div><div class="track2"><i class="b1" style="width:70.3%"></i></div></div><span class="vals">popularity 14.5% → <b>21.1%</b></span></div>
         <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:43.3%"></i></div><div class="track2"><i class="b1" style="width:63.3%"></i></div></div><span class="vals">popularity 13.0% → <b>19.0%</b></span></div>
-        <p class="lvl-note">Access requests drop from 2.31 to 1.82 per person-month (3.07 to 2.48 on r5.2). The new-to-company rule blocks 100% of wikileaks and keylogger visits, costing 5 normal people 8 days in total on r4.2.</p>
+        <p class="lvl-note">Access requests drop from 2.31 to 1.82 per person-month (3.07 to 2.48 on r5.2). It suggests rather than decides: only 28% and 41% of its extra grants were later used. The new-to-company rule blocks 100% of wikileaks and keylogger visits, costing 5 normal people 8 days in total on r4.2.</p>
       </div>
     </div>
   </div>
@@ -198,10 +198,11 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
     <thead><tr><th>Claim</th><th>r4.2 · 70 insiders</th><th>r5.2 · 99 insiders</th></tr></thead>
     <tbody>
       <tr><td>Insiders on the daily list before their last malicious action</td><td class="n"><strong>59</strong></td><td class="n"><strong>80</strong></td></tr>
-      <tr><td>Same, with a simple 28-day personal baseline</td><td class="n">33</td><td class="n">28</td></tr>
+      <tr><td>Same, 28-day personal baseline at similar list churn (the fair comparison)</td><td class="n">59</td><td class="n">40</td></tr>
+      <tr><td>Same, 28-day baseline under our running rule (the pre-registered comparison)</td><td class="n">33</td><td class="n">28</td></tr>
       <tr><td>Same, by chance (shuffled real list histories)</td><td class="n">about 3</td><td class="n">about 3</td></tr>
       <tr><td>Same, a random score on the same 20-name list</td><td class="n">10</td><td class="n">11</td></tr>
-      <tr><td>Share of malicious actions that happen after the flag</td><td class="n">54%</td><td class="n">48%</td></tr>
+      <tr><td>Average share of each insider's labelled malicious actions on days after the flag</td><td class="n">54%</td><td class="n">48%</td></tr>
       <tr><td>New names per week for the analyst</td><td class="n">about 5</td><td class="n">about 5</td></tr>
       <tr><td>Insiders flagged in time with a real malicious event in their top 3 evidence items, using evidence up to the flag day (global rarity in brackets)</td><td class="n">66% (49%)</td><td class="n">85% (51%)</td></tr>
       <tr><td>Next new websites caught by the recommender's top 20 (popularity in brackets)</td><td class="n">21% (14.5%)</td><td class="n">19% (13%)</td></tr>
@@ -210,7 +211,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
     </tbody>
   </table></div>
   <ul class="note">
-    <li>Leakers are flagged the same day.</li>
+    <li>Leakers: median delay 0 days from the first labelled malicious day, mostly because they were already on the list. Only 7 of 30 and 15 of 29 were newly flagged.</li>
     <li>Job-hunters and snoopers are flagged after 1.5 to 3 weeks.</li>
     <li>Two-day sysadmin sabotage is mostly missed: 4 of 10 on r4.2, 2 of 10 on r5.2.</li>
   </ul>
@@ -235,7 +236,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
       <tr><td class="n">16</td><td>Recommender, tuned without labels</td><td>next-site recall@20, r4.2</td><td class="n">0.145 popularity</td><td class="n">0.211</td><td class="n">1.45×</td><td><span class="chip build">real job</span></td></tr>
       <tr><td class="n">17</td><td>Least-privilege advisor</td><td>requests per person-month</td><td class="n">2.31 / 3.07</td><td class="n">1.82 / 2.48</td><td class="n">−21% / −19%</td><td><span class="chip build">build</span></td></tr>
       <tr><td class="n">18</td><td>Evidence rule for Granite</td><td>hit@3, insiders flagged in time</td><td class="n">0.49 / 0.51 rarity</td><td class="n">0.66 / 0.85</td><td class="n">+0.17 / +0.34</td><td><span class="chip build">build</span></td></tr>
-      <tr><td class="n">19</td><td>Early warning, day by day</td><td>flagged in time, r4.2 / r5.2</td><td class="n">33 / 28</td><td class="n">59 / 80</td><td class="n">+26 / +52</td><td><span class="chip build">headline</span></td></tr>
+      <tr><td class="n">19</td><td>Early warning, day by day</td><td>flagged in time, r4.2 / r5.2</td><td class="n">59 / 40 baseline</td><td class="n">59 / 80</td><td class="n">0 / +40</td><td><span class="chip build">headline</span></td></tr>
       <tr><td class="n">20</td><td>Analyst feedback; richer recommenders</td><td>insiders in 100 reviews</td><td class="n">55 / 43</td><td class="n">57 / 42</td><td class="n">noise</td><td><span class="chip drop">dropped</span></td></tr>
     </tbody>
   </table></div>
@@ -268,7 +269,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
       <div class="role-head"><b>R3 · Granite</b><span class="owner">owner:</span></div>
       <div class="blocks">
         <div class="block"><span class="h">0 to 6 h</span>Both IBM labs (Granite via llama.cpp; the model file must be big-endian).</div>
-        <div class="block"><span class="h">6 to 12 h</span>Evidence pack: top 5 items per person with an ID, the person's own normal and dates; pseudonyms; a prompt that must cite IDs and treats log text as data; number checker; weak-evidence flag.</div>
+        <div class="block"><span class="h">6 to 12 h</span>Evidence pack: top items per person (2 by "new to you, rarest first" plus 1 from the recommender, optional) with an ID, the person's own normal and dates; pseudonyms; a prompt that must cite IDs and treats log text as data; number checker; weak-evidence flag.</div>
         <div class="block"><span class="h">12 to 18 h</span>Pre-generate case files for the top 20; keep one live run.</div>
         <div class="block"><span class="h">18 to 24 h</span>Case-file panel in the dashboard.</div>
       </div>
@@ -322,11 +323,15 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
   <h2>Say this, not that</h2>
   <div class="saythis">
     <div><span class="yes">Flags insiders while they are still active</span><span class="no">Real-time production system</span></div>
+    <div><span class="yes">Suggests which access to pre-approve</span><span class="no">Trims access to what people need</span></div>
     <div><span class="yes">The recommender predicts legitimate access</span><span class="no">The recommender detects insiders</span></div>
   </div>
   <ul class="note">
     <li>As a detector, the recommender is no better than popularity; we tested it.</li>
     <li>Say openly that two-day sysadmin sabotage is mostly missed, and that CERT is synthetic data.</li>
+    <li>Only 28% (r4.2) and 41% (r5.2) of the recommender's extra grants were later used, so it suggests; it does not decide.</li>
+    <li>Say plainly that the approach changed after testing. The abstract promised recommender-based detection; tests showed that own-history baselines detect better, so the recommender moved to access advice.</li>
+    <li>Compare against the strongest baseline. At similar list churn, the 28-day baseline flags 59 of 70 (a tie on r4.2) and 40 of 99 (half of ours on r5.2).</li>
     <li>The early-warning method was picked after seeing results. The full detector we had named in advance also beat the baseline: 54 vs 28 of 99 r5.2 insiders flagged in time.</li>
   </ul>
 </section>

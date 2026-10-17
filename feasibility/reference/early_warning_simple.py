@@ -36,7 +36,7 @@ for r in ins.itertuples():
     Ft = (pd.Timestamp(r.start).normalize() - cut).days; Lt = (pd.Timestamp(r.end).normalize() - cut).days
     hit = np.where(ON[uix[r.user], Ft:])[0]; D = Ft + hit[0] if len(hit) else None
     f = glob.glob(B + f"data/answers/answers/r{rel}-{r.scenario}/*{r.user}*.csv")[0]
-    ev = pd.to_datetime(pd.read_csv(f, header=None, usecols=[2])[2]).dt.normalize()
+    ev = pd.read_csv(f, header=None, usecols=[2, 3]); ev = pd.to_datetime(ev[ev[3] == r.user][2]).dt.normalize()   # own rows only
     evt = ((ev - cut).dt.days).values
     after = (evt > D).mean() if D is not None else 0.0          # share of malicious events on days after detection
     rows.append(dict(sc=r.scenario, in_time=D is not None and D < Lt, delay=(D - Ft) if D is not None else np.inf,
