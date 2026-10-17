@@ -28,6 +28,18 @@ ACT = np.zeros((len(users), len(days)), bool); ACT[daily.user.map(U).values, (da
 assert not daily.duplicated(['user', 'day']).any() and not pcs.duplicated(['user', 'day', 'pc']).any()
 assert ins.index.isin(users).all() and (pd.to_datetime(ins.start) >= CUT).all(), 'every insider present, every attack after the cutoff'
 
+def als(Xc, rank=64, alpha=0.5, reg=1.0, iters=12, seed=0):                      # Hu-Koren-Volinsky implicit ALS
+    rng = np.random.default_rng(seed); P = rng.normal(0, .01, (Xc.shape[0], rank)); Q = rng.normal(0, .01, (Xc.shape[1], rank))
+    C = alpha * Xc
+    def solve(C, Y):
+        out, YtY = np.zeros((C.shape[0], rank)), Y.T @ Y
+        for r in range(C.shape[0]):
+            nz = np.nonzero(C[r])[0]; c = C[r, nz]; Yr = Y[nz]
+            out[r] = np.linalg.solve(YtY + (Yr.T * c) @ Yr + reg * np.eye(rank), (Yr.T * (1 + c)).sum(1))
+        return out
+    for _ in range(iters): P = solve(C, Q); Q = solve(C.T, P)
+    return P @ Q.T
+
 # ------------------------------------------------------------------ 1. early warning: own-history weekly percentile
 X = daily.set_index(["user", "day"])[F9].unstack("day").reindex(index=users)
 X = np.stack([X[f].reindex(columns=days).fillna(0).values for f in F9], -1)             # person x day x activity
@@ -54,12 +66,12 @@ def r2_score():                                                                 
     exp = rate[:, None, :] * n[:, :, None]
     return np.clip((R - exp) / np.sqrt(exp + 1), 0, None).sum(-1)
 
-def daily_lists(score, decay):
+def daily_lists(score, decay, k=K):
     jit = np.random.default_rng(0).random(len(users)); lam = 0.5 ** (1 / HALF_LIFE); run = np.zeros(len(users))
     on = np.zeros(score.shape, bool)
     for t in range(T):
         run = lam * run + score[:, t] if decay else score[:, t]
-        cand = np.where(run > 0)[0]; on[cand[np.lexsort((jit[cand], run[cand]))[::-1]][:K], t] = True
+        cand = np.where(run > 0)[0]; on[cand[np.lexsort((jit[cand], run[cand]))[::-1]][:k], t] = True
     return on
 
 def own_events(user, scen):
@@ -81,6 +93,33 @@ def in_time(on):
 on_pct = daily_lists(pct_score, decay=True); on_r2 = daily_lists(r2_score(), decay=False)
 FLAG, after = in_time(on_pct); flag_r2, _ = in_time(on_r2)
 churn = lambda on: np.mean([(on[:, t] & ~on[:, t - 1]).sum() / K for t in range(1, T)])
+
+# ------------------------------------------------------------------ 1b. snooping list: computers the recommender would never suggest
+pc_tr, pc_te = pcs[pcs.day < TRAIN_END], pcs[pcs.day >= CUT]
+comps = np.sort(pc_tr.pc.unique()); Cx = {c: j for j, c in enumerate(comps)}
+gp = pc_tr.groupby(["user", "pc"]).day.nunique()
+Xp = np.zeros((len(users), len(comps))); Xp[gp.index.get_level_values(0).map(U), gp.index.get_level_values(1).map(Cx)] = np.log1p(gp.values)
+pred_pc = als(Xp, rank=16, alpha=10.0, reg=0.1)                                   # study's computer setting
+tu_, tc_ = pc_te.user.map(U).values, pc_te.pc.map(Cx).fillna(-1).astype(int).values
+new_pc = np.where(tc_ >= 0, Xp[tu_, np.maximum(tc_, 0)] == 0, True)
+surprise = np.where(tc_ >= 0, 1 - np.clip(pred_pc[tu_, np.maximum(tc_, 0)], 0, 1), 1.0)
+main_pc = pc_tr.groupby(["user", "pc"]).size().reset_index().sort_values(0, ascending=False).drop_duplicates("user").set_index("user").pc
+roam = (pc_tr.pc != pc_tr.user.map(main_pc)).groupby(pc_tr.user).mean()          # training share of logins away from one's main PC
+def weekly_count(flag):                                                           # weeks with a flagged login, discounted for roamers
+    wk = pc_te.assign(f=flag, week=pc_te.day.dt.to_period("W").dt.start_time).groupby(["user", "week"]).f.any()
+    return (wk.groupby(level=0).sum() / (1 + 50 * roam.reindex(wk.groupby(level=0).sum().index).fillna(0))).reindex(users).fillna(0)
+def top100(score, scen, k=100):
+    who = set(ins.index[ins.scenario == scen]); s = score + np.random.default_rng(2).random(len(users)) * 1e-9
+    return sum(u in who for u in users[np.argsort(-s.values)[:k]]), len(who)
+snoop = {"recommender would never suggest": weekly_count(new_pc & (surprise >= 0.5)), "any computer new to the person": weekly_count(new_pc)}
+
+def snoop_lists(flag, k=10):                                                       # live: weeks with a flagged login so far
+    d = pc_te.assign(f=flag)[lambda x: x.f]; d = d.assign(week=d.day.dt.to_period("W").dt.start_time)
+    first = d.groupby(["user", "week"]).day.min().reset_index()                     # first flagged day of each flagged week
+    inc = np.zeros((len(users), T)); np.add.at(inc, (first.user.map(U).values, (first.day - CUT).dt.days.values), 1)
+    score = inc.cumsum(1) / (1 + 50 * roam.reindex(users).fillna(0).values[:, None])
+    return daily_lists(score, decay=False, k=k)
+on_snoop = snoop_lists(new_pc & (surprise >= 0.5)); on_snoop_naive = snoop_lists(new_pc)
 
 # ------------------------------------------------------------------ 2. evidence for Granite: "new to you, rarest first"
 EVIDENCE_START = CUT                                                   # replay day zero: lists and case evidence start here
@@ -112,7 +151,7 @@ train_items["sp"] = train_items.kind.map(space)
 used = set(zip(train_items.user, train_items.sp, train_items.item))
 share = (train_items.drop_duplicates(["user", "sp", "item"]).groupby(["sp", "item"]).size() / len(users)).to_dict()
 
-listed = set(users[on_pct.any(1)])                                     # everyone who ever reaches the daily list
+listed = set(users[on_pct.any(1) | on_snoop.any(1)])                   # everyone who ever reaches either daily list
 keep = lambda df: df[df.user.isin(listed) & (df.day >= EVIDENCE_START)]
 CASE = pd.concat([items(keep(pcs), "pc", "pc"), items(keep(dom), "dom", "domain"), usb_ah(keep(daily))]).drop_duplicates()
 CASE["sp"] = CASE.kind.map(space)
@@ -136,7 +175,7 @@ def strong(u, t):                                                      # label-f
     it = case_items(u, t)
     return bool(it is not None and (it.new & (it.share < 0.01)).any())
 
-first = {u: int(np.argmax(on_pct[U[u]])) for u in listed}                # first day on the list, from replay day zero
+first = {u: int(np.argmax(on_pct[U[u]])) for u in listed if on_pct[U[u]].any()}   # first day on the daily list, from replay day zero
 ev_graded = (np.mean([hit3(u, t) for u, t in FLAG.items()]), np.mean([hit3(u, t, rare_only=True) for u, t in FLAG.items()]))
 ins_first = {u: t for u, t in first.items() if u in ins.index}
 pre_onset = np.mean([t < (pd.Timestamp(ins.loc[u, "start"]).normalize() - CUT).days for u, t in ins_first.items()])
@@ -146,18 +185,6 @@ strong_ins_first = np.mean([strong(u, t) for u, t in ins_first.items()])
 strong_nrm = np.mean([strong(u, t) for u, t in first.items() if u not in ins.index])
 
 # ------------------------------------------------------------------ 3 and 4. recommender: predict next sites, pre-approve them
-def als(Xc, rank=64, alpha=0.5, reg=1.0, iters=12, seed=0):                      # Hu-Koren-Volinsky implicit ALS
-    rng = np.random.default_rng(seed); P = rng.normal(0, .01, (Xc.shape[0], rank)); Q = rng.normal(0, .01, (Xc.shape[1], rank))
-    C = alpha * Xc
-    def solve(C, Y):
-        out, YtY = np.zeros((C.shape[0], rank)), Y.T @ Y
-        for r in range(C.shape[0]):
-            nz = np.nonzero(C[r])[0]; c = C[r, nz]; Yr = Y[nz]
-            out[r] = np.linalg.solve(YtY + (Yr.T * c) @ Yr + reg * np.eye(rank), (Yr.T * (1 + c)).sum(1))
-        return out
-    for _ in range(iters): P = solve(C, Q); Q = solve(C.T, P)
-    return P @ Q.T
-
 sites = np.sort(dom[dom.day < TRAIN_END].domain.unique()); S = {d: j for j, d in enumerate(sites)}
 g = dom[dom.day < TRAIN_END].groupby(["user", "domain"]).day.nunique()
 Xs = np.zeros((len(users), len(sites))); Xs[g.index.get_level_values(0).map(U), g.index.get_level_values(1).map(S)] = np.log1p(g.values)
@@ -186,25 +213,6 @@ used_test = np.zeros_like(own); used_test[te_all.user.map(U).values, te_all.doma
 still = normal & ACT[:, -30:].any(1)
 stale = own & ~used_test                                                   # access held but not used again: revoke?
 
-# ------------------------------------------------------------------ 6. snooping: computers the recommender would never suggest
-pc_tr, pc_te = pcs[pcs.day < TRAIN_END], pcs[pcs.day >= CUT]
-comps = np.sort(pc_tr.pc.unique()); Cx = {c: j for j, c in enumerate(comps)}
-gp = pc_tr.groupby(["user", "pc"]).day.nunique()
-Xp = np.zeros((len(users), len(comps))); Xp[gp.index.get_level_values(0).map(U), gp.index.get_level_values(1).map(Cx)] = np.log1p(gp.values)
-pred_pc = als(Xp, rank=16, alpha=10.0, reg=0.1)                                   # study's computer setting
-tu_, tc_ = pc_te.user.map(U).values, pc_te.pc.map(Cx).fillna(-1).astype(int).values
-new_pc = np.where(tc_ >= 0, Xp[tu_, np.maximum(tc_, 0)] == 0, True)
-surprise = np.where(tc_ >= 0, 1 - np.clip(pred_pc[tu_, np.maximum(tc_, 0)], 0, 1), 1.0)
-main_pc = pc_tr.groupby(["user", "pc"]).size().reset_index().sort_values(0, ascending=False).drop_duplicates("user").set_index("user").pc
-roam = (pc_tr.pc != pc_tr.user.map(main_pc)).groupby(pc_tr.user).mean()          # training share of logins away from one's main PC
-def weekly_count(flag):                                                           # weeks with a flagged login, discounted for roamers
-    wk = pc_te.assign(f=flag, week=pc_te.day.dt.to_period("W").dt.start_time).groupby(["user", "week"]).f.any()
-    return (wk.groupby(level=0).sum() / (1 + 50 * roam.reindex(wk.groupby(level=0).sum().index).fillna(0))).reindex(users).fillna(0)
-def top100(score, scen, k=100):
-    who = set(ins.index[ins.scenario == scen]); s = score + np.random.default_rng(2).random(len(users)) * 1e-9
-    return sum(u in who for u in users[np.argsort(-s.values)[:k]]), len(who)
-snoop = {"recommender would never suggest": weekly_count(new_pc & (surprise >= 0.5)), "any computer new to the person": weekly_count(new_pc)}
-
 # ------------------------------------------------------------------ 5. block sites nobody here visited in training
 mal_sites = [(r.scenario, DOMRE.match(e[5]).group(1).lower()) for u, r in ins.iterrows() for e in EVENTS[u]
              if e[0] == "http" and DOMRE.match(e[5])]
@@ -229,10 +237,16 @@ print("4  access requests per person-month: " + ", ".join(f"{k} {v:.2f}" for k, 
 print("   malicious web visits that would need approval (static coverage): " + ", ".join(f"{k} {v:.1%}" for k, v in coverage.items()))
 print(f"   end-of-period access-review proxy: {stale[still].sum() / own[still].sum():.1%} of training person-site pairs not revisited "
       f"({stale[still].sum(1).mean():.1f} per person; {(stale[still].sum(1) > 0).mean():.0%} of people have at least one)")
-if (ins.scenario == 4).any():
-    print("6  snooping, weekly logins to computers outside the person's profile (snoopers in the top 100): "
-          + ", ".join(f"{k} {top100(v, 4)[0]}/{top100(v, 4)[1]} (top 20: {top100(v, 4, 20)[0]} snoopers)" for k, v in snoop.items()))
+flag_snoop, _ = in_time(on_snoop); flag_snoop_naive, _ = in_time(on_snoop_naive); flag_any, _ = in_time(on_pct | on_snoop)
+s4 = set(ins.index[ins.scenario == 4])
+if s4:
+    print("6  snooping review (end of period, retrospective): weekly logins to computers outside the person's profile, snoopers in the top 100: "
+          + ", ".join(f"{k} {top100(v, 4)[0]}/{top100(v, 4)[1]} (top 20: {top100(v, 4, 20)[0]})" for k, v in snoop.items()))
+    print(f"   live snooping list, 10 names a day: snoopers listed before their last malicious action {len(s4 & set(flag_snoop))}/{len(s4)} "
+          f"(any new computer: {len(s4 & set(flag_snoop_naive))}); with the 20-name list, snoopers {len(s4 & set(flag_any))}/{len(s4)} "
+          f"(20-name list alone {len(s4 & set(FLAG))}); all insiders {len(flag_any)}/{n} (alone {len(FLAG)})")
 else:
     print("6  snooping view: this release has no snoopers (scenario 4 exists only in r5.2)")
+print(f"   snooping list load: normal staff ever on it {(on_snoop.any(1) & normal).sum()}; on either list {((on_pct | on_snoop).any(1) & normal).sum()}")
 print(f"5  new-to-company rule blocks wikileaks {blocked[1]:.0%} and keylogger sites {blocked[3]:.0%}; "
       f"cost {len(nov[['user', 'day']].drop_duplicates())} normal person-days")

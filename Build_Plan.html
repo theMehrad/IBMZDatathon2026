@@ -152,7 +152,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
         <div class="metric">Insiders found in the top 100 people</div>
         <div class="pair"><span class="rel">r4.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:62.9%"></i></div><div class="track2"><i class="b1" style="width:78.6%"></i></div></div><span class="vals">L1 44 → <b>55</b> <em class="chg">+11</em></span></div>
         <div class="pair"><span class="rel">r5.2</span><div class="tracks"><div class="track2"><i class="b0" style="width:39.4%"></i></div><div class="track2"><i class="b1" style="width:43.4%"></i></div></div><span class="vals">L1 39 → <b>43</b> <em class="chg">+4</em></span></div>
-        <p class="lvl-note">Snooping view, built on the recommender: weekly logins to computers it would never suggest for that person put 27 of 30 r5.2 snoopers in its top 100 (14 in the top 20); "any new computer" gets 26.</p>
+        <p class="lvl-note">End-of-period snooping review, built on the recommender: weeks with logins to computers outside the person's profile put 27 of 30 r5.2 snoopers in its top 100 (14 in the top 20); without the recommender, 26. As a live list it catches 9 of 30 in time, so live warnings come from the daily list.</p>
       </div>
     </div>
 
@@ -209,7 +209,8 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
       <tr><td>Access requests per person per month: history only, then with the recommender</td><td class="n">2.3 → 1.8</td><td class="n">3.1 → 2.5</td></tr>
       <tr><td>Held sites never used again (removal suggestions for access admins)</td><td class="n">6.0%</td><td class="n">3.6%</td></tr>
       <tr><td>Wikileaks and keylogger visits blocked by the new-to-company rule</td><td class="n">100%</td><td class="n">100%</td></tr>
-      <tr><td>Snoopers in the top 100 of the recommender's "never suggested" computer-login view (any new computer in brackets)</td><td class="n">no snoopers</td><td class="n">27 of 30 (26)</td></tr>
+      <tr><td>Snoopers in the top 100 of the end-of-period snooping review (without the recommender in brackets)</td><td class="n">no snoopers</td><td class="n">27 of 30 (26)</td></tr>
+      <tr><td>Same review as a live 10-name daily list: snoopers caught in time (daily list alone: 25)</td><td class="n">no snoopers</td><td class="n">9 of 30</td></tr>
       <tr><td>Strong evidence at first alert, insiders vs normal staff (no labels used)</td><td class="n">29% vs 18%</td><td class="n">65% vs 31%</td></tr>
     </tbody>
   </table></div>
@@ -281,7 +282,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
       <div class="role-head"><b>R4 · Recommender and demo</b><span class="owner">owner:</span></div>
       <div class="blocks">
         <div class="block"><span class="h">0 to 6 h</span>Dashboard skeleton: daily list, person page, case-file panel.</div>
-        <div class="block"><span class="h">6 to 12 h</span>Port sections 3 to 6 of <code>outofrole_minimal.py</code>: ALS on person-site data, top-20 pre-approval, removal suggestions, new-to-company block, and the recommender snooping view (computer logins it would never suggest).</div>
+        <div class="block"><span class="h">6 to 12 h</span>Port sections 3 to 6 of <code>outofrole_minimal.py</code>: ALS on person-site data, top-20 pre-approval, removal suggestions, new-to-company block, and the recommender snooping review (end of period).</div>
         <div class="block"><span class="h">12 to 18 h</span>Wire everything into the dashboard.</div>
         <div class="block"><span class="h">18 to 24 h</span>Video with on-screen proof: <code>uname -m</code> (s390x), <code>docker ps</code>, the server prompt.</div>
       </div>
@@ -343,7 +344,7 @@ ol.demo { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
   <h2>Reference code</h2>
   <p class="sub">Local tests in <code>feasibility/reference/</code> on Mehrad's laptop. We rewrite on the server.</p>
   <ul>
-    <li><code>outofrole_minimal.py</code>: the whole system in 238 lines, and the file to port. It produces every headline number in about 20 seconds per release.</li>
+    <li><code>outofrole_minimal.py</code>: the whole system in 252 lines, and the file to port. It produces every headline number in about 20 seconds per release.</li>
     <li><code>case_file.py</code>: 85 lines: evidence pack, Granite prompt (label and fact IDs only), reply check and fallback. Run it to see the self-test.</li>
     <li><code>early_warning_simple.py</code>: the 49-line replay behind the headline numbers.</li>
     <li><code>early_warning_full.py</code>: the full replay with baseline, chance and analyst-load comparisons.</li>

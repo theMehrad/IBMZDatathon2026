@@ -173,7 +173,7 @@ The review is in `feasibility/codex_review/round4_review.md`. These are the chan
 
 ## 10. The whole system in one file (`feasibility/reference/outofrole_minimal.py`)
 
-The file is 238 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
+The file is 252 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
 
 | Result | r4.2 | r5.2 |
 |---|---|---|
@@ -192,7 +192,9 @@ The file is 238 lines and runs in about 20 seconds per release on a laptop. It u
 | Same rule, insiders at their graded in-time day | 53% | 72% |
 | Share of the recommender's extra grants later used | 0.28 | 0.42 |
 | New-to-company rule: wikileaks and keylogger visits blocked; normal person-days affected | 100%, 100%; 8 | 100%, 100%; 0 |
-| Snooping view (section 6): snoopers in the top 100 (top 20) of weekly logins to computers the recommender would never suggest (new to the person and ALS surprise of 0.5 or more; ALS rank 16, alpha 10, reg 0.1; roamers discounted) vs any computer new to the person | no snoopers in r4.2 | 27 / 30 (14) vs 26 / 30 (13) |
+| Live snooping list (10 names a day, same signal counted up to each day): snoopers listed before their last malicious action; with the 20-name daily list | no snoopers | 9 / 30 (any new computer: 7); 25 / 30 combined = 25 for the daily list alone |
+| File names belonging to exactly one person (why no file recommender) | 100% | 94.4% |
+| End-of-period snooping review (section 1b): snoopers in the top 100 (top 20) of weekly logins to computers the recommender would never suggest (new to the person and ALS surprise of 0.5 or more; ALS rank 16, alpha 10, reg 0.1; roamers discounted) vs any computer new to the person | no snoopers in r4.2 | 27 / 30 (14) vs 26 / 30 (13) |
 
 Notes:
 
