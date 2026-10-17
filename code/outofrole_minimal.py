@@ -10,7 +10,7 @@ import csv, glob, os, re, sys
 import numpy as np, pandas as pd
 
 REL = sys.argv[1]
-BASE = "/Users/mehrad/Documents/School/UTD/UTD_as_student/Fall2026/IBM_Z_Datathon_2026"
+import pathlib; BASE = str(pathlib.Path(__file__).resolve().parents[1])
 WORK, ANS = f"{BASE}/data/cache/r{REL}", f"{BASE}/data/answers/answers"
 CUT = pd.Timestamp({"4.2": "2010-06-01", "5.2": "2010-04-01"}[REL])
 TRAIN_END = CUT - pd.Timedelta(days=CUT.weekday())            # Monday of the cutoff week (that week is dropped)

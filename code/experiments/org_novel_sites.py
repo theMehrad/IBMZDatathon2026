@@ -1,5 +1,5 @@
 import sys, pandas as pd, glob, re
-B = "/Users/mehrad/Documents/School/UTD/UTD_as_student/Fall2026/IBM_Z_Datathon_2026/"
+import pathlib; B = str(pathlib.Path(__file__).resolve().parents[2]) + "/"
 for rel, cut in (("4.2", "2010-06-01"), ("5.2", "2010-04-01")):
     cut = pd.Timestamp(cut); wk0 = cut - pd.Timedelta(days=cut.weekday())
     ins = pd.read_csv(B + "data/answers/answers/insiders.csv"); ins = ins[ins.dataset.astype(str) == rel]

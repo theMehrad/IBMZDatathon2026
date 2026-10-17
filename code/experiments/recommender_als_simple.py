@@ -1,6 +1,6 @@
 # Independent check of the least-privilege claim: ALS vs popularity recall@K on normal users' new websites.
 import sys, numpy as np, pandas as pd, scipy.sparse as sp
-B = "/Users/mehrad/Documents/School/UTD/UTD_as_student/Fall2026/IBM_Z_Datathon_2026/"
+import pathlib; B = str(pathlib.Path(__file__).resolve().parents[2]) + "/"
 rel = sys.argv[1]; cut = pd.Timestamp({"4.2": "2010-06-01", "5.2": "2010-04-01"}[rel])
 wk0 = cut - pd.Timedelta(days=cut.weekday())          # Monday of the cutoff week, dropped from training
 ins = pd.read_csv(B + "data/answers/answers/insiders.csv"); ins = set(ins[ins.dataset.astype(str) == rel].user)

@@ -1,6 +1,6 @@
 # Independent re-implementation of the online own-history percentile early warning, plus "share of attack after detection".
 import sys, glob, numpy as np, pandas as pd
-B = "/Users/mehrad/Documents/School/UTD/UTD_as_student/Fall2026/IBM_Z_Datathon_2026/"
+import pathlib; B = str(pathlib.Path(__file__).resolve().parents[2]) + "/"
 rel = sys.argv[1]; K = int(sys.argv[2]) if len(sys.argv) > 2 else 20
 cut = pd.Timestamp({"4.2": "2010-06-01", "5.2": "2010-04-01"}[rel]); tr_end = cut - pd.Timedelta(days=cut.weekday())
 F = ["n_logon", "n_logon_ah", "n_usb", "n_usb_ah", "n_file", "n_file_ah", "n_http", "n_http_ah", "n_pcs"]

@@ -62,7 +62,7 @@ import pandas as pd
 from scipy.stats import rankdata
 
 REL = sys.argv[1]
-BASE = "/Users/mehrad/Documents/School/UTD/UTD_as_student/Fall2026/IBM_Z_Datathon_2026"
+import pathlib; BASE = str(pathlib.Path(__file__).resolve().parents[2])
 ANS = f"{BASE}/data/answers/answers"
 WORK = f"{BASE}/data/cache/r{REL}"
 OUT = os.path.dirname(os.path.abspath(__file__))

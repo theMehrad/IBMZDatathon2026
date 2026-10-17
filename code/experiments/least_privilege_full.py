@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sp
 
-BASE = Path("/Users/mehrad/Documents/School/UTD/UTD_as_student/Fall2026/IBM_Z_Datathon_2026")
+import pathlib; BASE = pathlib.Path(__file__).resolve().parents[2]
 OUT = Path(__file__).resolve().parent / "out"
 OUT.mkdir(exist_ok=True)
 ANS = BASE / "data/answers/answers"

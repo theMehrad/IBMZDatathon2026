@@ -48,7 +48,7 @@ for win, lag in ((26, 4), (13, 4)):
           f"normal staff ever listed {(on.any(1) & normal).sum()}, daily churn {churn(on):.1%}")
 
 # ---------------------------------------------------------------- C. how often do roles really change in CERT?
-B = "/Users/mehrad/Documents/School/UTD/UTD_as_student/Fall2026/IBM_Z_Datathon_2026"
+import pathlib; B = str(pathlib.Path(__file__).resolve().parents[2])
 snaps = sorted(f for f in os.listdir(f"{B}/data/r{REL}/r{REL}/LDAP") if f.endswith(".csv"))
 L = {s[:7]: pd.read_csv(f"{B}/data/r{REL}/r{REL}/LDAP/{s}").set_index("user_id") for s in snaps}
 months = [m for m in L if m >= CUT.strftime("%Y-%m")]; changed = {"role": set(), "department": set(), "team": set(), "left": set()}

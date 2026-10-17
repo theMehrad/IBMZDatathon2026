@@ -16,3 +16,4 @@ __pycache__/
 
 # kept on disk, not in the repo: history and duplicate formats
 9_Archive/
+.venv/

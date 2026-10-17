@@ -12,7 +12,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from scipy.stats import norm, binom
 
-BASE = Path("/Users/mehrad/Documents/School/UTD/UTD_as_student/Fall2026/IBM_Z_Datathon_2026")
+import pathlib; BASE = pathlib.Path(__file__).resolve().parents[2]
 WORK, ANS = BASE / "data" / "cache", BASE / "data" / "answers" / "answers"
 OUT = Path(__file__).resolve().parent / "results"; OUT.mkdir(exist_ok=True)
 CUT = {"r4.2": "2010-06-01", "r5.2": "2010-04-01"}
