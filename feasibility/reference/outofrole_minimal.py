@@ -152,6 +152,7 @@ used = set(zip(train_items.user, train_items.sp, train_items.item))
 share = (train_items.drop_duplicates(["user", "sp", "item"]).groupby(["sp", "item"]).size() / len(users)).to_dict()
 
 listed = set(users[on_pct.any(1) | on_snoop.any(1)])                   # everyone who ever reaches either daily list
+listed |= set(users[np.argsort(-snoop['recommender would never suggest'].values)[:100]])   # and the snooping review's top 100
 keep = lambda df: df[df.user.isin(listed) & (df.day >= EVIDENCE_START)]
 CASE = pd.concat([items(keep(pcs), "pc", "pc"), items(keep(dom), "dom", "domain"), usb_ah(keep(daily))]).drop_duplicates()
 CASE["sp"] = CASE.kind.map(space)

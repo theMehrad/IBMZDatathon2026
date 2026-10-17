@@ -129,7 +129,7 @@ Fill in names. Hours count from the start of our build.
 
 In `feasibility/reference/`:
 
-- **`outofrole_minimal.py`**: the whole system in 252 lines, and the file to port. It produces every headline number in about 20 seconds per release.
+- **`outofrole_minimal.py`**: the whole system in 253 lines, and the file to port. It produces every headline number in about 20 seconds per release.
 - **`case_file.py`**: 85 lines: evidence pack, Granite prompt (label and fact IDs only), reply check and fallback. Run it to see the self-test.
 - `early_warning_simple.py`: the 49-line replay behind the headline numbers.
 - `early_warning_full.py`: the full replay with baseline, chance and analyst-load comparisons.

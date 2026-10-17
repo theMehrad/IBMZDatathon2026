@@ -173,7 +173,7 @@ The review is in `feasibility/codex_review/round4_review.md`. These are the chan
 
 ## 10. The whole system in one file (`feasibility/reference/outofrole_minimal.py`)
 
-The file is 252 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
+The file is 253 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
 
 | Result | r4.2 | r5.2 |
 |---|---|---|
@@ -227,3 +227,10 @@ None of these changes moved the headline numbers.
 - Evidence strength is now compared at the same stage (first alert) for insiders and normal staff.
 
 **Added after Codex round 8 (proposal fit):** section 6 of `outofrole_minimal.py` ports the v3 Step 13 recommender snooping view. It reproduces 27 of 30 snoopers (v3: 27 of 30 with Spark ALS). The simpler "any new computer" rule gets 26 of 30 here (v3: 27). The recommender ties or slightly beats the simpler rule. It was designed after seeing r5.2, and r4.2 has no snoopers, so it has no untouched test.
+
+**Codex rounds 9 and 10 (proposal fit):**
+
+- Final ratings: simple, yes; impressive and honest, yes; connection to the abstract, "partial, with a clear functional recommender link and disclosed omissions".
+- **Gaps that cannot be closed locally:** CERT has no permission lists, so past use stands in for held access. File identities were not modelled (100% / 94.4% of file names seen for one person). The LinuxONE run and Granite integration happen on event day.
+- **Changes made:** case files now also cover the snooping review's top 100. The live snooping list is kept as an evaluation control, not an analyst queue.
+- No further modelling is justified.
