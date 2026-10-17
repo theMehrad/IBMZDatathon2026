@@ -242,3 +242,20 @@ None of these changes moved the headline numbers.
 - Some connection to the original proposal: **yes, certain**.
 
 No local fix is needed. The LinuxONE run and Granite integration are delivery checks for event day, and stay marked as pending until demonstrated.
+
+## 11. Follow-up checks (`feasibility/reference/followup_checks.py`)
+
+| Check | r4.2 | r5.2 |
+|---|---|---|
+| A. Bootstrap over insiders (5,000 resamples): in-time lead of the own-history list over the 28-day baseline, 95% interval | 0 (-6 to +6) | +40 (+27 to +52); never not ahead |
+| B. Frozen training weeks as "normal" (current build): in time; normal staff ever listed | 59 / 70; 230 | 80 / 99; 291 |
+| B. Rolling "normal" (each person's last 26 weeks, skipping the most recent 4): in time; normal staff ever listed | 59 / 70; 274 | 84 / 99; 374 |
+| B. Rolling "normal" (last 13 weeks, skipping 4): in time; normal staff ever listed | 58 / 70; 257 | 78 / 99; 386 |
+| C. LDAP changes during the test period: role; department; team; staff who left (insiders among them) | 0; 14; 126; 129 (70) | 0; 30; 213; 213 (70) |
+| D. Access requests per person-month, approvals kept, own history refreshed monthly: own history only; recommender trained once; recommender retrained monthly | 2.24; 1.76; 1.61 | 3.08; 2.50; 2.21 |
+
+**Notes:**
+
+- **CERT never changes anyone's role,** so role-change robustness cannot be tested directly. The rolling baseline is the proxy for it.
+- **A rolling baseline keeps or slightly improves detection,** but puts more normal staff on the list over the period.
+- **Retraining the recommender monthly cuts requests a further 9% (r4.2) and 12% (r5.2)** compared with training it once. In total that is 28% fewer requests than own history alone.
