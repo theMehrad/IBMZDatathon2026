@@ -15,8 +15,8 @@ OutOfRole spots insiders while they are still active, explains each alert with c
 | | r4.2 | r5.2 |
 |---|---|---|
 | Insiders flagged on a 20-name daily list before their last malicious action | 59 of 70 | 80 of 99 |
-| Same, 28-day personal baseline at similar list churn | 59 | 40 |
-| Insiders flagged in time with a real malicious event in their top 3 evidence items (evidence up to the flag day) | 66% | 85% |
+| Same, 28-day personal baseline on the same 20-name list | 59 | 40 |
+| Insiders flagged in time with a real malicious event in their top 3 evidence items (evidence up to the flag day) | 64% | 85% |
 | Recommender recall of next new websites, top 20 (popularity) | 21% (14.5%) | 19% (13%) |
 
 ## What's in this repo

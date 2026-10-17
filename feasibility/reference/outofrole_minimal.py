@@ -83,7 +83,7 @@ FLAG, after = in_time(on_pct); flag_r2, _ = in_time(on_r2)
 churn = lambda on: np.mean([(on[:, t] & ~on[:, t - 1]).sum() / K for t in range(1, T)])
 
 # ------------------------------------------------------------------ 2. evidence for Granite: "new to you, rarest first"
-TEST_START = TRAIN_END + pd.Timedelta(days=7)
+EVIDENCE_START = CUT                                                   # replay day zero: lists and case evidence start here
 DOMRE = re.compile(r"^https?://(?:www\.)?([^/:]+)")
 mal = set()
 for u, evs in EVENTS.items():
@@ -113,7 +113,7 @@ used = set(zip(train_items.user, train_items.sp, train_items.item))
 share = (train_items.drop_duplicates(["user", "sp", "item"]).groupby(["sp", "item"]).size() / len(users)).to_dict()
 
 listed = set(users[on_pct.any(1)])                                     # everyone who ever reaches the daily list
-keep = lambda df: df[df.user.isin(listed) & (df.day >= TEST_START)]
+keep = lambda df: df[df.user.isin(listed) & (df.day >= EVIDENCE_START)]
 CASE = pd.concat([items(keep(pcs), "pc", "pc"), items(keep(dom), "dom", "domain"), usb_ah(keep(daily))]).drop_duplicates()
 CASE["sp"] = CASE.kind.map(space)
 CASE["new"] = [(u, s, i) not in used for u, s, i in zip(CASE.user, CASE.sp, CASE.item)]
@@ -136,13 +136,13 @@ def strong(u, t):                                                      # label-f
     it = case_items(u, t)
     return bool(it is not None and (it.new & (it.share < 0.01)).any())
 
-ts0 = (TEST_START - CUT).days
-first = {u: ts0 + int(np.argmax(on_pct[U[u], ts0:])) for u in listed if on_pct[U[u], ts0:].any()}
+first = {u: int(np.argmax(on_pct[U[u]])) for u in listed}                # first day on the list, from replay day zero
 ev_graded = (np.mean([hit3(u, t) for u, t in FLAG.items()]), np.mean([hit3(u, t, rare_only=True) for u, t in FLAG.items()]))
 ins_first = {u: t for u, t in first.items() if u in ins.index}
 pre_onset = np.mean([t < (pd.Timestamp(ins.loc[u, "start"]).normalize() - CUT).days for u, t in ins_first.items()])
 ev_first = np.mean([hit3(u, t) for u, t in ins_first.items()])
 strong_ins = np.mean([strong(u, t) for u, t in FLAG.items()])
+strong_ins_first = np.mean([strong(u, t) for u, t in ins_first.items()])
 strong_nrm = np.mean([strong(u, t) for u, t in first.items() if u not in ins.index])
 
 # ------------------------------------------------------------------ 3 and 4. recommender: predict next sites, pre-approve them
@@ -199,11 +199,11 @@ print(f"1  early warning, 20 names/day: {len(FLAG)}/{n} insiders listed before t
       f"(28-day baseline: {len(flag_r2)}/{n}); daily churn {churn(on_pct):.1%} vs {churn(on_r2):.1%}")
 print(f"   share of each insider's malicious events on later days: {sum(after.values()) / n:.2f} averaged over all insiders "
       f"(missed = 0), {np.mean(list(after.values())):.2f} over those flagged in time; "
-      f"normal staff ever listed {(on_pct.any(1) & normal).sum()} ({(on_pct.any(1) & normal).sum() / (T / 7):.1f} per week)")
+      f"normal staff ever listed {(on_pct.any(1) & normal).sum()} over {T / 7:.0f} weeks")
 print(f"2  evidence top 3 holds a malicious item: C1 {ev_graded[0]:.2f} vs rarity {ev_graded[1]:.2f} (in-time insiders, evidence up to the "
       f"graded flag day); at each insider's first alert {ev_first:.2f} ({pre_onset:.0%} of first alerts come before labelled onset)")
-print(f"   label-free evidence strength (an item new to the person and used by under 1% of staff): in-time insiders {strong_ins:.0%}, "
-      f"normal staff at their first alert {strong_nrm:.0%}")
+print(f"   label-free evidence strength (an item not in the person's training history, used by under 1% of staff): at first alert, "
+      f"insiders {strong_ins_first:.0%} vs normal staff {strong_nrm:.0%}; insiders at the graded in-time day {strong_ins:.0%}")
 print(f"3  next new sites caught by top 20: recommender {recall['recommender']:.3f} vs popularity {recall['popularity']:.3f}")
 print("4  access requests per person-month: " + ", ".join(f"{k} {v:.2f}" for k, v in requests.items())
       + f"; share of the recommender's extra grants later used {used_share['recommender']:.2f}")

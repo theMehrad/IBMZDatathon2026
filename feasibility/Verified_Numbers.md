@@ -17,7 +17,7 @@ Method: own-history weekly percentile (the last 7 days vs each of the person's t
 | On the list before their last malicious action ("in time") | 59 (0.843) | 80 (0.808) |
 | Same, not already listed in the 14 days before their first malicious action | 38 | 67 |
 | In time, 28-day personal baseline (R2) under the same decay rule (pre-registered comparison) | 33 (0.471) | 28 (0.283) |
-| **In time, R2 scored on each day's value alone ("today" rule), at similar list churn (daily churn 9.1% / 8.9% vs 9.2% / 11.3% for the percentile method): the fair comparison** | **59 (0.843)** | **40 (0.404)** |
+| **In time, R2 scored on each day's value alone ("today" rule), on the same 20-name list (daily churn 9.1% / 8.9% vs 9.2% / 11.3% for the percentile method): the fair comparison** | **59 (0.843)** | **40 (0.404)** |
 | In time, chance (random normal employee's list history), mean / p95 | 0.038 (about 3) / 0.071 | 0.029 (about 3) / 0.061 |
 | In time, random score with the same 20-name list and decay rule (20 seeds; churns about 4x faster than the real list) | 10.3 | 11.4 |
 | In time, pre-registered fusion (c, max of family tails) | 0.86 | 0.545 (54) |
@@ -46,7 +46,7 @@ Script: `evidence_ranking.py`. Metric: hit@3, meaning at least one answer-key ma
 
 | Rule | r4.2 | r5.2 |
 |---|---|---|
-| **C1, insiders the daily list flags in time, evidence up to the flag day (the operational number)** | **0.66** | **0.85** |
+| **C1, insiders the daily list flags in time, evidence up to the flag day (validator's window from the Monday after the cutoff week; the canonical one-file window from replay day zero gives 0.64 / 0.85, see section 10)** | **0.66** | **0.85** |
 | Global rarity, same setting | 0.49 | 0.51 |
 | Naive novelty, same setting | 0.54 | 0.28 |
 | Tuned ALS surprise, same setting | 0.75 | 0.46 |
@@ -62,10 +62,10 @@ Script: `evidence_ranking.py`. Metric: hit@3, meaning at least one answer-key ma
 **Other findings:**
 
 - The agreement filter (rare AND recommender-surprising) collapses to C1 on r4.2 and on the top-100 view. On r5.2 across all insiders it trails C1 (0.891 vs 0.922).
-- **Correction (independent validator, Oct 17):** an earlier version quoted 98% as "flagged insiders". That figure applies only to the retrospective top-100 set. Use 0.66 / 0.85 for the early-warning flow (script: `scratchpad/validate/evidence_intime.py`).
+- **Correction (independent validator, Oct 17):** an earlier version quoted 98% as "flagged insiders". That figure applies only to the retrospective top-100 set. Use 0.64 / 0.85 (canonical one-file window, section 10) or 0.66 / 0.85 (validator's window) for the early-warning flow (script: `scratchpad/validate/evidence_intime.py`).
 - **By scenario (C1, in time):** r4.2 leakers 1.00, job-hunters 0.33, sysadmins 1.00; r5.2 leakers 0.85, job-hunters 0.70, sysadmins 1.00 (2 people), snoopers 1.00.
-- **Where the recommender helps:** on r4.2, ALS beats C1 at flag time (0.75 to 0.77 vs 0.66) because of the job-hunters. On r5.2, C1 is clearly best.
-- **Mixed rule (post hoc; `scratchpad/validate/evidence_mix_intime.csv`):** top 2 C1 items plus the top 1 ALS item. hit@3 0.66 to 0.78 (r4.2) and 0.85 to 0.85 (r5.2, tuned ALS); misleading rate 0.06 / 0.01. Job-hunters go from 0.33 to 0.56 (r4.2) and 0.70 to 0.71 (r5.2). This is the one place the recommender adds evidence value. It is optional for the build, and must be presented as post hoc.
+- **Where the recommender helps:** on r4.2, ALS beats C1 at flag time (0.75 to 0.77 vs 0.66, validator's window) because of the job-hunters. On r5.2, C1 is clearly best.
+- **Mixed rule (historical post hoc experiment, excluded from the build; `scratchpad/validate/evidence_mix_intime.csv`):** top 2 C1 items plus the top 1 ALS item. hit@3 0.66 to 0.78 (r4.2) and 0.85 to 0.85 (r5.2, tuned ALS); misleading rate 0.06 / 0.01. Job-hunters go from 0.33 to 0.56 (r4.2) and 0.70 to 0.71 (r5.2). This is the one place the recommender added evidence value. It is excluded from the build.
 - **Weak-evidence flag:** 80 to 92% of flagged normal staff have no item above the median insider's top C1 score, but neither do 44 to 56% of in-time insiders. A weak-evidence label is feasible, but it would mark about half the real insiders as weak, so phrase it as "evidence strength" and do not use it to dismiss anyone.
 - For flagged normal staff, every rule always cites something. Granite therefore needs a weak-evidence flag.
 
@@ -146,8 +146,8 @@ Use this table wherever steps are listed: the notebook, the plan, the briefing a
 | 16 | Recommender, tuned without labels | recall@20 of next new sites, r4.2 / r5.2 | Popularity 0.145 / 0.130; v3 setting 0.126 / 0.121 | 0.211 / 0.190 | +0.066 / +0.060 over popularity (1.45x / 1.46x) | Real job found |
 | 17 | Least-privilege advisor | requests per person-month, r4.2 / r5.2 | Own history 2.31 / 3.15 | ALS top 20: 1.82 / 2.55 (popularity: 1.97 / 2.74) | -21% / -19% at about the same static coverage (71.0% to 69.1%; 90.1% to 89.2%) | Build (R4) |
 | 17b | New-to-company site rule | wikileaks + keylogger visits blocked | (none) | 100% (r4.2 and r5.2) | Cost: 8 person-days on r4.2, 0 on r5.2 | Build (R4) |
-| 18 | Evidence ranking for Granite | hit@3, insiders flagged in time, evidence up to the flag day, r4.2 / r5.2 | Global rarity 0.49 / 0.51 | C1 "new to you, rarest first" 0.66 / 0.85 (ALS: 0.75 / 0.46; retrospective top-100 set: C1 0.98 / 0.98) | +0.17 / +0.34 over rarity | Build (R3) |
-| 19 | Early warning, day-by-day replay | insiders listed before last malicious action, r4.2 / r5.2 | R2 at similar churn 59 / 40 (R2 under the same decay rule 33 / 28; random score 10 / 11; chance about 3 / 3) | Percentile 59 / 80 (pre-registered fusion 60 / 54) | 0 / +40 over the fair baseline | Headline (R2 role) |
+| 18 | Evidence ranking for Granite | hit@3, insiders flagged in time, evidence up to the flag day, r4.2 / r5.2 | Global rarity 0.49 / 0.51 | C1 "new to you, rarest first" 0.64 / 0.85 (validator's window: 0.66 / 0.85) (ALS: 0.75 / 0.46; retrospective top-100 set: C1 0.98 / 0.98) | +0.15 / +0.34 over rarity | Build (R3) |
+| 19 | Early warning, day-by-day replay | insiders listed before last malicious action, r4.2 / r5.2 | R2 on the same list 59 / 40 (R2 under the same decay rule 33 / 28; random score 10 / 11; chance about 3 / 3) | Percentile 59 / 80 (pre-registered fusion 60 / 54) | 0 / +40 over the fair baseline | Headline (R2 role) |
 | 20a | Analyst feedback (AAD) | insiders found in 100 reviews, r4.2 / r5.2 | Frozen Stouffer 55 / 43 | 57 / 42 | +2 / -1 (noise: +0.2 ± 0.9) | Dropped |
 | 20b | Richer recommender items | web novelty found, r5.2 | Site rarity 11.4 | Site x hour popularity 26.0; CF variants 22 to 26 | +14.6 from context; CF adds nothing | Dropped |
 
@@ -164,7 +164,7 @@ Use this table wherever steps are listed: the notebook, the plan, the briefing a
 The review is in `feasibility/codex_review/round4_review.md`. These are the changes it asked for and what we did about each:
 
 - **Evidence as of the alert:** replaced the 98% with 0.66 / 0.85, computed only on evidence up to the flag day (section 2).
-- **Fair baseline:** R2 at similar churn ties on r4.2 (59 vs 59) and is half of ours on r5.2 (40 vs 80). This now leads the comparison.
+- **Fair baseline:** R2 on the same list ties on r4.2 (59 vs 59) and is half of ours on r5.2 (40 vs 80). This now leads the comparison.
 - **Leakers:** median delay 0 days is measured from the first labelled day. Only 7 of 30 (r4.2) and 15 of 29 (r5.2) were newly flagged; the rest were already on the list.
 - **Least privilege:** say "suggests which access to pre-approve". Only 28% and 42% of the 20 extra grants were later used. At matched cost, ALS covers 68.7% vs 60.4% for popularity (r4.2), and 85.9% vs 81.5% (r5.2); these are interpolated values from `matched_disruption_dom.csv`.
 - **Hidden job-hunters:** frozen fusion places 19 of 30 in the top 100, against 22 for feedback re-weighting and 4 to 7 for trained combiners.
@@ -173,29 +173,31 @@ The review is in `feasibility/codex_review/round4_review.md`. These are the chan
 
 ## 10. The whole system in one file (`feasibility/reference/outofrole_minimal.py`)
 
-The file is 178 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week, and test from the cutoff. It reproduces the headline numbers:
+The file is 214 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
 
 | Result | r4.2 | r5.2 |
 |---|---|---|
 | Insiders on the 20-name daily list before their last malicious action | 59 / 70 | 80 / 99 |
-| Same, 28-day baseline at similar churn (daily churn ours vs baseline) | 59 / 70 (9.2% vs 9.1%) | 40 / 99 (11.3% vs 8.9%) |
+| Same, 28-day baseline on the same list (daily churn ours vs baseline) | 59 / 70 (9.2% vs 9.1%) | 40 / 99 (11.3% vs 8.9%) |
 | Share of each insider's malicious events on later days, averaged over all insiders (missed = 0) | 0.54 | 0.48 |
 | Same, averaged over the insiders flagged in time only | 0.64 | 0.60 |
 | Normal staff ever listed | 230 | 291 |
-| Evidence top 3 holds a malicious item (in-time insiders, evidence up to the flag day): C1 vs rarity | 0.66 vs 0.49 | 0.85 vs 0.51 |
+| Evidence top 3 holds an answer-key-matched item (in-time insiders, evidence from replay day zero up to the graded flag day; ties averaged): C1 vs rarity | **0.64 vs 0.49** | **0.85 vs 0.51** |
 | Next new sites caught by the top 20: recommender vs popularity | 0.211 vs 0.145 | 0.190 vs 0.130 |
 | Access requests per person-month: own history / popularity top 20 / recommender top 20 | 2.31 / 1.97 / 1.82 | 3.15 / 2.74 / 2.55 |
 | Malicious web visits that would need approval (static coverage): own history / popularity / recommender | 71.0% / 65.5% / 69.1% | 90.1% / 86.2% / 89.2% |
-| Removal suggestions: share of held sites (used in training) never used again, people still active at the end | 6.0% (7.3 per person; 99% have at least one) | 3.6% (3.9 per person; 96%) |
-| Evidence at each insider's first alert, hit@3 (first alerts before labelled onset) | 0.33 (44%) | 0.62 (31%) |
-| Label-free evidence strength (an item new to the person and used by under 1% of staff): in-time insiders vs normal staff at first alert | 53% vs 18% | 72% vs 30% |
+| Access-review suggestions (end-of-period proxy): share of websites used in training and not again, people still active at the end | 6.0% (7.3 per person; 99% have at least one) | 3.6% (3.9 per person; 96%) |
+| Evidence at each insider's first alert, searched from replay day zero, hit@3 (share of first alerts before labelled onset) | 0.31 (46%) | 0.62 (31%) |
+| Label-free evidence strength (an item not in the person's training history and used by under 1% of staff), both groups at first alert: insiders vs normal staff | 29% vs 18% | 65% vs 31% |
+| Same rule, insiders at their graded in-time day | 53% | 72% |
 | Share of the recommender's extra grants later used | 0.28 | 0.42 |
 | New-to-company rule: wikileaks and keylogger visits blocked; normal person-days affected | 100%, 100%; 8 | 100%, 100%; 0 |
 
 Notes:
 
-- **r5.2 requests.** They differ slightly from section 4 (3.07 / 2.67 / 2.48), because section 4's script trained through the day before the cutoff instead of dropping the cutoff week. The reduction is the same (-19%). Both results are kept, with their protocol named.
+- **r5.2 requests.** They differ slightly from the full-experiment variant listed in section 4 (3.07 / 2.67 / 2.48), because that script trained through the day before the cutoff instead of dropping the cutoff week. The reduction is the same (-19%). Both results are kept, with their protocol named.
 - **Share on later days.** "Over all insiders" is the conservative figure; "over flagged insiders" describes the people the list actually caught.
+- **Evidence window.** The validator's comparison tables in section 2 (C1 0.66 / 0.85, ALS, novelty, mixed rule) start the evidence window on the Monday after the cutoff week. The canonical one-file numbers start it on replay day zero, which gives C1 0.64 / 0.85 and leaves rarity at 0.49 / 0.51. Both are kept; headline documents quote 0.64 / 0.85.
 
 **Code changes after Codex round 5:**
 
@@ -203,6 +205,13 @@ Notes:
 - The top-20 grant is masked so that owned sites are never re-granted.
 - Assertions check unique keys and that every attack starts after the cutoff.
 - A label-free `case_items(user, day)` path builds the evidence for every listed person.
-- `case_file.py` (61 lines) builds the evidence pack, the Granite prompt, the number checker and the fallback. Its self-test passes.
+- `case_file.py` builds the evidence pack, the Granite prompt, the reply check and the fallback.
 
 None of these changes moved the headline numbers.
+
+**Code changes after Codex round 6:**
+
+- `case_file.py` (91 lines) now fails closed. Granite returns JSON with a label from a fixed list, fact IDs and an optional note that may contain no numbers, dates, names or addresses. Code renders every fact sentence. Any other reply falls back to the deterministic case file; the self-test rejects six bad replies, including all three of Codex's slip-through examples.
+- Evidence strength is decided on the raw share, before rounding.
+- First alerts and case evidence start at replay day zero. This moved r4.2's graded C1 hit@3 from 0.66 to 0.64 and its first-alert value from 0.33 to 0.31; r5.2 is unchanged.
+- Evidence strength is now compared at the same stage (first alert) for insiders and normal staff.
