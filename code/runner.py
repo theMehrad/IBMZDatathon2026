@@ -60,6 +60,19 @@ def evaluate_reply(case, reply, finish_reason, error=None) -> dict[str, Any]:
                 problems=problems, rendered=rendered)
 
 
+def response_schema(pack):
+    """Constrain structure/IDs, not whether observations justify a strong label."""
+    from case_file import LABELS
+    ids = [fact['id'] for fact in pack['facts']]
+    if not ids:
+        raise ValueError('Cannot constrain an empty evidence pack')
+    return dict(type='object', additionalProperties=False, required=['label', 'facts'],
+                properties=dict(
+                    label=dict(type='string', enum=['weak evidence'] if pack['strength'] == 'weak' else list(LABELS)),
+                    facts=dict(type='array', minItems=1, maxItems=len(ids),
+                               items=dict(type='string', enum=ids))))
+
+
 def file_hash(path):
     digest = hashlib.sha256()
     with Path(path).open('rb') as stream:
@@ -131,7 +144,8 @@ def worker(args):
     try:
         with redirect_stdout(sys.stderr):
             from importlib import import_module
-            Llama = import_module('llama_cpp').Llama
+            runtime = import_module('llama_cpp')
+            Llama = runtime.Llama
             from case_file import prompt
             model = Llama(model_path=str(args.model), n_ctx=args.context,
                           n_threads=args.threads, n_batch=128, n_gpu_layers=0, verbose=False)
@@ -147,9 +161,15 @@ def worker(args):
             request = json.loads(line)
             try:
                 with redirect_stdout(sys.stderr):
+                    options = {}
+                    if args.structured_output:
+                        # Explicit grammar construction: failure must not silently
+                        # retry as unconstrained JSON/text.
+                        options['grammar'] = runtime.LlamaGrammar.from_json_schema(
+                            json.dumps(response_schema(request['pack'])), verbose=False)
                     result = model.create_chat_completion(
                         messages=[dict(role='user', content=prompt(request['pack']))],
-                        temperature=0, max_tokens=args.max_tokens)
+                        temperature=0, max_tokens=args.max_tokens, **options)
                 choice = result['choices'][0]
                 emit(dict(kind='reply', person=request['pack']['person'],
                           reply=choice['message']['content'], finish_reason=choice['finish_reason']))
@@ -230,8 +250,11 @@ def infer(args):
     bundle = json.loads((args.run_dir / 'packs.json').read_text())
     if bundle['code_sha256'] != manifest['code_sha256']:
         raise ValueError('Preparation provenance disagrees with pack export')
-    if bundle['code_sha256'] != code_hashes():
-        raise ValueError('Code changed since pack export; prepare a fresh run with this revision')
+    current_hashes = code_hashes()
+    changed = {name for name in set(bundle['code_sha256']) | set(current_hashes)
+               if bundle['code_sha256'].get(name) != current_hashes.get(name)}
+    if changed and not (args.allow_runner_update and changed == {'runner.py'}):
+        raise ValueError('Code changed since pack export; prepare again or explicitly allow a runner-only update')
     cases = bundle['cases']
     if [c['rank'] for c in cases] != list(range(1, len(cases) + 1)):
         raise ValueError('Review ranks are not consecutive')
@@ -244,7 +267,10 @@ def infer(args):
     config = dict(model_path=str(args.model), model_sha256=None,
                   context=args.context, threads=args.threads, max_tokens=args.max_tokens,
                   temperature=0, startup_timeout=args.startup_timeout, case_timeout=args.timeout,
-                  created_at=datetime.now(timezone.utc).isoformat(), code_sha256=code_hashes())
+                  structured_output=args.structured_output, max_cases=args.max_cases,
+                  prepared_code_sha256=bundle['code_sha256'],
+                  allowed_runner_update=bool(changed),
+                  created_at=datetime.now(timezone.utc).isoformat(), code_sha256=current_hashes)
     # Missing model/runtime and startup failure become explicit fallbacks for every name.
     problem = None
     if not args.model.is_file():
@@ -256,6 +282,11 @@ def infer(args):
     command = [sys.executable, '-u', __file__, '_worker', '--model', str(args.model),
                '--context', str(args.context), '--threads', str(args.threads),
                '--max-tokens', str(args.max_tokens)]
+    if args.structured_output:
+        command.append('--structured-output')
+    if args.max_cases is not None:
+        print(f'Diagnostic limit: infer first {min(args.max_cases, len(cases))} case(s); '
+              'retain remaining names as NOT INFERRED.', flush=True)
     client = None
     results = []
     started = time.monotonic()
@@ -277,7 +308,10 @@ def infer(args):
             for case in cases:
                 begin = time.monotonic()
                 reply, finish, reason = None, None, problem
-                if not case['pack']['facts']:
+                skipped = args.max_cases is not None and case['rank'] > args.max_cases
+                if skipped:
+                    reason = 'Not inferred: diagnostic --max-cases limit'
+                elif not case['pack']['facts']:
                     reason = 'No replay evidence available for this person on this day'
                 elif client:
                     try:
@@ -288,25 +322,36 @@ def infer(args):
                         client.close()
                         client = None
                 result = evaluate_reply(case, reply, finish, reason)
+                result['skipped'] = skipped
+                if args.structured_output and not skipped and case['pack']['facts']:
+                    result['response_schema'] = response_schema(case['pack'])
                 result['elapsed_seconds'] = round(time.monotonic() - begin, 3)
                 results.append(result)
                 records.write(json.dumps(result) + '\n')
                 records.flush()
                 os.fsync(records.fileno())
                 print(f'{case["rank"]}/{len(cases)} {result["person"]}: '
-                      f'{"ACCEPTED" if result["accepted"] else "FALLBACK"}', flush=True)
+                      f'{"NOT INFERRED" if skipped else "ACCEPTED" if result["accepted"] else "FALLBACK"}', flush=True)
+                if args.max_cases is not None and not skipped:
+                    print('Diagnostic raw reply:', repr(reply), flush=True)
+                    print('Validation problems:', result['problems'], flush=True)
+                    print(result['rendered'], flush=True)
     finally:
         if client:
             client.close()
     assert [r['person'] for r in results] == people, 'Review list/order changed'
     accepted = sum(r['accepted'] for r in results)
+    skipped = sum(r['skipped'] for r in results)
+    fallback = len(cases) - accepted - skipped
     summary = dict(day=bundle['day'], release=bundle['release'], total=len(cases),
-                   accepted=accepted, fallback=len(cases) - accepted,
+                   accepted=accepted, fallback=fallback, skipped=skipped,
                    elapsed_seconds=round(time.monotonic() - started, 3),
-                   status='completed' if accepted == len(cases) else 'completed_with_fallbacks',
+                   status='completed_with_fallbacks' if fallback else 'partial_test' if skipped else 'completed',
                    semantic_accuracy='not evaluated; acceptance validates the response contract only')
     write_json(attempt / 'summary.json', summary)
-    (attempt / 'case_files.txt').write_text('\n\n'.join(r['rendered'] for r in results) + '\n')
+    (attempt / 'case_files.txt').write_text('\n\n'.join(
+        ('[NOT INFERRED: diagnostic limit]\n' if r['skipped'] else '') + r['rendered']
+        for r in results) + '\n')
     print(json.dumps(summary, indent=2), flush=True)
     print(f'Case files: {attempt / "case_files.txt"}', flush=True)
     return 0 if not summary['fallback'] else 2
@@ -344,6 +389,13 @@ def cli():
             sub.add_argument('--max-tokens', type=positive_int, default=128)
             sub.add_argument('--timeout', type=positive_int, default=300)
             sub.add_argument('--startup-timeout', type=positive_int, default=180)
+            sub.add_argument('--structured-output', action='store_true',
+                             help='Apply a per-pack JSON grammar; keep the validator unchanged')
+            if name != '_worker':
+                sub.add_argument('--max-cases', type=positive_int,
+                                 help='Diagnostic limit; retain other names as not inferred')
+                sub.add_argument('--allow-runner-update', action='store_true',
+                                 help='Reuse packs if only runner.py changed; record both revisions')
     args = parser.parse_args()
     os.umask(0o077)
     if hasattr(args, 'model'):

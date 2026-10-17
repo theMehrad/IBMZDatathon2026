@@ -124,3 +124,19 @@ def test_worker_timeout_also_bounds_partial_lines(tmp_path):
         finally:
             client.close()
         assert client.process.poll() is not None
+
+
+def test_response_schema_allows_only_current_labels_and_pack_fact_ids():
+    from runner import response_schema
+    from case_file import LABELS
+    pack = dict(strength='strong', facts=[dict(id='E1'), dict(id='E2')])
+    schema = response_schema(pack)
+    assert schema['required'] == ['label', 'facts']
+    assert schema['additionalProperties'] is False
+    assert schema['properties']['label']['enum'] == LABELS
+    assert schema['properties']['facts']['items']['enum'] == ['E1', 'E2']
+    assert schema['properties']['facts']['minItems'] == 1
+    pack['strength'] = 'weak'
+    assert response_schema(pack)['properties']['label']['enum'] == ['weak evidence']
+    with pytest.raises(ValueError, match='empty'):
+        response_schema(dict(strength='weak', facts=[]))

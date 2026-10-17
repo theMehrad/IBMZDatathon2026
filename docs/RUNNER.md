@@ -73,12 +73,12 @@ The command prints an exact run directory under `data/runs/`. Each run is new; a
 
 Outputs use restrictive new-file permissions and stay under git-ignored data by default. The preparation digest detects accidental edits to packs; it is not a signature or protection against someone who can rewrite both packs and manifest. CSV readers preserve user/computer/domain identifier text across parts, including leading zeros and strings such as NA. Dates before the known replay cutoff fail before scoring; the actual upper bound is checked after the reference scorer loads the data. Do not commit or redistribute outputs. Raw model text is retained for debugging but is never used as the rendered analyst narrative.
 
-- Exit **0**: every case was accepted (or there were no cases); this is not a classification-accuracy score.
+- Exit **0**: all attempted cases were accepted (or there were no cases). With a diagnostic limit, inspect `skipped` and `partial_test`: it is not a completed full batch or a classification-accuracy score.
 - Exit **2**: the run completed with explicit safe fallbacks. Inspect `summary.json`, the per-case problems and `granite.log`.
 - Exit **1**: preparation/configuration or another fatal error. Inspect `scoring.log` if stage 1 failed; do not infer that Granite ran.
 - CLI argument errors also use argparse's exit 2, but occur before a summary exists.
 
-Missing model/runtime, missing chat template, worker error, or timeout preserves every selected name with a fallback. If the model worker fails or times out, it is terminated and remaining names receive explicit fallbacks rather than silently disappearing or spawning repeated model loads. Invalid JSON or unknown facts affect that case; later cases continue. Token-limit completions are never accepted, even if the emitted prefix happens to be valid JSON. Empty packs fall back without being sent to the model. No JSON grammar is imposed.
+Missing model/runtime, missing chat template, worker error, or timeout preserves every selected name with a fallback. If the model worker fails or times out, it is terminated and remaining names receive explicit fallbacks rather than silently disappearing or spawning repeated model loads. Invalid JSON or unknown facts affect that case; later cases continue. Token-limit completions are never accepted, even if the emitted prefix happens to be valid JSON. Empty packs fall back without being sent to the model. JSON grammar constraints are opt-in through `--structured-output`.
 
 Default model limits: context 2048, threads 2, batch 128, GPU layers 0, temperature 0, output 128 tokens. Startup timeout is 180 seconds; per-case timeout is 300 seconds. `--context`, `--threads`, `--max-tokens`, `--startup-timeout` and `--timeout` are explicit overrides. A long prompt can exceed the small context; it then falls back, not silently truncates evidence. Measure before increasing limits on the 8 GB VM.
 
@@ -90,9 +90,27 @@ Use the printed run directory:
 python3 code/runner.py infer --run-dir /absolute/container/path/to/run --model /absolute/container/path/to/model.gguf
 ```
 
-Run this inside the same notebook container/environment. Each `infer` creates a separate attempt, preserving old outputs. Source hashes must match the preparation snapshot; changed code requires fresh preparation. A model-only retry or generation-limit change does not require scoring again.
+Run this inside the same notebook container/environment. Each `infer` creates a separate attempt, preserving old outputs. Source hashes must match the preparation snapshot by default. `--allow-runner-update` explicitly permits **only runner.py** to differ and records the prepared and current hashes; scorer, table loader and validator changes still require fresh preparation. A model-only retry or generation-limit change does not require scoring again.
 
 To export packs without starting Granite, use `prepare --release 4.2 --day 2010-08-02`. The CLI requires a model path only for `run` and `infer`.
+
+## Constrain JSON and test only one case
+
+Add `--structured-output` to `run` or `infer`. For each nonempty pack the worker compiles a `LlamaGrammar` from a JSON schema: exactly `label` and `facts`, an allowed-label enum, and a nonempty list of the pack's fact-ID enum. Weak packs permit only `weak evidence`, matching the existing validator. Grammar support is required in this mode; construction/API failures fall back explicitly rather than silently retrying unconstrained. The current runtime must still be exercised to establish native grammar compatibility. The prompt and validator remain unchanged. Structure/known IDs are not evidence that a label is justified; constrained mode changes generation and should be compared with the unconstrained baseline.
+
+`--max-cases 1` sends only the first review entry to inference. Remaining names stay in the output with `skipped: true` and `NOT INFERRED` progress status; they are not counted as inference failures or accepted classifications. The summary reports the full list total, attempted accepted/fallback counts and skipped count. A partial successful diagnostic run has status `partial_test`. Records contain the exact response schema, and diagnostic output prints the attempted raw reply and rendered case.
+
+For existing packs prepared by the earlier runner revision, use the explicit runner-only provenance override; do not edit or rewrite their hashes:
+
+```bash
+python3 code/runner.py infer \
+  --run-dir /absolute/container/path/to/existing/run \
+  --model /absolute/container/path/to/model.gguf \
+  --structured-output --max-cases 1 --allow-runner-update \
+  --max-tokens 64 --timeout 180
+```
+
+Run inside the notebook container, after safely fetching the updated branch into the clean runner worktree. This reuses the existing scoring/evidence and writes a new attempt; it does not repeat the expensive scorer or overwrite the unconstrained results. Constraints do not make CPU inference fast. Output limits can still truncate; timeout still falls back. Do not expand to all 20 until one native constrained case completes and its label/citations have been inspected.
 
 ## Verification performed during development
 
