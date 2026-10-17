@@ -6,6 +6,7 @@ OutOfRole spots insiders while they are still active, explains each alert with c
 
 ## Start here
 
+0. **[`OutOfRole_In_Plain_Words.md`](OutOfRole_In_Plain_Words.md)** (also as a PDF): the whole project in three pages, in plain words.
 1. **[`Build_Plan.md`](Build_Plan.md)** (also as a PDF): what each person builds, in what order, the cut rules, the demo, and the verified numbers.
 2. **[`feasibility/Verified_Numbers.md`](feasibility/Verified_Numbers.md)**: the only source for numbers in any slide, doc or video.
 3. **[`Data_Access_Guide.md`](Data_Access_Guide.md)**: how to download CERT r4.2 and r5.2 onto the VM.
@@ -25,9 +26,10 @@ OutOfRole spots insiders while they are still active, explains each alert with c
 |---|---|
 | `Build_Plan.*` | The build plan for October 17 to 18 |
 | `feasibility/OutOfRole_Feasibility.ipynb` (+ `.html`) | The full pre-event study: code, explanations and findings per step |
+| `feasibility/reference/outofrole_minimal.py`, `case_file.py` | The whole build in about 300 lines: the daily list, evidence, recommender, access advice, and the Granite reply check. Port these to LinuxONE. |
 | `feasibility/reference/` | The scripts behind the verified numbers. They are local reference implementations, and we rewrite them on the event server. Paths inside point to Mehrad's laptop. |
 | `feasibility/OutOfRole_Plan.*`, `feasibility/Team_Briefing.*` | Plan with findings per step; teammate explainer |
-| `feasibility/codex_review/` | Three rounds of external review and our responses |
+| `feasibility/codex_review/` | Eight rounds of external review (Codex) and our responses; round 8 verdict: ready for the local build and pitch |
 | `Research_Findings.md` | Published work, industry practice, LinuxONE notes, sources |
 | `Abstract_Submission.md` | The abstract as submitted |
 | `output/` | VM, SSH, Docker, Jupyter and PySpark setup guide (its Chapter 9 is superseded by the build plan) |
