@@ -323,6 +323,7 @@ Everything: Spark builds the tables, Python scores and ranks, Granite labels the
 
 # Where to find everything
 
+- `Proposal_Update.pdf`: the reworded proposal, field by field, with the pitch and how to explain the change.
 - `OutOfRole_In_Plain_Words.pdf`: the three-page summary.
 - `Build_Plan.pdf`: who builds what, hour by hour, and the cut rules.
 - `feasibility/Verified_Numbers.md`: every number with the script that produced it.
