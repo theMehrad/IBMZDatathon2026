@@ -90,7 +90,7 @@ Use the printed run directory:
 python3 code/runner.py infer --run-dir /absolute/container/path/to/run --model /absolute/container/path/to/model.gguf
 ```
 
-Run this inside the same notebook container/environment. Each `infer` creates a separate attempt, preserving old outputs. Source hashes must match the preparation snapshot by default. `--allow-runner-update` explicitly permits **only runner.py** to differ and records the prepared and current hashes; scorer, table loader and validator changes still require fresh preparation. A model-only retry or generation-limit change does not require scoring again.
+Run this inside the same notebook container/environment. Each `infer` creates a separate attempt, preserving old outputs. Source hashes must match the preparation snapshot by default. `--allow-runner-update` explicitly permits **only runner.py and label_guide.py** to differ and records the prepared and current hashes; scorer, table loader and validator changes still require fresh preparation. A model-only retry or generation-limit change does not require scoring again.
 
 To export packs without starting Granite, use `prepare --release 4.2 --day 2010-08-02`. The CLI requires a model path only for `run` and `infer`.
 
@@ -100,7 +100,7 @@ Add `--structured-output` to `run` or `infer`. For each nonempty pack the worker
 
 `--max-cases 1` sends only the first review entry to inference. Remaining names stay in the output with `skipped: true` and `NOT INFERRED` progress status; they are not counted as inference failures or accepted classifications. The summary reports the full list total, attempted accepted/fallback counts and skipped count. A partial successful diagnostic run has status `partial_test`. Records contain the exact response schema, and diagnostic output prints the attempted raw reply and rendered case.
 
-For existing packs prepared by the earlier runner revision, use the explicit runner-only provenance override; do not edit or rewrite their hashes:
+For existing packs prepared by the earlier runner revision, use the explicit runner/guide-only provenance override; do not edit or rewrite their hashes:
 
 ```bash
 python3 code/runner.py infer \
@@ -129,6 +129,10 @@ python3 code/runner.py infer \
 This is a three-case integration check in original ranking order, not a balanced classification-accuracy sample. The standalone native 350M test on U-0296 completed in 11.36 seconds and selected theft rather than the 2B model's leak label. That proves speed and structural validity on one case, not equivalent classification quality. Do not infer semantics from weak-label grammar enforcement. The new runner mode is tested with simulated adapters and still requires its own native run. Preserve both models and old attempts for comparison.
 
 ## Verification performed during development
+
+### Optional versioned label guide and quality checks
+
+`--label-guide v1` prepends the versioned policy in `code/label_guide.py`; `none` remains the runner default and preserves the original prompt. The classifier's labels, validator and detector are unchanged. See [LABEL_GUIDE_V1.md](LABEL_GUIDE_V1.md) for definitions, frozen synthetic expectations, citation checks and a bounded 350M quality-test command. `code/quality_check.py` defaults to three cases, records contract validity separately from policy/label/citation matches, and never sends expected answers or fixture names to the model. It is not a CERT accuracy benchmark. Two fixtures explicitly model file-copy observations not yet emitted by the actual evidence exporter; that input limitation is documented, not silently treated as implemented.
 
 Public seams approved by Daniel: CLI workflow, exact list preservation, past-only evidence export and safe fallbacks. Automated tests execute the real reference scorer on **small synthetic CSV/answer fixtures** and separately exercise an explicitly simulated LLM adapter. They also check incomplete CSVs, unknown IDs, malformed JSON, truncated completions, missing model, startup failure, timeout, output preservation and code-provenance mismatch. The existing case-file self-test remains unchanged.
 

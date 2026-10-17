@@ -90,7 +90,7 @@ def write_json(path, value):
 
 def code_hashes():
     return {name: file_hash(ROOT / 'code' / name) for name in
-            ('outofrole_minimal.py', 'case_file.py', 'table_io.py', 'runner.py')}
+            ('outofrole_minimal.py', 'case_file.py', 'table_io.py', 'runner.py', 'label_guide.py')}
 
 
 def prepare_child(args):
@@ -146,7 +146,7 @@ def worker(args):
             from importlib import import_module
             runtime = import_module('llama_cpp')
             Llama = runtime.Llama
-            from case_file import prompt
+            from label_guide import prompt_for
             model = Llama(model_path=str(args.model), n_ctx=args.context,
                           n_threads=args.threads, n_batch=128, n_gpu_layers=0, verbose=False)
             if args.model_mode == 'chat' and not model.metadata.get('tokenizer.chat_template'):
@@ -156,7 +156,8 @@ def worker(args):
         except PackageNotFoundError:
             runtime_version = 'unknown'
         emit(dict(kind='ready', model_name=model.metadata.get('general.name'),
-                  runtime_version=runtime_version, model_mode=args.model_mode))
+                  runtime_version=runtime_version, model_mode=args.model_mode,
+                  label_guide=args.label_guide))
         for line in sys.stdin:
             request = json.loads(line)
             try:
@@ -169,11 +170,11 @@ def worker(args):
                             json.dumps(response_schema(request['pack'])), verbose=False)
                     if args.model_mode == 'completion':
                         result = model.create_completion(
-                            prompt=prompt(request['pack']) + '\nJSON response:\n',
+                            prompt=prompt_for(request['pack'], args.label_guide) + '\nJSON response:\n',
                             temperature=0, max_tokens=args.max_tokens, **options)
                     else:
                         result = model.create_chat_completion(
-                            messages=[dict(role='user', content=prompt(request['pack']))],
+                            messages=[dict(role='user', content=prompt_for(request['pack'], args.label_guide))],
                             temperature=0, max_tokens=args.max_tokens, **options)
                 choice = result['choices'][0]
                 reply = choice['text'] if args.model_mode == 'completion' else choice['message']['content']
@@ -259,8 +260,8 @@ def infer(args):
     current_hashes = code_hashes()
     changed = {name for name in set(bundle['code_sha256']) | set(current_hashes)
                if bundle['code_sha256'].get(name) != current_hashes.get(name)}
-    if changed and not (args.allow_runner_update and changed == {'runner.py'}):
-        raise ValueError('Code changed since pack export; prepare again or explicitly allow a runner-only update')
+    if changed and not (args.allow_runner_update and changed <= {'runner.py', 'label_guide.py'}):
+        raise ValueError('Code changed since pack export; prepare again or explicitly allow runner/guide updates')
     cases = bundle['cases']
     if [c['rank'] for c in cases] != list(range(1, len(cases) + 1)):
         raise ValueError('Review ranks are not consecutive')
@@ -274,6 +275,7 @@ def infer(args):
                   context=args.context, threads=args.threads, max_tokens=args.max_tokens,
                   temperature=0, startup_timeout=args.startup_timeout, case_timeout=args.timeout,
                   structured_output=args.structured_output, max_cases=args.max_cases, model_mode=args.model_mode,
+                  label_guide=args.label_guide,
                   prepared_code_sha256=bundle['code_sha256'],
                   allowed_runner_update=bool(changed),
                   created_at=datetime.now(timezone.utc).isoformat(), code_sha256=current_hashes)
@@ -287,7 +289,8 @@ def infer(args):
     print(f'Stage 2/2: Granite for {len(cases)} cases. Results: {attempt}', flush=True)
     command = [sys.executable, '-u', __file__, '_worker', '--model', str(args.model),
                '--context', str(args.context), '--threads', str(args.threads),
-               '--max-tokens', str(args.max_tokens), '--model-mode', args.model_mode]
+               '--max-tokens', str(args.max_tokens), '--model-mode', args.model_mode,
+               '--label-guide', args.label_guide]
     if args.structured_output:
         command.append('--structured-output')
     if args.max_cases is not None:
@@ -392,6 +395,8 @@ def cli():
             sub.add_argument('--model', type=Path, required=True)
             sub.add_argument('--model-mode', choices=('chat', 'completion'), default='chat',
                              help='Explicit plain completion for base models; chat uses embedded template')
+            sub.add_argument('--label-guide', choices=('none', 'v1'), default='none',
+                             help='Opt-in versioned labeling policy; none preserves the baseline prompt')
             sub.add_argument('--context', type=positive_int, default=2048)
             sub.add_argument('--threads', type=positive_int, default=2)
             sub.add_argument('--max-tokens', type=positive_int, default=128)
@@ -403,7 +408,7 @@ def cli():
                 sub.add_argument('--max-cases', type=positive_int,
                                  help='Diagnostic limit; retain other names as not inferred')
                 sub.add_argument('--allow-runner-update', action='store_true',
-                                 help='Reuse packs if only runner.py changed; record both revisions')
+                                 help='Reuse packs if only runner/label-guide code changed; record both revisions')
     args = parser.parse_args()
     os.umask(0o077)
     if hasattr(args, 'model'):
