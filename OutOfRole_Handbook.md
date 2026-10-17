@@ -1,6 +1,6 @@
 ---
-title: "OutOfRole Team Guide"
-subtitle: "The Debugging Table · IBM Z Datathon 2026 · What we built, what the data shows, and answers to common questions"
+title: "OutOfRole Handbook"
+subtitle: "The Debugging Table · IBM Z Datathon 2026 · Everything in one place: what we built, the evidence, the event plan and the submission"
 ---
 
 # The project in one minute
@@ -60,7 +60,7 @@ The same kind of recommender learns which websites each person uses and predicts
 
 Visits to websites no one in the company had used during training are flagged. In CERT, this catches every wikileaks and keylogger-site visit. For a real company, the practical version is to hold **uploads** to never-seen or newly registered sites, not to block browsing (see "Is it practical?").
 
-# Which method we use at each step, and what it buys us
+# Which method we use at each step, and where its code is
 
 The build uses two kinds of machine learning plus one language model. All of it is **unsupervised**: nothing learns from the answer key, because a real company never has a list of its insiders. We tried supervised models and they failed on attacks they had not seen (see the second table).
 
@@ -78,12 +78,12 @@ The build uses two kinds of machine learning plus one language model. All of it 
 
 | Step | Code | Notebook |
 |------------|----------------------------------------|------------|
-| 0. Data tables | `4_Code/build_tables.py` | Step 1 |
+| 0. Data tables | `code/build_tables.py` | Step 1 |
 | Baseline | `outofrole_minimal.py`, `r2_score()` at line 58 | Step 3 |
 | 1. Daily review list | `outofrole_minimal.py`, lines 43 to 94 | Steps 10 and 19 |
 | 2. Snooping review | `outofrole_minimal.py`, lines 97 to 122 | Step 13 |
 | 3. Evidence ranking | `outofrole_minimal.py`, lines 124 to 186 | Step 18 |
-| 4. Case file | `4_Code/case_file.py` | Step 18, Part 3 |
+| 4. Case file | `code/case_file.py` | Step 18, Part 3 |
 | 5. Access advice | `outofrole_minimal.py`, lines 188 to 215 | Steps 16 and 17 |
 | 6. New-site rule | `outofrole_minimal.py`, lines 217 to 221 | Step 17 |
 
@@ -127,7 +127,13 @@ That is why r5.2 shows twice the catches (it has snoopers and harder job-hunters
 
 # Results, backed by data
 
-All numbers below come from one program, `4_Code/outofrole_minimal.py`, and are listed with their sources in `5_Evidence/Verified_Numbers.md`.
+## Level by level
+
+Each level runs on the output of the one above it. Grey bars show the reference (chance or the previous best); teal bars show the level. r4.2 has 70 insiders among 1,000 staff; r5.2 has 99 among 2,000.
+
+![Level by level](figures/levels.png){ width=76% }
+
+All numbers below come from one program, `code/outofrole_minimal.py`, and are listed with their sources in `evidence/Verified_Numbers.md`.
 
 ## Catching insiders in time
 
@@ -204,7 +210,9 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 
 **What remains a risk:** a few choices were made after seeing results (the daily-list method, the snooping review, the training cutoff date). The fix is a dataset we have never looked at, which is why we are adding the LANL dataset (see the FAQ).
 
-# Is it practical for a real company?
+# Using it in a real company
+
+## Is it practical?
 
 | Part | Practical? | How to present it |
 |---|---|---|
@@ -214,7 +222,7 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 | Access advice | Yes, but for applications, shared drives and groups. Companies do not manage website access per person. | An access-review assistant. CERT has no permission lists, so websites stand in. |
 | New-site rule | Not as built: blocking every never-seen site is excessive. It only works because CERT has about 470 websites in total. | Hold or flag uploads to never-seen or newly registered sites. |
 
-# Keeping it relevant as people and roles change
+## Keeping it relevant as people and roles change
 
 - **CERT never changes anyone's role** (0 role changes), though 14 to 30 people change department and 126 to 213 change team. So we tested the general fix: let each person's "normal" roll forward, using their last 26 weeks and skipping the most recent 4 so a slow attack cannot become the new normal.
 - **Detection held:** 59 of 70 and 84 of 99, against 59 and 80 with frozen normal weeks. The cost is that more innocent people appear on the list at some point (274 vs 230, and 374 vs 291).
@@ -236,7 +244,7 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 3. **"Ask your logs."** An analyst types a question in plain English; Granite picks one of a fixed set of queries and fills in the details; code runs it. A strong live demo on LinuxONE.
 4. **Access-review notes.** Granite drafts the reason behind each removal or pre-approval suggestion from the facts.
 
-# How it connects to our proposal
+# Our proposal: what changed and what to submit
 
 | We promised | We deliver |
 |---|---|
@@ -250,6 +258,64 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 
 **What changed:** each person's own history catches insiders better than the recommender does, so it drives the broad daily list. The recommender does two jobs where it measurably helps: the snooping review and access advice.
 
+## Did the recommender work?
+
+**As the detector, no. In two supporting jobs, yes.**
+
+| Job | Result (r4.2 / r5.2) | Verdict |
+|---|---|---|
+| Spotting insiders across all attack types | Never beat simple popularity, on any item type | Did not work |
+| Live snooping alarm | 9 of 30 snoopers caught in time (r5.2) | Did not work |
+| End-of-period snooping review | 27 of 30 snoopers in its top 100, 26 without it | Works, small edge |
+| Predicting the access each person will need | 21% / 19% of next new websites, vs 14.5% / 13% for popularity | Works |
+| Fewer access requests | 21% / 19% fewer; 28% with monthly retraining | Works |
+
+What actually catches insiders is each person's own normal week: 80 of 99 caught while still active on r5.2, against 40 for a standard baseline.
+
+## Final submission text, field by field
+
+Each field fits the original form's limits.
+
+**Project:** OutOfRole: early warning for insider misuse, explained by Granite on LinuxONE.
+
+**Problem statement** (173 of 200 characters):
+Insiders misuse valid access to leak, steal or snoop. Rules miss them or flood analysts. Teams need early, explained warnings without moving sensitive data off the platform.
+
+**Proposed solution** (179 of 200):
+OutOfRole learns each employee's normal week and lists the 20 who drift most each day. Granite on LinuxONE labels each case from checked evidence; a recommender advises on access.
+
+**Audience** (785 of 1,024):
+(1) Security analysts: a 20-name daily review list instead of thousands of rule hits. In a day-by-day replay it caught 80 of 99 insiders while still active, twice a standard baseline. (2) Privacy and compliance officers: dated case files that cite their evidence; the AI picks a label and the facts, code writes every sentence, so nothing is invented. (3) Identity and access admins: a Netflix-style recommender predicts the access each person will need (1.45 times better than popularity), cutting access requests by about a fifth, and lists access people stopped using for review. (4) Patients and account holders: monitoring and AI stay on the platform; people appear only as pseudonyms. (5) Organizations running core records on IBM Z: everything runs next to the data on LinuxONE.
+
+**Data and method** (685 of 1,024):
+(1) CMU SEI CERT Insider Threat r4.2 and r5.2: synthetic logons, USB, file, web and email logs for 1,000 and 2,000 employees, with an answer key of 70 and 99 insiders used only for grading. (2) Spark builds per-person daily tables; each person's normal weeks are learned from the early months, and the later months are replayed day by day as a live stream. (3) An ALS recommender learns who uses which computers and websites, for snooping reviews and access advice. (4) IBM Granite labels each case from a ranked evidence pack with a fail-closed check. (5) Settings frozen on r4.2, tested unchanged on r5.2; LANL's real authentication logs with red-team labels as an independent check.
+
+## The 30-second pitch
+
+"Malicious insiders were the costliest attack vector in IBM's 2025 breach report, and they hide behind valid logins. OutOfRole learns each employee's normal week and gives analysts a 20-name daily list. In a day-by-day replay of 2,000 employees, it caught 80 of 99 insiders while they were still active, twice a standard baseline. For every alert, IBM Granite on the same LinuxONE server labels the case from checked evidence, and code writes the text, so it cannot invent facts. A Netflix-style recommender keeps access lean, cutting access requests by about a fifth. No data leaves the platform."
+
+## Why this can win
+
+| Judging angle | What we show |
+|---|---|
+| Real value | A daily list analysts can work through, explained case files for compliance, leaner access for admins |
+| Novelty | We measure catching insiders while they are still active, which much published work on this dataset does not report; the AI cannot invent facts; the recommender's job is measured in fewer access requests |
+| Technical depth | Per-person anomaly detection, ALS recommender, a constrained LLM, a day-by-day replay with no look-ahead, a resampling check (+27 to +52 insiders on r5.2) |
+| LinuxONE and IBM tech | Spark, Granite and the dashboard all on one LinuxONE server; pseudonyms only |
+| Credibility | Settings frozen before the test release, an independent validator, 11 outside review rounds, one 253-line program that reproduces every number |
+
+## How to talk about the change
+
+Say it plainly and early, as a strength: "We tested our own idea honestly. The recommender turned out to be a great predictor of what people need, but a weak insider detector, so we used it where it wins (access advice and snooping reviews) and built detection on each person's normal week, which doubled the baseline."
+
+Judges reward a team that tests its own assumptions. They punish one that hides a weak result.
+
+## Three things that would strengthen it at the event
+
+1. **Measure Granite's labels** against the answer key (chance is 1 in 4 on r5.2), so "the AI explains" becomes a number.
+2. **Run on LANL's real logs** (already downloaded: 1.05 billion login events, 749 red-team events) to show the approach is not just tuned to synthetic data.
+3. **Combine with the baseline for sysadmins:** the baseline catches 8 to 9 of 10 sabotage cases where our list catches 2 to 4. A combined list is a likely quick win; it needs testing.
+
 # What we say openly
 
 - CERT is synthetic data; these are replay results, not a live deployment.
@@ -259,18 +325,65 @@ We tested about 20 ideas in order. Each one either earned its place or was dropp
 - Most leakers were already doing suspicious USB copying before the answer key's start date, so "caught the same day" partly means "already on the list".
 - Granite and the LinuxONE run are built at the event; the code they plug into is tested here.
 
-# Who builds what at the event
+## Say this, not that
 
-Full detail, hour by hour, is in `2_Event_Day/Build_Plan.pdf`.
+- Say "flags insiders while they are still active", not "real-time production system". It is a replay of past logs.
+- Say "the recommender predicts legitimate access", not "the recommender detects insiders". We tested that: as a detector it is no better than popularity.
+- Say openly that two-day sysadmin sabotage is mostly missed, and that CERT is synthetic data.
+- Say "suggests which access to pre-approve", not "trims access to what people need". Only 28% (r4.2) and 42% (r5.2) of the recommender's extra grants were later used.
+- Say plainly that the approach changed after testing. The abstract promised recommender-based detection; our tests showed that own-history baselines detect better, so the recommender moved to access advice.
+- Compare against the strongest baseline. On the same 20-name list, the 28-day baseline flags 59 of 70 (a tie on r4.2) and 40 of 99 (half of ours on r5.2).
+- The early-warning method was picked after seeing results. The full detector we had named in advance also beat the baseline: 54 vs 28 of 99 r5.2 insiders flagged in time.
 
-| Role | Builds |
-|---|---|
-| R1, data and platform | VM setup (Java 17, PySpark, Docker), download CERT, Spark builds the three tables, container and repo |
-| R2, detection | Port the daily list from `outofrole_minimal.py`, run r4.2 then r5.2, results table |
-| R3, Granite | Both IBM labs, then port `case_file.py`: evidence pack, Granite prompt, reply check, fallback |
-| R4, recommender and demo | Port the recommender parts (snooping review, access advice, new-site rule), dashboard, video |
+# Event day plan
 
-Freeze the detector settings by hour 12. If something is behind, the build plan's cut rules say what to drop.
+## Who builds what, hour by hour
+
+Fill in names. Hours count from the start of our build.
+
+| Role | Hours 0 to 6 | Hours 6 to 12 | Hours 12 to 18 | Hours 18 to 24 |
+|--------------|------------------|------------------|------------------|------------------|
+| **R1 Data and platform** (\_\_\_\_\_\_) | VM: Java 17, PySpark (no pyarrow on s390x), Docker; download r4.2. At hour 2, hand a one-month sample to R2 and R4. Spark builds 3 tables: daily counts, person-computer-day, person-site-day | r5.2 if disk allows; run the whole pipeline end to end | Docker container, GitHub repo, README | Support the demo; check the repo runs from scratch |
+| **R2 Detection** (\_\_\_\_\_\_) | Port section 1 of `outofrole_minimal.py` (the daily list) and run it on the sample | Run on r4.2 with the fixed settings below | r5.2 unchanged; results table vs baseline and chance, per attack type, analyst load | Export daily lists and per-person timelines for the dashboard |
+| **R3 Granite** (\_\_\_\_\_\_) | Both IBM labs (Granite via llama.cpp; the model file must be big-endian) | Port `case_items` from `outofrole_minimal.py` and all of `case_file.py` (evidence pack with IDs, Granite prompt that returns only a label and fact IDs, reply check, fallback); pseudonyms | Pre-generate case files for the top 20; keep one live run | Case-file panel in the dashboard |
+| **R4 Recommender and demo** (\_\_\_\_\_\_) | Dashboard skeleton: daily list, person page, case-file panel | Port sections 3 to 6 of `outofrole_minimal.py`: ALS on person-site data, top-20 pre-approval, removal suggestions, new-to-company block, and the recommender snooping review (end of period) | Wire everything into the dashboard | Video with on-screen proof: `uname -m` (s390x), `docker ps`, the server prompt |
+
+**Fixed detector settings (decide nothing new):**
+
+- A feature is unusual when the last 7 days beat every one of that person's training weeks.
+- The running score halves every 7 days.
+- The list holds 20 names a day.
+
+**Recommender settings:** rank 64, alpha 0.5, regularization 1.0 on log(1 + active days), using the numpy version in `recommender_als_simple.py`. Spark's ALS scales regularization differently, so if you use it, re-tune on the last training month and pick by how many next-month new sites it catches.
+
+## Cut rules
+
+- **Hour 6:** if the Spark tables aren't ready, run r4.2 with logon, USB and file data only; add web later.
+- **Hour 12:** freeze the detector settings. No tuning after this.
+- **Hour 14:** if the recommender is behind, ship the new-to-company block plus each person's own history as the allow-list. Cite the recommender's local result instead.
+- **Hour 18:** if Granite is slow or unreliable, show the pre-generated case files plus one live run. If it fails entirely, show the checked evidence pack itself.
+- **Hour 20:** feature freeze. Only the video, README and slides from here.
+
+## Demo (3 minutes)
+
+1. The replay plays. A leaker joins the daily list on the day of the first wikileaks upload.
+2. Click the person. The case file appears: Granite's label, the top-ranked evidence written by code, and the facts Granite cited marked. Then show a bad reply being rejected and replaced by the fallback.
+3. Access panel: 20 pre-approved sites. A request for wikileaks.org is blocked as new to the company.
+
+## The code to port
+
+In `code/`, in the order they run:
+
+| File | What it does | Who ports it |
+|------------------|------------------------------------|------------|
+| `build_tables.py` | Spark turns the raw logs into the three tables (daily counts, person-computer-day, person-site-day) | R1 |
+| `outofrole_minimal.py` | The whole system, printing every headline number: daily list (section 1, lines 43 to 94), snooping review (1b, lines 97 to 122), evidence ranking (2, lines 124 to 186), recommender and access advice (3 and 4, lines 188 to 215), new-site rule (5, lines 217 to 221) | R2: sections 1 and 2; R4: 1b, 3 to 5 |
+| `case_file.py` | Evidence pack, Granite prompt, reply check and fallback; run it to see the self-test | R3 |
+| `checks/` `followup_checks.py` | Resampling, rolling baseline, role changes, monthly retraining | optional |
+| `experiments/` | The original study scripts behind the evidence | reference only |
+
+- Full study with code: `evidence/Study_Notebook.ipynb`
+- Data download steps: `setup/Data_Download_Guide.pdf`
 
 # Questions you may have
 
@@ -334,12 +447,17 @@ Everything: Spark builds the tables, Python scores and ranks, Granite labels the
 - **Synthetic data:** generated data that imitates real logs; it has an answer key.
 - **Overfitting:** a method that looks good on the data it was tuned on but fails on new data.
 
-# Where to find everything
+# Where everything is
 
-- `3_Submission/Proposal_Final_Wording.pdf`: the reworded proposal, field by field, with the pitch and how to explain the change.
-- `1_Read_First/OutOfRole_Summary.pdf`: the three-page summary.
-- `2_Event_Day/Build_Plan.pdf`: who builds what, hour by hour, and the cut rules.
-- `5_Evidence/Verified_Numbers.md`: every number with the script that produced it.
-- `4_Code/`: the code to port, in the order it runs: `build_tables.py` (Spark tables), `outofrole_minimal.py` (the whole system), `case_file.py` (Granite step).
-- `5_Evidence/Study_Notebook.ipynb`: the full study with code and explanations.
-- `5_Evidence/Reviews/`: all 11 review rounds.
+This handbook is the central document; everything else supports it.
+
+| Folder or file | What is in it | When to use it |
+|---|---|---|
+| `OutOfRole_Handbook.pdf` | This document (also as one online page) | Always start here |
+| `code/` | `build_tables.py` (Spark tables), `outofrole_minimal.py` (the whole system), `case_file.py` (Granite step), `checks/`, `experiments/` | To run or port the code |
+| `evidence/Verified_Numbers.md` | Every number with the script that produced it | Before quoting any number |
+| `evidence/Study_Notebook.ipynb` | The full study with code, outputs and explanations | To see how a result was found |
+| `evidence/Research_Sources.md` | Published work, industry practice, real cases | To cite a source |
+| `evidence/Proposal_As_Submitted_Oct15.md` | The abstract we submitted | To compare with the final wording |
+| `evidence/Reviews/` | All outside review rounds | To show the work was checked |
+| `setup/` | `LinuxONE_Setup_Guide.pdf`, `Data_Download_Guide.pdf`, `IBM_Lab_Materials/` | Before and during the event |

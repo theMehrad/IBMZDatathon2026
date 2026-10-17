@@ -5,9 +5,9 @@ data/
 !research/*.csv
 
 # local outputs and tooling
-4_Code/experiments/results/
-4_Code/experiments/out/
-4_Code/experiments/results_r*.txt
+code/experiments/results/
+code/experiments/out/
+code/experiments/results_r*.txt
 __pycache__/
 .ipynb_checkpoints/
 .DS_Store
@@ -16,5 +16,3 @@ __pycache__/
 
 # kept on disk, not in the repo: history and duplicate formats
 9_Archive/
-2_Event_Day/LinuxONE_Setup_Guide.docx
-5_Evidence/Study_Notebook.html

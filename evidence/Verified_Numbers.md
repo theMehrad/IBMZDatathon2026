@@ -6,7 +6,7 @@ Every document, slide and page must quote only numbers from this file. Each numb
 - labels used only for grading; departures never used
 - settings frozen on r4.2, then r5.2 run unchanged
 
-Scripts are in `4_Code/`.
+Scripts are in `code/`.
 
 ## 1. Early warning (day-by-day replay, no look-ahead)
 
@@ -161,7 +161,7 @@ Use this table wherever steps are listed: the notebook, the plan, the briefing a
 
 ## 9. External review, round 4 (Codex gpt-6.1-sol, October 17)
 
-The review is in `5_Evidence/Reviews/round4_review.md`. These are the changes it asked for and what we did about each:
+The review is in `evidence/Reviews/round4_review.md`. These are the changes it asked for and what we did about each:
 
 - **Evidence as of the alert:** replaced the 98% with 0.66 / 0.85, computed only on evidence up to the flag day (section 2).
 - **Fair baseline:** R2 on the same list ties on r4.2 (59 vs 59) and is half of ours on r5.2 (40 vs 80). This now leads the comparison.
@@ -171,7 +171,7 @@ The review is in `5_Evidence/Reviews/round4_review.md`. These are the changes it
 - **Answer parsers:** `early_warning_simple.py` and `org_novel_sites.py` now read only each insider's own answer rows. All their numbers are unchanged after re-running (0.54 / 0.48; 8 person-days; 100%).
 - **Pivot from the abstract:** must be stated. Recommender-based detection was promised; own-history baselines detect better, so the recommender moved to access advice.
 
-## 10. The whole system in one file (`4_Code/outofrole_minimal.py`)
+## 10. The whole system in one file (`code/outofrole_minimal.py`)
 
 The file is 253 lines and runs in about 20 seconds per release on a laptop. It uses numpy and pandas on the three Spark tables, plus the answer key for grading only. It uses one protocol throughout: train on the weeks before the cutoff week; replay, case evidence and tests all start on the cutoff day (replay day zero). It produces the build's headline numbers; historical controls (chance, the pre-registered fusion, workload diagnostics) come from `early_warning_full.py`.
 
@@ -243,7 +243,7 @@ None of these changes moved the headline numbers.
 
 No local fix is needed. The LinuxONE run and Granite integration are delivery checks for event day, and stay marked as pending until demonstrated.
 
-## 11. Follow-up checks (`4_Code/checks/followup_checks.py`)
+## 11. Follow-up checks (`code/checks/followup_checks.py`)
 
 | Check | r4.2 | r5.2 |
 |---|---|---|

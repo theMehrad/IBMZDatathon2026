@@ -1,4 +1,4 @@
-<title>OutOfRole Team Guide</title>
+<title>OutOfRole Handbook</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -48,6 +48,7 @@ td { font-variant-numeric: tabular-nums; }
 .chips button { background: var(--accent-soft); color: var(--accent); font-weight: 500; font-size: 13px; padding: 6px 10px; }
 .answer { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 12px; font-size: 14.5px; }
 .note { font-size: 12.5px; color: var(--muted); }
+figure { margin: 12px 0; } figure img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: #f6f7f8; } figcaption { display: none; }
 .controls { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 8px; }
 .controls button { font: 600 13px var(--font-body); padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
 .controls button:focus-visible, details summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -70,10 +71,10 @@ details.qa > p { margin: 0 0 10px 24px; }
 <div class="shell">
 <header class="top">
   <div class="eyebrow">The Debugging Table · IBM Z Datathon 2026</div>
-  <h1>OutOfRole team guide</h1>
-  <p>What we built, which methods we use and why, what the data shows, and answers to the questions you are likely to have. Every number traces to <code>feasibility/Verified_Numbers.md</code> in the repo.</p>
+  <h1>OutOfRole handbook</h1>
+  <p>Everything in one place: what we built and where its code is, what the data shows, how we checked it, the event-day plan, the submission text, and answers to common questions. Every number traces to <code>feasibility/Verified_Numbers.md</code> in the repo.</p>
 </header>
-<nav class="toc" aria-label="Contents"><span class="lbl">Contents</span><ol><li><a href="#the-project-in-one-minute">The project in one minute</a></li><li><a href="#the-data-we-test-on">The data we test on</a></li><li><a href="#what-we-built-part-by-part">What we built, part by part</a></li><li><a href="#which-method-we-use-at-each-step-and-what-it-buys-us">Which method we use at each step, and what it buys us</a></li><li><a href="#the-baseline-what-we-compare-against">The baseline: what we compare against</a></li><li><a href="#results-backed-by-data">Results, backed by data</a></li><li><a href="#how-we-got-here-the-main-improvements">How we got here: the main improvements</a></li><li><a href="#how-we-know-the-results-are-real">How we know the results are real</a></li><li><a href="#is-it-practical-for-a-real-company">Is it practical for a real company?</a></li><li><a href="#keeping-it-relevant-as-people-and-roles-change">Keeping it relevant as people and roles change</a></li><li><a href="#how-we-use-the-llm-granite">How we use the LLM (Granite)</a></li><li><a href="#how-it-connects-to-our-proposal">How it connects to our proposal</a></li><li><a href="#what-we-say-openly">What we say openly</a></li><li><a href="#who-builds-what-at-the-event">Who builds what at the event</a></li><li><a href="#questions-you-may-have">Questions you may have</a></li><li><a href="#glossary">Glossary</a></li><li><a href="#where-to-find-everything">Where to find everything</a></li></ol></nav>
+<nav class="toc" aria-label="Contents"><span class="lbl">Contents</span><ol><li><a href="#the-project-in-one-minute">The project in one minute</a></li><li><a href="#the-data-we-test-on">The data we test on</a></li><li><a href="#what-we-built-part-by-part">What we built, part by part</a></li><li><a href="#which-method-we-use-at-each-step-and-where-its-code-is">Which method we use at each step, and where its code is</a></li><li><a href="#the-baseline-what-we-compare-against">The baseline: what we compare against</a></li><li><a href="#results-backed-by-data">Results, backed by data</a></li><li><a href="#how-we-got-here-the-main-improvements">How we got here: the main improvements</a></li><li><a href="#how-we-know-the-results-are-real">How we know the results are real</a></li><li><a href="#using-it-in-a-real-company">Using it in a real company</a></li><li><a href="#how-we-use-the-llm-granite">How we use the LLM (Granite)</a></li><li><a href="#our-proposal-what-changed-and-what-to-submit">Our proposal: what changed and what to submit</a></li><li><a href="#what-we-say-openly">What we say openly</a></li><li><a href="#event-day-plan">Event day plan</a></li><li><a href="#questions-you-may-have">Questions you may have</a></li><li><a href="#glossary">Glossary</a></li><li><a href="#where-everything-is">Where everything is</a></li></ol></nav>
 <main>
 
 
@@ -172,7 +173,7 @@ details.qa > p { margin: 0 0 10px 24px; }
 <p>Visits to websites no one in the company had used during training are flagged. In CERT, this catches every wikileaks and keylogger-site visit. For a real company, the practical version is to hold <strong>uploads</strong> to never-seen or newly registered sites, not to block browsing (see “Is it practical?”).</p>
 </div></details>
 </div></details>
-<details class="sec" id="which-method-we-use-at-each-step-and-what-it-buys-us"><summary><span class="st">Which method we use at each step, and what it buys us</span><span class="tldr">Two unsupervised ML methods (per-person anomaly detection, an ALS recommender) plus Granite; supervised models were dropped.</span></summary><div class="secbody">
+<details class="sec" id="which-method-we-use-at-each-step-and-where-its-code-is"><summary><span class="st">Which method we use at each step, and where its code is</span><span class="tldr">Two unsupervised ML methods plus Granite, with the file and line numbers for each step.</span></summary><div class="secbody">
 <p>The build uses two kinds of machine learning plus one language model. All of it is <strong>unsupervised</strong>: nothing learns from the answer key, because a real company never has a list of its insiders. We tried supervised models and they failed on attacks they had not seen (see the second table).</p>
 <div class="scroll"><table>
 <colgroup>
@@ -260,7 +261,7 @@ details.qa > p { margin: 0 0 10px 24px; }
 <tbody>
 <tr>
 <td>0. Data tables</td>
-<td><code>4_Code/build_tables.py</code></td>
+<td><code>code/build_tables.py</code></td>
 <td>Step 1</td>
 </tr>
 <tr>
@@ -285,7 +286,7 @@ details.qa > p { margin: 0 0 10px 24px; }
 </tr>
 <tr>
 <td>4. Case file</td>
-<td><code>4_Code/case_file.py</code></td>
+<td><code>code/case_file.py</code></td>
 <td>Step 18, Part 3</td>
 </tr>
 <tr>
@@ -407,8 +408,15 @@ details.qa > p { margin: 0 0 10px 24px; }
 </table></div>
 <p>That is why r5.2 shows twice the catches (it has snoopers and harder job-hunters) while r4.2 ties. The baseline is clearly better on the two-day sysadmin sabotage.</p>
 </div></details>
-<details class="sec" id="results-backed-by-data"><summary><span class="st">Results, backed by data</span><span class="tldr">80 of 99 insiders caught in time on r5.2; an active insider is on the list 64 to 82 times as often as a normal employee.</span></summary><div class="secbody">
-<p>All numbers below come from one program, <code>4_Code/outofrole_minimal.py</code>, and are listed with their sources in <code>5_Evidence/Verified_Numbers.md</code>.</p>
+<details class="sec" id="results-backed-by-data"><summary><span class="st">Results, backed by data</span><span class="tldr">80 of 99 insiders caught in time on r5.2, twice the baseline; active insiders are on the list 64 to 82 times as often as normal staff.</span></summary><div class="secbody">
+<details class="sub" id="level-by-level"><summary>Level by level</summary><div class="subbody">
+<p>Each level runs on the output of the one above it. Grey bars show the reference (chance or the previous best); teal bars show the level. r4.2 has 70 insiders among 1,000 staff; r5.2 has 99 among 2,000.</p>
+<figure>
+<img src="figures/levels.png" style="width:76.0%" alt="Level by level" />
+<figcaption aria-hidden="true">Level by level</figcaption>
+</figure>
+<p>All numbers below come from one program, <code>code/outofrole_minimal.py</code>, and are listed with their sources in <code>evidence/Verified_Numbers.md</code>.</p>
+</div></details>
 <details class="sub" id="catching-insiders-in-time"><summary>Catching insiders in time</summary><div class="subbody">
 <div class="scroll"><table>
 <colgroup>
@@ -693,7 +701,8 @@ details.qa > p { margin: 0 0 10px 24px; }
 </ul>
 <p><strong>What remains a risk:</strong> a few choices were made after seeing results (the daily-list method, the snooping review, the training cutoff date). The fix is a dataset we have never looked at, which is why we are adding the LANL dataset (see the FAQ).</p>
 </div></details>
-<details class="sec" id="is-it-practical-for-a-real-company"><summary><span class="st">Is it practical for a real company?</span><span class="tldr">The daily list, snooping review and case files are; the new-site rule should flag uploads, not block browsing.</span></summary><div class="secbody">
+<details class="sec" id="using-it-in-a-real-company"><summary><span class="st">Using it in a real company</span><span class="tldr">What is practical, what to reframe, and how to keep it current as roles change.</span></summary><div class="secbody">
+<details class="sub" id="is-it-practical"><summary>Is it practical?</summary><div class="subbody">
 <div class="scroll"><table>
 <colgroup>
 <col style="width: 33%" />
@@ -736,7 +745,7 @@ details.qa > p { margin: 0 0 10px 24px; }
 </tbody>
 </table></div>
 </div></details>
-<details class="sec" id="keeping-it-relevant-as-people-and-roles-change"><summary><span class="st">Keeping it relevant as people and roles change</span><span class="tldr">Roll each person's normal forward weekly and retrain the recommender monthly; detection holds.</span></summary><div class="secbody">
+<details class="sub" id="keeping-it-relevant-as-people-and-roles-change"><summary>Keeping it relevant as people and roles change</summary><div class="subbody">
 <ul>
 <li><strong>CERT never changes anyone’s role</strong> (0 role changes), though 14 to 30 people change department and 126 to 213 change team. So we tested the general fix: let each person’s “normal” roll forward, using their last 26 weeks and skipping the most recent 4 so a slow attack cannot become the new normal.</li>
 <li><strong>Detection held:</strong> 59 of 70 and 84 of 99, against 59 and 80 with frozen normal weeks. The cost is that more innocent people appear on the list at some point (274 vs 230, and 374 vs 291).</li>
@@ -750,6 +759,7 @@ details.qa > p { margin: 0 0 10px 24px; }
 </ul></li>
 </ul>
 </div></details>
+</div></details>
 <details class="sec" id="how-we-use-the-llm-granite"><summary><span class="st">How we use the LLM (Granite)</span><span class="tldr">Granite labels each case and picks the facts; code writes the text. Four ways to use it more.</span></summary><div class="secbody">
 <p><strong>Now:</strong> Granite labels each case and chooses the supporting facts from the evidence pack; code writes every sentence and rejects anything else. A self-test sends 12 bad replies (made-up names and quantities, unknown facts, broken JSON) and all of them fall back safely.</p>
 <p><strong>Planned for the event, in order of value:</strong></p>
@@ -760,7 +770,7 @@ details.qa > p { margin: 0 0 10px 24px; }
 <li><strong>Access-review notes.</strong> Granite drafts the reason behind each removal or pre-approval suggestion from the facts.</li>
 </ol>
 </div></details>
-<details class="sec" id="how-it-connects-to-our-proposal"><summary><span class="st">How it connects to our proposal</span><span class="tldr">The title, the recommender, Granite, Spark and the live replay are all there; detection moved to personal baselines.</span></summary><div class="secbody">
+<details class="sec" id="our-proposal-what-changed-and-what-to-submit"><summary><span class="st">Our proposal: what changed and what to submit</span><span class="tldr">The honest pivot, the final submission text within the form limits, and the 30-second pitch.</span></summary><div class="secbody">
 <div class="scroll"><table>
 <colgroup>
 <col style="width: 50%" />
@@ -804,8 +814,111 @@ details.qa > p { margin: 0 0 10px 24px; }
 </tbody>
 </table></div>
 <p><strong>What changed:</strong> each person’s own history catches insiders better than the recommender does, so it drives the broad daily list. The recommender does two jobs where it measurably helps: the snooping review and access advice.</p>
+<details class="sub" id="did-the-recommender-work"><summary>Did the recommender work?</summary><div class="subbody">
+<p><strong>As the detector, no. In two supporting jobs, yes.</strong></p>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Job</th>
+<th>Result (r4.2 / r5.2)</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spotting insiders across all attack types</td>
+<td>Never beat simple popularity, on any item type</td>
+<td>Did not work</td>
+</tr>
+<tr>
+<td>Live snooping alarm</td>
+<td>9 of 30 snoopers caught in time (r5.2)</td>
+<td>Did not work</td>
+</tr>
+<tr>
+<td>End-of-period snooping review</td>
+<td>27 of 30 snoopers in its top 100, 26 without it</td>
+<td>Works, small edge</td>
+</tr>
+<tr>
+<td>Predicting the access each person will need</td>
+<td>21% / 19% of next new websites, vs 14.5% / 13% for popularity</td>
+<td>Works</td>
+</tr>
+<tr>
+<td>Fewer access requests</td>
+<td>21% / 19% fewer; 28% with monthly retraining</td>
+<td>Works</td>
+</tr>
+</tbody>
+</table></div>
+<p>What actually catches insiders is each person’s own normal week: 80 of 99 caught while still active on r5.2, against 40 for a standard baseline.</p>
 </div></details>
-<details class="sec" id="what-we-say-openly"><summary><span class="st">What we say openly</span><span class="tldr">Synthetic data, some choices made after seeing results, weak on two-day sysadmin sabotage.</span></summary><div class="secbody">
+<details class="sub" id="final-submission-text-field-by-field"><summary>Final submission text, field by field</summary><div class="subbody">
+<p>Each field fits the original form’s limits.</p>
+<p><strong>Project:</strong> OutOfRole: early warning for insider misuse, explained by Granite on LinuxONE.</p>
+<p><strong>Problem statement</strong> (173 of 200 characters): Insiders misuse valid access to leak, steal or snoop. Rules miss them or flood analysts. Teams need early, explained warnings without moving sensitive data off the platform.</p>
+<p><strong>Proposed solution</strong> (179 of 200): OutOfRole learns each employee’s normal week and lists the 20 who drift most each day. Granite on LinuxONE labels each case from checked evidence; a recommender advises on access.</p>
+<p><strong>Audience</strong> (785 of 1,024): (1) Security analysts: a 20-name daily review list instead of thousands of rule hits. In a day-by-day replay it caught 80 of 99 insiders while still active, twice a standard baseline. (2) Privacy and compliance officers: dated case files that cite their evidence; the AI picks a label and the facts, code writes every sentence, so nothing is invented. (3) Identity and access admins: a Netflix-style recommender predicts the access each person will need (1.45 times better than popularity), cutting access requests by about a fifth, and lists access people stopped using for review. (4) Patients and account holders: monitoring and AI stay on the platform; people appear only as pseudonyms. (5) Organizations running core records on IBM Z: everything runs next to the data on LinuxONE.</p>
+<p><strong>Data and method</strong> (685 of 1,024): (1) CMU SEI CERT Insider Threat r4.2 and r5.2: synthetic logons, USB, file, web and email logs for 1,000 and 2,000 employees, with an answer key of 70 and 99 insiders used only for grading. (2) Spark builds per-person daily tables; each person’s normal weeks are learned from the early months, and the later months are replayed day by day as a live stream. (3) An ALS recommender learns who uses which computers and websites, for snooping reviews and access advice. (4) IBM Granite labels each case from a ranked evidence pack with a fail-closed check. (5) Settings frozen on r4.2, tested unchanged on r5.2; LANL’s real authentication logs with red-team labels as an independent check.</p>
+</div></details>
+<details class="sub" id="the-30-second-pitch"><summary>The 30-second pitch</summary><div class="subbody">
+<p>“Malicious insiders were the costliest attack vector in IBM’s 2025 breach report, and they hide behind valid logins. OutOfRole learns each employee’s normal week and gives analysts a 20-name daily list. In a day-by-day replay of 2,000 employees, it caught 80 of 99 insiders while they were still active, twice a standard baseline. For every alert, IBM Granite on the same LinuxONE server labels the case from checked evidence, and code writes the text, so it cannot invent facts. A Netflix-style recommender keeps access lean, cutting access requests by about a fifth. No data leaves the platform.”</p>
+</div></details>
+<details class="sub" id="why-this-can-win"><summary>Why this can win</summary><div class="subbody">
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Judging angle</th>
+<th>What we show</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Real value</td>
+<td>A daily list analysts can work through, explained case files for compliance, leaner access for admins</td>
+</tr>
+<tr>
+<td>Novelty</td>
+<td>We measure catching insiders while they are still active, which much published work on this dataset does not report; the AI cannot invent facts; the recommender’s job is measured in fewer access requests</td>
+</tr>
+<tr>
+<td>Technical depth</td>
+<td>Per-person anomaly detection, ALS recommender, a constrained LLM, a day-by-day replay with no look-ahead, a resampling check (+27 to +52 insiders on r5.2)</td>
+</tr>
+<tr>
+<td>LinuxONE and IBM tech</td>
+<td>Spark, Granite and the dashboard all on one LinuxONE server; pseudonyms only</td>
+</tr>
+<tr>
+<td>Credibility</td>
+<td>Settings frozen before the test release, an independent validator, 11 outside review rounds, one 253-line program that reproduces every number</td>
+</tr>
+</tbody>
+</table></div>
+</div></details>
+<details class="sub" id="how-to-talk-about-the-change"><summary>How to talk about the change</summary><div class="subbody">
+<p>Say it plainly and early, as a strength: “We tested our own idea honestly. The recommender turned out to be a great predictor of what people need, but a weak insider detector, so we used it where it wins (access advice and snooping reviews) and built detection on each person’s normal week, which doubled the baseline.”</p>
+<p>Judges reward a team that tests its own assumptions. They punish one that hides a weak result.</p>
+</div></details>
+<details class="sub" id="three-things-that-would-strengthen-it-at-the-event"><summary>Three things that would strengthen it at the event</summary><div class="subbody">
+<ol type="1">
+<li><strong>Measure Granite’s labels</strong> against the answer key (chance is 1 in 4 on r5.2), so “the AI explains” becomes a number.</li>
+<li><strong>Run on LANL’s real logs</strong> (already downloaded: 1.05 billion login events, 749 red-team events) to show the approach is not just tuned to synthetic data.</li>
+<li><strong>Combine with the baseline for sysadmins:</strong> the baseline catches 8 to 9 of 10 sabotage cases where our list catches 2 to 4. A combined list is a likely quick win; it needs testing.</li>
+</ol>
+</div></details>
+</div></details>
+<details class="sec" id="what-we-say-openly"><summary><span class="st">What we say openly</span><span class="tldr">The limits we state, and wording that stays honest in front of judges.</span></summary><div class="secbody">
 <ul>
 <li>CERT is synthetic data; these are replay results, not a live deployment.</li>
 <li>The daily-list method was chosen after seeing results. The method we had named in advance also beat the baseline (54 vs 28 of 99).</li>
@@ -814,40 +927,141 @@ details.qa > p { margin: 0 0 10px 24px; }
 <li>Most leakers were already doing suspicious USB copying before the answer key’s start date, so “caught the same day” partly means “already on the list”.</li>
 <li>Granite and the LinuxONE run are built at the event; the code they plug into is tested here.</li>
 </ul>
+<details class="sub" id="say-this-not-that"><summary>Say this, not that</summary><div class="subbody">
+<ul>
+<li>Say “flags insiders while they are still active”, not “real-time production system”. It is a replay of past logs.</li>
+<li>Say “the recommender predicts legitimate access”, not “the recommender detects insiders”. We tested that: as a detector it is no better than popularity.</li>
+<li>Say openly that two-day sysadmin sabotage is mostly missed, and that CERT is synthetic data.</li>
+<li>Say “suggests which access to pre-approve”, not “trims access to what people need”. Only 28% (r4.2) and 42% (r5.2) of the recommender’s extra grants were later used.</li>
+<li>Say plainly that the approach changed after testing. The abstract promised recommender-based detection; our tests showed that own-history baselines detect better, so the recommender moved to access advice.</li>
+<li>Compare against the strongest baseline. On the same 20-name list, the 28-day baseline flags 59 of 70 (a tie on r4.2) and 40 of 99 (half of ours on r5.2).</li>
+<li>The early-warning method was picked after seeing results. The full detector we had named in advance also beat the baseline: 54 vs 28 of 99 r5.2 insiders flagged in time.</li>
+</ul>
 </div></details>
-<details class="sec" id="who-builds-what-at-the-event"><summary><span class="st">Who builds what at the event</span><span class="tldr">Four roles; port two short files; freeze settings by hour 12.</span></summary><div class="secbody">
-<p>Full detail, hour by hour, is in <code>2_Event_Day/Build_Plan.pdf</code>.</p>
+</div></details>
+<details class="sec" id="event-day-plan"><summary><span class="st">Event day plan</span><span class="tldr">Four roles hour by hour, cut rules, the demo and the code to port.</span></summary><div class="secbody">
+<details class="sub" id="who-builds-what-hour-by-hour"><summary>Who builds what, hour by hour</summary><div class="subbody">
+<p>Fill in names. Hours count from the start of our build.</p>
 <div class="scroll"><table>
 <colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
+<col style="width: 16%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
 </colgroup>
 <thead>
 <tr>
 <th>Role</th>
-<th>Builds</th>
+<th>Hours 0 to 6</th>
+<th>Hours 6 to 12</th>
+<th>Hours 12 to 18</th>
+<th>Hours 18 to 24</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>R1, data and platform</td>
-<td>VM setup (Java 17, PySpark, Docker), download CERT, Spark builds the three tables, container and repo</td>
+<td><strong>R1 Data and platform</strong> (______)</td>
+<td>VM: Java 17, PySpark (no pyarrow on s390x), Docker; download r4.2. At hour 2, hand a one-month sample to R2 and R4. Spark builds 3 tables: daily counts, person-computer-day, person-site-day</td>
+<td>r5.2 if disk allows; run the whole pipeline end to end</td>
+<td>Docker container, GitHub repo, README</td>
+<td>Support the demo; check the repo runs from scratch</td>
 </tr>
 <tr>
-<td>R2, detection</td>
-<td>Port the daily list from <code>outofrole_minimal.py</code>, run r4.2 then r5.2, results table</td>
+<td><strong>R2 Detection</strong> (______)</td>
+<td>Port section 1 of <code>outofrole_minimal.py</code> (the daily list) and run it on the sample</td>
+<td>Run on r4.2 with the fixed settings below</td>
+<td>r5.2 unchanged; results table vs baseline and chance, per attack type, analyst load</td>
+<td>Export daily lists and per-person timelines for the dashboard</td>
 </tr>
 <tr>
-<td>R3, Granite</td>
-<td>Both IBM labs, then port <code>case_file.py</code>: evidence pack, Granite prompt, reply check, fallback</td>
+<td><strong>R3 Granite</strong> (______)</td>
+<td>Both IBM labs (Granite via llama.cpp; the model file must be big-endian)</td>
+<td>Port <code>case_items</code> from <code>outofrole_minimal.py</code> and all of <code>case_file.py</code> (evidence pack with IDs, Granite prompt that returns only a label and fact IDs, reply check, fallback); pseudonyms</td>
+<td>Pre-generate case files for the top 20; keep one live run</td>
+<td>Case-file panel in the dashboard</td>
 </tr>
 <tr>
-<td>R4, recommender and demo</td>
-<td>Port the recommender parts (snooping review, access advice, new-site rule), dashboard, video</td>
+<td><strong>R4 Recommender and demo</strong> (______)</td>
+<td>Dashboard skeleton: daily list, person page, case-file panel</td>
+<td>Port sections 3 to 6 of <code>outofrole_minimal.py</code>: ALS on person-site data, top-20 pre-approval, removal suggestions, new-to-company block, and the recommender snooping review (end of period)</td>
+<td>Wire everything into the dashboard</td>
+<td>Video with on-screen proof: <code>uname -m</code> (s390x), <code>docker ps</code>, the server prompt</td>
 </tr>
 </tbody>
 </table></div>
-<p>Freeze the detector settings by hour 12. If something is behind, the build plan’s cut rules say what to drop.</p>
+<p><strong>Fixed detector settings (decide nothing new):</strong></p>
+<ul>
+<li>A feature is unusual when the last 7 days beat every one of that person’s training weeks.</li>
+<li>The running score halves every 7 days.</li>
+<li>The list holds 20 names a day.</li>
+</ul>
+<p><strong>Recommender settings:</strong> rank 64, alpha 0.5, regularization 1.0 on log(1 + active days), using the numpy version in <code>recommender_als_simple.py</code>. Spark’s ALS scales regularization differently, so if you use it, re-tune on the last training month and pick by how many next-month new sites it catches.</p>
+</div></details>
+<details class="sub" id="cut-rules"><summary>Cut rules</summary><div class="subbody">
+<ul>
+<li><strong>Hour 6:</strong> if the Spark tables aren’t ready, run r4.2 with logon, USB and file data only; add web later.</li>
+<li><strong>Hour 12:</strong> freeze the detector settings. No tuning after this.</li>
+<li><strong>Hour 14:</strong> if the recommender is behind, ship the new-to-company block plus each person’s own history as the allow-list. Cite the recommender’s local result instead.</li>
+<li><strong>Hour 18:</strong> if Granite is slow or unreliable, show the pre-generated case files plus one live run. If it fails entirely, show the checked evidence pack itself.</li>
+<li><strong>Hour 20:</strong> feature freeze. Only the video, README and slides from here.</li>
+</ul>
+</div></details>
+<details class="sub" id="demo-3-minutes"><summary>Demo (3 minutes)</summary><div class="subbody">
+<ol type="1">
+<li>The replay plays. A leaker joins the daily list on the day of the first wikileaks upload.</li>
+<li>Click the person. The case file appears: Granite’s label, the top-ranked evidence written by code, and the facts Granite cited marked. Then show a bad reply being rejected and replaced by the fallback.</li>
+<li>Access panel: 20 pre-approved sites. A request for wikileaks.org is blocked as new to the company.</li>
+</ol>
+</div></details>
+<details class="sub" id="the-code-to-port"><summary>The code to port</summary><div class="subbody">
+<p>In <code>code/</code>, in the order they run:</p>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 54%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>File</th>
+<th>What it does</th>
+<th>Who ports it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build_tables.py</code></td>
+<td>Spark turns the raw logs into the three tables (daily counts, person-computer-day, person-site-day)</td>
+<td>R1</td>
+</tr>
+<tr>
+<td><code>outofrole_minimal.py</code></td>
+<td>The whole system, printing every headline number: daily list (section 1, lines 43 to 94), snooping review (1b, lines 97 to 122), evidence ranking (2, lines 124 to 186), recommender and access advice (3 and 4, lines 188 to 215), new-site rule (5, lines 217 to 221)</td>
+<td>R2: sections 1 and 2; R4: 1b, 3 to 5</td>
+</tr>
+<tr>
+<td><code>case_file.py</code></td>
+<td>Evidence pack, Granite prompt, reply check and fallback; run it to see the self-test</td>
+<td>R3</td>
+</tr>
+<tr>
+<td><code>checks/</code> <code>followup_checks.py</code></td>
+<td>Resampling, rolling baseline, role changes, monthly retraining</td>
+<td>optional</td>
+</tr>
+<tr>
+<td><code>experiments/</code></td>
+<td>The original study scripts behind the evidence</td>
+<td>reference only</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>Full study with code: <code>evidence/Study_Notebook.ipynb</code></li>
+<li>Data download steps: <code>setup/Data_Download_Guide.pdf</code></li>
+</ul>
+</div></details>
 </div></details>
 <details class="sec" id="questions-you-may-have"><summary><span class="st">Questions you may have</span><span class="tldr">Click a question to see the short answer.</span></summary><div class="secbody">
 <details class="qa"><summary>Which parts are machine learning?</summary><p>Two parts learn from data without labels: the per-person “normal weeks” model behind the daily list, and the ALS recommender behind the snooping review and access advice. Granite is a large language model used as a constrained labeller. Spark, the evidence statistics and the new-site rule are data processing and simple statistics. See “Which method we use at each step”.</p></details>
@@ -880,16 +1094,64 @@ details.qa > p { margin: 0 0 10px 24px; }
 <li><strong>Overfitting:</strong> a method that looks good on the data it was tuned on but fails on new data.</li>
 </ul>
 </div></details>
-<details class="sec" id="where-to-find-everything"><summary><span class="st">Where to find everything</span><span class="tldr">Links to the plan, proposal, numbers, code, notebook and reviews.</span></summary><div class="secbody">
-<ul>
-<li><code>3_Submission/Proposal_Final_Wording.pdf</code>: the reworded proposal, field by field, with the pitch and how to explain the change.</li>
-<li><code>1_Read_First/OutOfRole_Summary.pdf</code>: the three-page summary.</li>
-<li><code>2_Event_Day/Build_Plan.pdf</code>: who builds what, hour by hour, and the cut rules.</li>
-<li><code>5_Evidence/Verified_Numbers.md</code>: every number with the script that produced it.</li>
-<li><code>4_Code/</code>: the code to port, in the order it runs: <code>build_tables.py</code> (Spark tables), <code>outofrole_minimal.py</code> (the whole system), <code>case_file.py</code> (Granite step).</li>
-<li><code>5_Evidence/Study_Notebook.ipynb</code>: the full study with code and explanations.</li>
-<li><code>5_Evidence/Reviews/</code>: all 11 review rounds.</li>
-</ul>
+<details class="sec" id="where-everything-is"><summary><span class="st">Where everything is</span><span class="tldr">The folders around this handbook, and when to use each.</span></summary><div class="secbody">
+<p>This handbook is the central document; everything else supports it.</p>
+<div class="scroll"><table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Folder or file</th>
+<th>What is in it</th>
+<th>When to use it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OutOfRole_Handbook.pdf</code></td>
+<td>This document (also as one online page)</td>
+<td>Always start here</td>
+</tr>
+<tr>
+<td><code>code/</code></td>
+<td><code>build_tables.py</code> (Spark tables), <code>outofrole_minimal.py</code> (the whole system), <code>case_file.py</code> (Granite step), <code>checks/</code>, <code>experiments/</code></td>
+<td>To run or port the code</td>
+</tr>
+<tr>
+<td><code>evidence/Verified_Numbers.md</code></td>
+<td>Every number with the script that produced it</td>
+<td>Before quoting any number</td>
+</tr>
+<tr>
+<td><code>evidence/Study_Notebook.ipynb</code></td>
+<td>The full study with code, outputs and explanations</td>
+<td>To see how a result was found</td>
+</tr>
+<tr>
+<td><code>evidence/Research_Sources.md</code></td>
+<td>Published work, industry practice, real cases</td>
+<td>To cite a source</td>
+</tr>
+<tr>
+<td><code>evidence/Proposal_As_Submitted_Oct15.md</code></td>
+<td>The abstract we submitted</td>
+<td>To compare with the final wording</td>
+</tr>
+<tr>
+<td><code>evidence/Reviews/</code></td>
+<td>All outside review rounds</td>
+<td>To show the work was checked</td>
+</tr>
+<tr>
+<td><code>setup/</code></td>
+<td><code>LinuxONE_Setup_Guide.pdf</code>, <code>Data_Download_Guide.pdf</code>, <code>IBM_Lab_Materials/</code></td>
+<td>Before and during the event</td>
+</tr>
+</tbody>
+</table></div>
 </div></details>
 
 </main>

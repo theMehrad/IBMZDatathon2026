@@ -1,6 +1,6 @@
 # OutOfRole: Research Findings (Oct 16)
 
-Five research passes: published work on the CERT dataset, recommender and graph methods for access anomalies, commercial insider-risk products, AI acceleration on LinuxONE, and other datasets plus real-world statistics. Only sources the researchers actually opened are listed. Numbers from our own tests live in `5_Evidence/Verified_Numbers.md` and the notebook (`5_Evidence/Study_Notebook.ipynb`); `9_Archive/Feasibility_Findings_old.md` is superseded.
+Five research passes: published work on the CERT dataset, recommender and graph methods for access anomalies, commercial insider-risk products, AI acceleration on LinuxONE, and other datasets plus real-world statistics. Only sources the researchers actually opened are listed. Numbers from our own tests live in `evidence/Verified_Numbers.md` and the notebook (`evidence/Study_Notebook.ipynb`); `9_Archive/Feasibility_Findings_old.md` is superseded.
 
 ## 1. What published work on CERT found
 
@@ -24,21 +24,21 @@ Five research passes: published work on the CERT dataset, recommender and graph 
 | [Microsoft, Modell et al.](https://www.microsoft.com/en-us/research/uploads/prod/2022/01/modell_paper.pdf) | Scores an access by distance to the nearest previous user of that resource. |
 | [Hu, Koren & Volinsky](http://yifanhu.net/PUB/cf.pdf) | Implicit ALS favors popular items, so correct for popularity. |
 
-**Pitch line:** these works score access by how unexpected it is under a collaborative-filtering model, and our abstract promised the same: recommender-based detection. Our tests showed that own-history baselines detect better (the own-history weekly percentile, after Le & Zincir-Heywood), and used as a detector the recommender gave no gain over popularity, tuned or not. So the recommender moved to access advice: it suggests which access to pre-approve (least privilege). Tuned without labels, it catches 0.211 of normal staff's next new websites in its top 20 on r4.2, against 0.145 for popularity (0.190 vs 0.130 on r5.2). Only 28% (r4.2) and 42% (r5.2) of its extra grants were later used, so it is a suggestion list, and its coverage figures are static, not prevention. See `5_Evidence/Verified_Numbers.md`, sections 1, 3, 5 and 9.
+**Pitch line:** these works score access by how unexpected it is under a collaborative-filtering model, and our abstract promised the same: recommender-based detection. Our tests showed that own-history baselines detect better (the own-history weekly percentile, after Le & Zincir-Heywood), and used as a detector the recommender gave no gain over popularity, tuned or not. So the recommender moved to access advice: it suggests which access to pre-approve (least privilege). Tuned without labels, it catches 0.211 of normal staff's next new websites in its top 20 on r4.2, against 0.145 for popularity (0.190 vs 0.130 on r5.2). Only 28% (r4.2) and 42% (r5.2) of its extra grants were later used, so it is a suggestion list, and its coverage figures are static, not prevention. See `evidence/Verified_Numbers.md`, sections 1, 3, 5 and 9.
 
 ### Least privilege
 
 - [Microsoft Entra access-review recommendations](https://learn.microsoft.com/en-us/entra/id-governance/review-recommendations-access-reviews): reviewers get system recommendations to keep or deny each person's access. A user who has not signed in recently gets a Deny recommendation, and a machine-learning "user-to-group affiliation" score flags members who sit far from the rest of the group in the org chart.
 - [SailPoint recommendations](https://www.sailpoint.com/solutions/recommendations): a thumbs-up or thumbs-down on access requests and certifications, based on peer groups, identity attributes and access activity; low-risk access can be approved automatically.
 
-Our advisor applies the same idea to websites: tuned ALS suggests which of each person's likely next sites to pre-approve, and a rule blocks sites new to the whole company (`4_Code/experiments/least_privilege_full.py`, `org_novel_sites.py`).
+Our advisor applies the same idea to websites: tuned ALS suggests which of each person's likely next sites to pre-approve, and a rule blocks sites new to the whole company (`code/experiments/least_privilege_full.py`, `org_novel_sites.py`).
 
 ### Analyst feedback (tested and dropped)
 
 - [Das et al., ICDM 2016, "Incorporating Expert Feedback into Active Anomaly Discovery"](https://web.engr.oregonstate.edu/~afern/papers/icdm16-das.pdf): show the analyst the top-ranked case, take their verdict, and re-weight the detector ensemble before choosing the next case (Active Anomaly Discovery, AAD).
 - [Siddiqui et al., KDD 2018, "Feedback-Guided Anomaly Discovery via Online Optimization"](https://doi.org/10.1145/3219819.3220083): the same feedback loop, framed as online optimization of the detector weights.
 
-We tested AAD-style re-weighting of our detector families: 57 vs 55 insiders found in 100 reviews on r4.2, and 42 vs 43 on r5.2; across 40 subsamples the gain was +0.2 ± 0.9 and +0.1 ± 1.0. With job-hunters hidden from training it places 22 of 30 in the top 100, against 19 for frozen fusion and 4 to 7 for trained combiners. No reliable gain, so it is dropped (`5_Evidence/Verified_Numbers.md`, sections 5 and 9).
+We tested AAD-style re-weighting of our detector families: 57 vs 55 insiders found in 100 reviews on r4.2, and 42 vs 43 on r5.2; across 40 subsamples the gain was +0.2 ± 0.9 and +0.1 ± 1.0. With job-hunters hidden from training it places 22 of 30 in the top 100, against 19 for frozen fusion and 4 to 7 for trained combiners. No reliable gain, so it is dropped (`evidence/Verified_Numbers.md`, sections 5 and 9).
 
 ## 3. How commercial products score risk
 

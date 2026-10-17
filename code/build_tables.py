@@ -7,7 +7,7 @@ Reads data/r{rel}/r{rel}/{logon,device,file,http}.csv and writes, under data/cac
              after-hours USB, files to removable media, after-hours files, web visits, after-hours web
   pc_pairs   (person, day, computer) for every logon
   dom_pairs  (person, day, website domain, visits)
-Same code as Step 1 of 5_Evidence/Study_Notebook.ipynb. On LinuxONE: install Java 17 and PySpark first;
+Same code as Step 1 of evidence/Study_Notebook.ipynb. On LinuxONE: install Java 17 and PySpark first;
 there is no pyarrow for s390x, so this script avoids pandas UDFs.
 """
 import os, sys
