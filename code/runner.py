@@ -149,14 +149,14 @@ def worker(args):
             from case_file import prompt
             model = Llama(model_path=str(args.model), n_ctx=args.context,
                           n_threads=args.threads, n_batch=128, n_gpu_layers=0, verbose=False)
-            if not model.metadata.get('tokenizer.chat_template'):
+            if args.model_mode == 'chat' and not model.metadata.get('tokenizer.chat_template'):
                 raise ValueError('Embedded chat template required; refusing guessed chat format')
         try:
             runtime_version = version('llama-cpp-python')
         except PackageNotFoundError:
             runtime_version = 'unknown'
         emit(dict(kind='ready', model_name=model.metadata.get('general.name'),
-                  runtime_version=runtime_version))
+                  runtime_version=runtime_version, model_mode=args.model_mode))
         for line in sys.stdin:
             request = json.loads(line)
             try:
@@ -167,12 +167,18 @@ def worker(args):
                         # retry as unconstrained JSON/text.
                         options['grammar'] = runtime.LlamaGrammar.from_json_schema(
                             json.dumps(response_schema(request['pack'])), verbose=False)
-                    result = model.create_chat_completion(
-                        messages=[dict(role='user', content=prompt(request['pack']))],
-                        temperature=0, max_tokens=args.max_tokens, **options)
+                    if args.model_mode == 'completion':
+                        result = model.create_completion(
+                            prompt=prompt(request['pack']) + '\nJSON response:\n',
+                            temperature=0, max_tokens=args.max_tokens, **options)
+                    else:
+                        result = model.create_chat_completion(
+                            messages=[dict(role='user', content=prompt(request['pack']))],
+                            temperature=0, max_tokens=args.max_tokens, **options)
                 choice = result['choices'][0]
+                reply = choice['text'] if args.model_mode == 'completion' else choice['message']['content']
                 emit(dict(kind='reply', person=request['pack']['person'],
-                          reply=choice['message']['content'], finish_reason=choice['finish_reason']))
+                          reply=reply, finish_reason=choice['finish_reason']))
             except Exception as exc:
                 emit(dict(kind='error', error=f'{type(exc).__name__}: {exc}'))
                 return 1
@@ -267,7 +273,7 @@ def infer(args):
     config = dict(model_path=str(args.model), model_sha256=None,
                   context=args.context, threads=args.threads, max_tokens=args.max_tokens,
                   temperature=0, startup_timeout=args.startup_timeout, case_timeout=args.timeout,
-                  structured_output=args.structured_output, max_cases=args.max_cases,
+                  structured_output=args.structured_output, max_cases=args.max_cases, model_mode=args.model_mode,
                   prepared_code_sha256=bundle['code_sha256'],
                   allowed_runner_update=bool(changed),
                   created_at=datetime.now(timezone.utc).isoformat(), code_sha256=current_hashes)
@@ -281,7 +287,7 @@ def infer(args):
     print(f'Stage 2/2: Granite for {len(cases)} cases. Results: {attempt}', flush=True)
     command = [sys.executable, '-u', __file__, '_worker', '--model', str(args.model),
                '--context', str(args.context), '--threads', str(args.threads),
-               '--max-tokens', str(args.max_tokens)]
+               '--max-tokens', str(args.max_tokens), '--model-mode', args.model_mode]
     if args.structured_output:
         command.append('--structured-output')
     if args.max_cases is not None:
@@ -384,6 +390,8 @@ def cli():
             sub.add_argument('--run-dir', type=Path, required=name in ('infer', '_prepare'))
         if name in ('run', 'infer', '_worker'):
             sub.add_argument('--model', type=Path, required=True)
+            sub.add_argument('--model-mode', choices=('chat', 'completion'), default='chat',
+                             help='Explicit plain completion for base models; chat uses embedded template')
             sub.add_argument('--context', type=positive_int, default=2048)
             sub.add_argument('--threads', type=positive_int, default=2)
             sub.add_argument('--max-tokens', type=positive_int, default=128)

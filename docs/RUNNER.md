@@ -112,6 +112,22 @@ python3 code/runner.py infer \
 
 Run inside the notebook container, after safely fetching the updated branch into the clean runner worktree. This reuses the existing scoring/evidence and writes a new attempt; it does not repeat the expensive scorer or overwrite the unconstrained results. Constraints do not make CPU inference fast. Output limits can still truncate; timeout still falls back. Do not expand to all 20 until one native constrained case completes and its label/citations have been inspected.
 
+## Using the supplied 350M base model
+
+Use the explicit `--model-mode completion` option with the existing file `/home/ibm-user/granite-4.0-h-350m-base-be.f16.gguf`. This uses `create_completion` with the unchanged case-file prompt plus a `JSON response:` prefix, matching the successful standalone native test. It does not use a guessed chat template or pretend the base model is instruction-tuned. Keep `--structured-output` enabled to constrain labels/fact IDs and retain the existing validator, timeout and truncation checks. `chat` remains the default API mode for instruction models; no automatic model detection or default model-file change is performed. Mode is recorded in each attempt's config and worker identity.
+
+Example inside the notebook container, reusing existing packs:
+
+```bash
+python3 code/runner.py infer \
+  --run-dir /absolute/container/path/to/existing/run \
+  --model /home/ibm-user/granite-4.0-h-350m-base-be.f16.gguf \
+  --model-mode completion --structured-output \
+  --max-cases 3 --allow-runner-update --max-tokens 64 --timeout 60
+```
+
+This is a three-case integration check in original ranking order, not a balanced classification-accuracy sample. The standalone native 350M test on U-0296 completed in 11.36 seconds and selected theft rather than the 2B model's leak label. That proves speed and structural validity on one case, not equivalent classification quality. Do not infer semantics from weak-label grammar enforcement. The new runner mode is tested with simulated adapters and still requires its own native run. Preserve both models and old attempts for comparison.
+
 ## Verification performed during development
 
 Public seams approved by Daniel: CLI workflow, exact list preservation, past-only evidence export and safe fallbacks. Automated tests execute the real reference scorer on **small synthetic CSV/answer fixtures** and separately exercise an explicitly simulated LLM adapter. They also check incomplete CSVs, unknown IDs, malformed JSON, truncated completions, missing model, startup failure, timeout, output preservation and code-provenance mismatch. The existing case-file self-test remains unchanged.
