@@ -7,7 +7,7 @@ Copies of the team's pipeline with two extra inputs for the daily list. The team
 ```bash
 conda activate outofrole
 python test/build_tables_email.py 5.2        # once per release: raw CSVs -> tables in data/cache_nguyen/
-bash test/run_best.sh 5.2                    # final setting + export (use 4.2 for the development release)
+bash test/run.sh 5.2                    # final setting + export (use 4.2 for the development release)
 ```
 
 `run_best.sh` runs:
