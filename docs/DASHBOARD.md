@@ -20,6 +20,12 @@ If no runner exports exist, the dashboard opens the **CERT r4.2 activity preview
 
 After updating dashboard code, stop the old server with Ctrl+C, start it again, and refresh the browser. Static text is served as UTF-8 with caching disabled to prevent stale garbled labels.
 
+## Through Jupyter
+
+When Jupyter Server Proxy is installed and enabled, run the dashboard in the same container as Jupyter and open `<jupyter-base-url>/proxy/8000/` (including the trailing slash). Use the container-visible paths for `--run-dir` and `--cache`. The dashboard's API URL is relative so requests stay under the proxy prefix, including nested JupyterHub base paths. Direct access at `http://127.0.0.1:8000/` also works.
+
+Keep Jupyter's existing authentication and HTTPS protections. Installing the extension may require a coordinated Jupyter server restart; do not restart a shared container while teammates have jobs running. This JavaScript-only API-path fix needs a browser refresh, not a container restart or a rerun of scoring, Spark, or Granite.
+
 ## Use existing data
 
 By default the server discovers `data/runs/*/packs.json` and selects the last run in directory-name order. The daily-window selector lets you switch runs, including separate runs for the same day. For an existing run elsewhere:
