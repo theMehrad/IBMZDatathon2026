@@ -28,8 +28,12 @@ const context = vm.createContext({
 const empty = {runs: [], workspace: null, activity_dates: []};
 const activity = {
   runs: [], activity_dates: ['2010-01-02'],
+  pipeline: {release:'4.2',scoring_ready:true,granite_ready:false,
+    scoring_blockers:[],granite_blockers:['Test model unavailable'],tables:[]},
   workspace: {id: 'CERT r4.2 preview', mode: 'activity', day: '2010-01-02',
-    cases: [], metrics: {employees: 0, events: 0, note: 'Test preview'}, warnings: []},
+    cases: Array.from({length:54}, (_,i) => ({person:`ACT-${String(i+1).padStart(3,'0')}`,
+      rank:i+1,score:null,status:'Not inferred',strength:'Not scored',facts:[],cited:[],problems:[]})),
+    metrics: {employees: 54, events: 54, note: 'Test preview'}, warnings: []},
 };
 async function reply(request, data) {
   request.resolve({ok: true, json: async () => JSON.parse(JSON.stringify(data))});
@@ -45,6 +49,29 @@ assert.equal(new URL(requests[0].url, 'https://example.test/user/tam/proxy/8000/
 assert.equal(new URL(requests[0].url, 'http://127.0.0.1:8000/').pathname, '/api/workspace');
 await reply(requests.shift(), activity);
 assert.equal(vm.runInContext('activity()', context), true);
+assert.match(element('nav').innerHTML, /href="#setup"/);
+assert.doesNotMatch(element('#main').innerHTML, /Generate new detector scores/);
+context.location.hash = '#alerts';
+vm.runInContext('route()', context);
+let previewHtml = element('#main').innerHTML;
+assert.ok(previewHtml.indexOf('aria-label="Selected employee"') < previewHtml.indexOf('<h2>54 employees</h2>'));
+assert.ok(previewHtml.indexOf('aria-label="Selected employee"') < previewHtml.indexOf('<table>'));
+employeeButtons[10].onclick();
+assert.equal(vm.runInContext('selected', context), 'ACT-011');
+previewHtml = element('#main').innerHTML;
+assert.match(previewHtml.slice(previewHtml.indexOf('aria-label="Selected employee"'),previewHtml.indexOf('</section>')), /ACT-011/);
+assert.ok(previewHtml.indexOf('aria-label="Selected employee"') < previewHtml.indexOf('<h2>54 employees</h2>'));
+const navigationRequests = requests.length;
+context.location.hash = '#setup';
+vm.runInContext('route()', context);
+assert.equal(vm.runInContext('page', context), 'setup');
+assert.match(element('#main').innerHTML, /Generate new detector scores/);
+assert.match(element('#main').innerHTML, /Test model unavailable/);
+assert.match(element('nav').innerHTML, /href="#setup" class="active" aria-current="page"/);
+assert.equal(requests.length, navigationRequests, 'Opening setup must not start analysis or make a new data request');
+context.location.hash = '#overview';
+vm.runInContext('route()', context);
+assert.doesNotMatch(element('#main').innerHTML, /Generate new detector scores/);
 
 choose('runner');
 assert.match(requests[0].url, /source=runner/);
@@ -100,13 +127,18 @@ await reply(requests.shift(), {
 assert.match(element('#main').innerHTML, /7.25/);
 assert.match(element('#main').innerHTML, /1 Accepted/);
 assert.match(element('#main').innerHTML, /Synthetic test adapter/);
-assert.match(element('#main').innerHTML, /Test model unavailable/);
+assert.doesNotMatch(element('#main').innerHTML, /Test model unavailable|Generate new detector scores|Optional commands for a new run/);
+assert.doesNotMatch(element('#main').innerHTML, /GRANITE UNAVAILABLE|SCORES UNAVAILABLE/);
+context.location.hash = '#setup';
+vm.runInContext('route()', context);
 assert.match(element('#main').innerHTML, /Saved runner results loaded/);
 assert.match(element('#main').innerHTML, /1 saved detector score/);
 assert.match(element('#main').innerHTML, /Viewing these results does not require a configured model/);
-assert.match(element('#main').innerHTML, /Setup for new analysis \(optional\)/);
-assert.doesNotMatch(element('#main').innerHTML, /<details class="panel pipeline" open/);
-assert.doesNotMatch(element('#main').innerHTML, /GRANITE UNAVAILABLE|SCORES UNAVAILABLE/);
+assert.match(element('#main').innerHTML, /Test model unavailable/);
+assert.match(element('#main').innerHTML, /<details class="panel pipeline" open/);
+assert.doesNotMatch(element('#main').innerHTML, /Highest-ranked detector scores/);
+context.location.hash = '#overview';
+vm.runInContext('route()', context);
 employeeButtons[0].onclick();
 assert.equal(context.location.hash, '#detail/U-0001');
 assert.match(element('#main').innerHTML, /Saved Granite response validated/);
@@ -154,4 +186,4 @@ assert.doesNotMatch(element('#main').innerHTML, /id="refresh" disabled/);
 element('#attempt').onchange({target: {value: 'attempt-1'}});
 assert.match(requests[0].url, /attempt=attempt-1/);
 await reply(requests.shift(), empty);
-console.log('UI tests passed: proxy paths, source switching, employee actions, saved results, refresh feedback and failures, and attempt selection.');
+console.log('UI tests passed: System setup tab, activity selection placement, proxy paths, employee actions, saved results, refresh feedback and failures, and attempt selection.');

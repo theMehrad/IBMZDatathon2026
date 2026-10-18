@@ -38,3 +38,4 @@ select:disabled { opacity: .55; }
 @media (prefers-reduced-motion: reduce) {
   a[href], button:enabled, select:enabled, summary { transition: none; }
 }
+@media(max-width:640px){nav{flex-wrap:wrap}}
