@@ -201,3 +201,9 @@ html:not([data-theme=dark]) .jump kbd{border-color:var(--line);color:var(--muted
 #theme{width:36px;min-height:36px;padding:0;font-size:15px;margin-right:12px}
 html[data-theme=dark] .step.now b{background:#2a9c8f;color:#04110f;box-shadow:0 0 0 4px rgba(76,194,178,.2)}
 html[data-theme=dark] .step.done b{background:#173a29;color:#6fd6a0}
+
+/* Compact detector/Granite status strip (replaces the large per-page panel) */
+.panel.runbar{display:flex;align-items:center;gap:12px 28px;flex-wrap:wrap;padding:10px 18px;margin-bottom:18px;overflow:visible}
+.runbar-group{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.runbar-group select{min-height:30px;padding:2px 8px;font-size:12px}
+.runbar-note{margin-left:auto;font-size:11px;color:var(--muted)}

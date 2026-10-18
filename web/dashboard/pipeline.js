@@ -34,16 +34,14 @@ python3 code/dashboard_pipeline.py infer --run-dir /path/to/existing-run --model
 function inferencePanel(w) {
   if (sample || activity() || !w) return '';
   const progress = w.progress || {};
-  return `<section class="panel"><div class="panel-head"><h2>Detector scores and Granite progress</h2><small>RANKS PRESERVED</small></div>
-    <div class="note"><p>${esc(w.scoring_contract || 'Original detector running scores. Not probabilities or scores out of 100.')}</p>
-      <h2>Highest-ranked detector scores</h2>
-      <div class="score-list">${w.cases.slice(0,5).map(c => `<div class="score-row"><a href="${detailLink(c)}">${esc(c.person)}</a><meter min="0" max="${Math.max(1,...w.cases.map(x => x.score ?? 0))}" value="${c.score ?? 0}" aria-label="${esc(c.person)} running score"></meter><span class="mono" title="${esc(c.score)}">${num(c.score)}</span></div>`).join('') || '<p>No scored alerts in this exported queue.</p>'}</div>
-      <div class="actions">${['Accepted','Fallback','Not inferred'].map(s => badge(`${progress[s] ?? 0} ${s}`)).join('')}</div>
-      <p>Accepted responses cite known evidence. Fallback and unprocessed entries retain their original detector score and rank.</p>
-      <label>Inference attempt <select id="attempt" aria-label="Granite inference attempt" ${(w.attempts || []).length ? '' : 'disabled'}>
-      ${(w.attempts || []).length ? w.attempts.map(a => `<option value="${esc(a)}" ${w.attempt === a ? 'selected' : ''}>${esc(a)}</option>`).join('') : '<option>No inference results yet</option>'}</select></label>
-      <p>Model: ${esc(w.model?.name || 'Not recorded')} · Mode: ${esc(w.model?.mode || '—')} · Structured output: ${w.model?.structured_output === true ? 'enabled' : w.model?.structured_output === false ? 'disabled' : 'not recorded'}</p>
-      ${w.model?.sha256 ? `<details><summary>Model provenance</summary><p class="mono">SHA-256: ${esc(w.model.sha256)}</p></details>` : ''}
-    </div>
-  </section>`;
+  const attempts = w.attempts || [];
+  const model = w.model?.name ? `${esc(w.model.name)}${w.model.mode ? ` · ${esc(w.model.mode)}` : ''}` : 'Not recorded';
+  const note = w.scoring_contract || 'Original detector running scores. Not probabilities or scores out of 100.';
+  return `<div class="panel runbar" aria-label="Detector and Granite status">
+    <div class="runbar-group"><small>GRANITE</small>${['Accepted','Fallback','Not inferred'].map(s => badge(`${progress[s] ?? 0} ${s}`)).join('')}</div>
+    <label class="runbar-group"><small>ATTEMPT</small><select id="attempt" aria-label="Granite inference attempt" ${attempts.length ? '' : 'disabled'}>
+      ${attempts.length ? attempts.map(a => `<option value="${esc(a)}" ${w.attempt === a ? 'selected' : ''}>${esc(a)}</option>`).join('') : '<option>No inference results yet</option>'}</select></label>
+    <span class="runbar-group" ${w.model?.sha256 ? `title="Model SHA-256: ${esc(w.model.sha256)}"` : ''}><small>MODEL</small>${model}</span>
+    <span class="runbar-note" title="${esc(note)}">Scores are running scores, not probabilities</span>
+  </div>`;
 }
