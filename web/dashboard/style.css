@@ -39,3 +39,5 @@ select:disabled { opacity: .55; }
   a[href], button:enabled, select:enabled, summary { transition: none; }
 }
 @media(max-width:640px){nav{flex-wrap:wrap}}
+
+.signals{list-style:none;margin:0;padding:0}.signals li{display:grid;grid-template-columns:32px 1fr 140px 56px;gap:12px;align-items:center;padding:10px 16px;border-top:1px solid var(--line)}.signals a{color:inherit;text-decoration:none}.signals small{display:block;color:var(--muted)}.signals .track{height:6px;background:var(--mint);border-radius:3px}.signals .track i{display:block;height:100%;background:var(--teal);border-radius:3px}.signals li:hover{background:var(--mint)}
