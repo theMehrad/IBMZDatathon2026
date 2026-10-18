@@ -1,13 +1,35 @@
-"""Nguyen's copy of code/outofrole_minimal.py, with optional email features.
+"""Nguyen's copy of code/outofrole_minimal.py with two extra inputs for the daily list. The team's script is not changed.
 
-    python test/outofrole_email.py 5.2              daily list uses the 9 activities + 4 email counts
-    python test/outofrole_email.py 5.2 --no-email   the original 9 activities: should reproduce the team's numbers
+Final setting (chosen on r4.2, confirmed once on r5.2):
+    python test/outofrole_email.py 5.2 --feats=n_new_site,n_boss_pc --w=5
+        r4.2: 59 -> 63/70 insiders, sysadmins 4 -> 8/10, normal staff listed 230 -> 219
+        r5.2: 80 -> 83/99 insiders, sysadmins 2 -> 6/10, normal staff listed 291 -> 279
+
+The two inputs (counted per person per day, built from the tables + LDAP, no rebuild needed):
+    n_new_site   visits to websites nobody in the company visited during training (the R1 rule's signal)
+    n_boss_pc    logons to one's own supervisor's main computer (supervisor from that month's LDAP file)
+Both are rare for normal staff, so with --w=5 each counts 5 points when unusual; the original 9 stay at 1 point.
+
+Options:
+    --no-email          the team's original 9 activities only: reproduces their numbers (80/99 on r5.2)
+    --feats=a,b         extra inputs to add: n_new_site, n_boss_pc, or the email inputs (n_email_out,
+                        n_email_out_ah, n_email_out_att, n_email_rcpt; tested on r4.2 and dropped)
+    --w=N               points for n_new_site / n_boss_pc when unusual (default 1)
+    --export            also write data/exports_nguyen/r{rel}_cases.jsonl: one record per person per day on the
+                        list (why flagged + top 5 evidence facts), label-free, for the Granite step. Never commit it.
+    --why-s3            print a per-sysadmin diagnostic (uses the answer key: for understanding only)
+    (no --feats)        original 9 + all 4 email inputs, the first experiment; not the final setting
+
+
+    run: python test/outofrole_email.py 5.2 --feats=n_new_site,n_boss_pc --w=5 --export
+    or
+    bash run.sh
 
 Changes from the original, each marked "NGUYEN:" below: paths come from the repo folder (or OUTOFROLE_BASE /
 OUTOFROLE_CACHE) instead of Mehrad's laptop; tables come from data/cache_nguyen/ (built by build_tables_email.py);
-the activity list can include email; the hard-coded 9 is now the length of that list; "active day" still means a
-day with logon/USB/file/web activity, so the baseline and the training weeks are identical with or without email.
-Everything else, including every setting, is unchanged.
+the activity list can include the extra inputs, with the hard-coded 9 replaced by the length of that list;
+"active day" still means a day with logon/USB/file/web activity, so the baseline and training weeks are identical
+whatever inputs are added; the report also prints results by attack type. Every other setting is unchanged.
 
 Original description:
 
@@ -102,10 +124,12 @@ W = np.stack([X[:, week == w].sum(1) for w in ref], 1); Wact = np.stack([ACT[:, 
 cs = np.concatenate([np.zeros((len(users), 1, len(FEATS))), X.cumsum(1)], 1)   # NGUYEN: was a hard-coded 9
 last7 = np.stack([cs[:, t + 1] - cs[:, max(0, t - 6)] for t in range(t0, len(days))], 1)  # trailing 7 days, past only
 pct_score = np.zeros((len(users), T))
+UNUSUAL = np.zeros((len(users), T, len(FEATS)), bool)                                  # NGUYEN: kept for --export
 for i in range(len(users)):
     r = W[i][Wact[i]]
     if len(r):
         p = ((r[None] < last7[i][:, None]).sum(1) + 0.5 * (r[None] == last7[i][:, None]).sum(1)) / len(r)
+        UNUSUAL[i] = p >= 0.99
         pct_score[i] = (p >= 0.99) @ WVEC + 0.01 * p.sum(1)          # activities above every normal week (NGUYEN: weighted)
 
 def r2_score():                                                                         # baseline: 28-day personal window
@@ -275,6 +299,52 @@ blocked = {s: np.mean([d not in S for sc, d in mal_sites if sc == s]) for s in (
 nov = dom[(dom.day >= CUT) & ~dom.domain.isin(S) & dom.user.isin(users[normal])]
 
 # ------------------------------------------------------------------ report
+# ------------------------------------------------------------------ NGUYEN: --export  (flagged people + their evidence, for the Granite step)
+# One JSON line per person per day on the 20-name list. Label-free: built only from logs up to that day, never the answer key.
+# Written under data/ (git-ignored): it is derived from CERT data, which must not be redistributed.
+if "--export" in sys.argv:
+    import json
+    NAMES = {"n_logon": "logons", "n_logon_ah": "after-hours logons", "n_usb": "USB connections", "n_usb_ah": "after-hours USB connections",
+             "n_file": "files copied", "n_file_ah": "after-hours file copies", "n_http": "web visits", "n_http_ah": "after-hours web visits",
+             "n_pcs": "computers used", "n_new_site": "visits to never-seen websites", "n_boss_pc": "logons to the supervisor's computer",
+             "n_email_out": "emails to outside addresses", "n_email_out_ah": "after-hours emails to outside addresses",
+             "n_email_out_att": "outside emails with attachments", "n_email_rcpt": "email recipients"}
+    owner = {pc: u for u, pc in main_of.items()}                                        # computer -> whose main computer it is
+    boss_pc = {(r.user, r.month): main_of.get(r.boss) for r in sup.itertuples()}         # (person, month) -> supervisor's main computer
+    dd = daily.set_index(["user", "day"])
+    lam = 0.5 ** (1 / HALF_LIFE); run = np.zeros(len(users)); seen_before = set()
+    out_dir = Path(BASE) / "data" / "exports_nguyen"; out_dir.mkdir(parents=True, exist_ok=True)
+    out = out_dir / f"r{REL}_cases.jsonl"; n_rows = 0
+    with open(out, "w") as fh:
+        for t in range(T):
+            run = lam * run + pct_score[:, t]
+            day = CUT + pd.Timedelta(days=t)
+            for i in np.where(on_pct[:, t])[0]:
+                u = users[i]; ref_w = W[i][Wact[i]]
+                why = [{"activity": NAMES.get(f, f), "this_week": int(last7[i][t][k]), "normal_max": int(ref_w[:, k].max()) if len(ref_w) else 0}
+                       for k, f in enumerate(FEATS) if UNUSUAL[i, t, k]]
+                it = case_items(u, t); facts = []
+                if it is not None and len(it):
+                    for k, r in enumerate(it.sort_values(["score", "day"], ascending=[False, False]).head(5).itertuples()):
+                        f = {"id": f"E{k + 1}", "date": str(r.day)[:10], "kind": r.kind, "item": str(r.item),
+                             "new_to_person": bool(r.new), "staff_share": round(float(r.share), 4)}
+                        if r.kind == "pc":
+                            f["supervisors_computer"] = boss_pc.get((u, r.day.to_period("M"))) == r.item
+                            f["someone_elses_main_computer"] = owner.get(r.item, u) != u
+                        if r.kind == "dom": f["never_seen_in_company"] = r.item not in seen_sites
+                        if r.kind == "usb" and (u, r.day) in dd.index:
+                            row = dd.loc[(u, r.day)]
+                            f["usb_connections_that_day"] = int(row.n_usb); f["files_copied_that_day"] = int(row.n_file)
+                        if r.kind == "ah" and (u, r.day) in dd.index:
+                            f["after_hours_logons_that_day"] = int(dd.loc[(u, r.day)].n_logon_ah)
+                        facts.append(f)
+                strong = any(f["new_to_person"] and f["staff_share"] < 0.01 for f in facts)
+                fh.write(json.dumps({"release": REL, "day": str(day.date()), "person": u, "first_day_on_list": u not in seen_before,
+                                     "running_score": round(float(run[i]), 2), "why_flagged": why, "facts": facts,
+                                     "strength": "strong" if strong else "weak"}) + "\n")
+                seen_before.add(u); n_rows += 1
+    print(f"   NGUYEN export: {n_rows} records ({len(seen_before)} people, 20 per day) written to {out}")
+
 n = len(ins)
 print(f"== r{REL}: {len(users)} staff, {n} insiders; daily list uses {len(FEATS)} activities ({', '.join(FEATS[9:]) if len(FEATS) > 9 else 'original 9 only'}) ==")
 print(f"1  early warning, 20 names/day: {len(FLAG)}/{n} insiders listed before their last malicious action "
