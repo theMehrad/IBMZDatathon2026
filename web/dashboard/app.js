@@ -39,7 +39,7 @@ async function load(run,day,attempt){
   if(day)params.set('day',day);
   if(attempt)params.set('attempt',attempt);
   try{
-    const response=await fetch('/api/workspace'+(params.size?'?'+params.toString():''),{cache:'no-store'});
+    const response=await fetch('api/workspace'+(params.size?'?'+params.toString():''),{cache:'no-store'});
     const data=await response.json();
     if(version!==loadVersion)return;
     if(!response.ok)throw Error(data.error||'Unable to load outputs');

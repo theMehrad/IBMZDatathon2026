@@ -34,6 +34,9 @@ function choose(value) {
 }
 
 vm.runInContext(source, context);
+assert.equal(new URL(requests[0].url, 'https://example.test/proxy/8000/').pathname, '/proxy/8000/api/workspace');
+assert.equal(new URL(requests[0].url, 'https://example.test/user/tam/proxy/8000/').pathname, '/user/tam/proxy/8000/api/workspace');
+assert.equal(new URL(requests[0].url, 'http://127.0.0.1:8000/').pathname, '/api/workspace');
 await reply(requests.shift(), activity);
 assert.equal(vm.runInContext('activity()', context), true);
 
