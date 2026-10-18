@@ -18,6 +18,10 @@ the project in one minute · the data · what we built · which method runs at e
 | `figures/` | The level-by-level visual used in the handbook | Slides and the video |
 | `web/` | Source of the online handbook page | Only to republish the page |
 
+## Dashboard
+
+Run `py code/dashboard.py` on Windows or `python3 code/dashboard.py` on Linux, then open http://127.0.0.1:8000. The dashboard reads existing processed tables and Granite runner outputs without starting Spark, scoring, or inference. See [local dashboard instructions](docs/DASHBOARD.md) for existing-run paths, dependencies, sample mode, and data semantics.
+
 ## Data
 
 Not in this repo: the CERT license forbids redistribution. Each teammate downloads it (`setup/Data_Download_Guide.pdf`) into `data/`; the LANL real-login data goes in `data/lanl/`. Everything under `data/` is git-ignored. Older drafts live in `9_Archive/` on Mehrad's laptop, outside the repo; review rounds mention files by their names at the time.
