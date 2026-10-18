@@ -6,6 +6,7 @@ import vm from 'node:vm';
 const source = await readFile(new URL('../web/dashboard/pipeline.js', import.meta.url), 'utf8') + '\n' +
   await readFile(new URL('../web/dashboard/app.js', import.meta.url), 'utf8');
 const elements = new Map();
+let employeeButtons = [];
 const element = selector => {
   if (!elements.has(selector)) elements.set(selector, {
     innerHTML: '', textContent: '', insertAdjacentHTML(where, html) { this.notice = html; },
@@ -14,7 +15,12 @@ const element = selector => {
 };
 const requests = [];
 const context = vm.createContext({
-  document: {querySelector: element, querySelectorAll: () => []},
+  document: {querySelector: element, querySelectorAll(selector) {
+    if (selector !== '.select-row') return [];
+    employeeButtons = [...element('#main').innerHTML.matchAll(/<button class="select-row" data-person="([^"]+)"/g)]
+      .map(match => ({dataset: {person: match[1]}}));
+    return employeeButtons;
+  }},
   window: {addEventListener() {}}, location: {hash: ''},
   sessionStorage: {getItem: () => null}, URLSearchParams, setTimeout,
   fetch: url => new Promise(resolve => requests.push({url, resolve})),
@@ -63,6 +69,19 @@ choose('sample');
 await reply(staleRunner, empty);
 assert.equal(vm.runInContext('sample', context), true);
 assert.match(element('#main').innerHTML, /24,816/);
+assert.match(element('#main').innerHTML, /Inspect employee/);
+employeeButtons[0].onclick();
+assert.equal(context.location.hash, '#detail/Mara%20Voss');
+assert.equal(vm.runInContext('page', context), 'detail');
+assert.match(element('#main').innerHTML, /312 customer records/);
+context.location.hash = '#alerts';
+vm.runInContext('route()', context);
+employeeButtons[1].onclick();
+assert.equal(vm.runInContext('page', context), 'alerts');
+assert.equal(vm.runInContext('selected', context), 'Eli Park');
+assert.match(element('#main').innerHTML, /data-person="Eli Park" aria-pressed="true">Selected/);
+context.location.hash = '#overview';
+vm.runInContext('route()', context);
 choose('runner');
 await reply(requests.shift(), {
   runs: [{id: 'synthetic-test', day: '2010-08-02'}],
@@ -78,7 +97,20 @@ assert.match(element('#main').innerHTML, /7.25/);
 assert.match(element('#main').innerHTML, /1 Accepted/);
 assert.match(element('#main').innerHTML, /Synthetic test adapter/);
 assert.match(element('#main').innerHTML, /Test model unavailable/);
+assert.match(element('#main').innerHTML, /Saved runner results loaded/);
+assert.match(element('#main').innerHTML, /1 saved detector score/);
+assert.match(element('#main').innerHTML, /Viewing these results does not require a configured model/);
+assert.match(element('#main').innerHTML, /Setup for new analysis \(optional\)/);
+assert.doesNotMatch(element('#main').innerHTML, /<details class="panel pipeline" open/);
+assert.doesNotMatch(element('#main').innerHTML, /GRANITE UNAVAILABLE|SCORES UNAVAILABLE/);
+employeeButtons[0].onclick();
+assert.equal(context.location.hash, '#detail/U-0001');
+assert.match(element('#main').innerHTML, /Saved Granite response validated/);
+vm.runInContext("remote.workspace.cases[0].status='Fallback';render()", context);
+assert.match(element('#main').innerHTML, /Showing the deterministic evidence-based fallback/);
+vm.runInContext("remote.workspace.cases[0].status='Not inferred';render()", context);
+assert.match(element('#main').innerHTML, /No saved Granite response is available/);
 element('#attempt').onchange({target: {value: 'attempt-1'}});
 assert.match(requests[0].url, /attempt=attempt-1/);
 await reply(requests.shift(), empty);
-console.log('Dataset selection tests passed: empty runner, Refresh, request races, sample isolation.');
+console.log('UI tests passed: source switching, proxy paths, employee actions, saved-results status, and attempt selection.');

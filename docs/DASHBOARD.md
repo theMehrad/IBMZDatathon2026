@@ -54,6 +54,8 @@ Queue search, priority and review filters, employee navigation, fact links, and 
 
 Dataset selection is explicit: selecting **Runner outputs** keeps that source selected and shows an empty state when no prepared exports exist. The r4.2 activity preview is an initial-load fallback only; it does not override an explicit source choice or Refresh. Late responses from an earlier selection are ignored.
 
+On Overview, **Inspect employee** opens that employee's detail screen. In the daily queue, **Select** updates the highlighted employee and selection summary; the chosen row reads **Selected**. Use **Inspect employee** in the summary to open details. When saved runner results are loaded, the dashboard states that explicitly and keeps requirements for generating new results in a collapsed optional setup panel. A missing model configuration does not prevent reading saved Granite responses.
+
 ## Detector and Granite integration
 
 The dashboard now shows original running scores in the queue and employee detail, the highest running score in the overview, a comparison of the first five ranked scores, and separate Accepted/Fallback/Not inferred counts. Score bars share the current queue maximum, not a 100-point risk scale. Exact score values remain in the JSON export and score tooltips. No priorities or risk percentages are invented.
