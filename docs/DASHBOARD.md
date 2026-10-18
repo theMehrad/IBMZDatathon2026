@@ -50,7 +50,7 @@ Processed totals come from the selected release's existing `daily` table using `
 
 Choose **Northstar / demo-01 (sample)** in the dataset selector for the clearly labeled synthetic design preview. It is separate from runner data and never appears automatically as a substitute for missing results. Sample Granite labels are human-authored, with explicit “no model was run” wording. Only Mara has an authored sample timeline; other sample employees show an honest empty evidence state.
 
-Queue search, priority and review filters, employee navigation, fact links, and JSON queue export work locally. “Begin review” and “Mark reviewed” store review metadata in browser session storage, scoped to source/run/day/person; they do not alter runner outputs or persist as a shared review system. Queue exports include the source/sample designation.
+Queue search, priority and review filters, employee navigation by name, fact links, and JSON queue export work locally. “Begin review” and “Mark reviewed” store review metadata in browser session storage, scoped to source/run/day/person; they do not alter runner outputs or persist as a shared review system. Queue exports include the source/sample designation.
 
 Dataset selection is explicit: selecting **Runner outputs** keeps that source selected and shows an empty state when no prepared exports exist. The r4.2 activity preview is an initial-load fallback only; it does not override an explicit source choice or Refresh. Late responses from an earlier selection are ignored.
 
@@ -58,7 +58,7 @@ Refresh rereads saved files; it does not execute the runner or generate another 
 
 The daily-window selector lists available saved runs, not pages or all dates in the raw dataset. One saved run means one choice; four inference attempts within that run are selected separately in the inference-attempt selector. With `--run-dir`, the dashboard is pinned to that one run. To browse several prepared days, launch using `--runs /path/to/data/runs` instead of `--run-dir`; Refresh can then discover additional saved runs in that folder without starting analysis.
 
-On Overview, **Inspect employee** opens that employee's detail screen. In the daily queue, **Select** updates the highlighted employee and selection summary; the chosen row reads **Selected**. Use **Inspect employee** in the summary to open details. In Activity preview, the selected-employee bar sits above the employee count and list so it is visible without scrolling past the full table. The count comes from the loaded data, not a fixed number.
+Overview is a briefing: metric tiles, volume and priority panels, and the top five signals as a compact ranked list with score bars. Daily alerts is the full working queue with search, filters and export. In both, click an employee's name (or fact ID) to open their detail screen. There is no separate Select step.
 
 **System setup** is a separate navigation tab (`#setup`) containing administrator readiness checks and optional new-run commands. These requirements are absent from Overview, Daily alerts, Activity preview, and Employee detail. Opening System setup only displays already-loaded readiness information; it does not start analysis. A missing model configuration does not prevent reading saved Granite responses. Actual data-loading errors and evidence warnings remain visible on the main screens.
 

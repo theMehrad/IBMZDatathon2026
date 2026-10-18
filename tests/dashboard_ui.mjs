@@ -6,7 +6,6 @@ import vm from 'node:vm';
 const source = await readFile(new URL('../web/dashboard/pipeline.js', import.meta.url), 'utf8') + '\n' +
   await readFile(new URL('../web/dashboard/app.js', import.meta.url), 'utf8');
 const elements = new Map();
-let employeeButtons = [];
 const element = selector => {
   if (!elements.has(selector)) elements.set(selector, {
     innerHTML: '', textContent: '', insertAdjacentHTML(where, html) { this.notice = html; },
@@ -15,12 +14,7 @@ const element = selector => {
 };
 const requests = [];
 const context = vm.createContext({
-  document: {querySelector: element, querySelectorAll(selector) {
-    if (selector !== '.select-row') return [];
-    employeeButtons = [...element('#main').innerHTML.matchAll(/<button class="select-row" data-person="([^"]+)"/g)]
-      .map(match => ({dataset: {person: match[1]}}));
-    return employeeButtons;
-  }},
+  document: {querySelector: element, querySelectorAll: () => []},
   window: {addEventListener() {}}, location: {hash: ''},
   sessionStorage: {getItem: () => null}, URLSearchParams, setTimeout,
   fetch: url => new Promise(resolve => requests.push({url, resolve})),
@@ -53,14 +47,8 @@ assert.match(element('nav').innerHTML, /href="#setup"/);
 assert.doesNotMatch(element('#main').innerHTML, /Generate new detector scores/);
 context.location.hash = '#alerts';
 vm.runInContext('route()', context);
-let previewHtml = element('#main').innerHTML;
-assert.ok(previewHtml.indexOf('aria-label="Selected employee"') < previewHtml.indexOf('<h2>54 employees</h2>'));
-assert.ok(previewHtml.indexOf('aria-label="Selected employee"') < previewHtml.indexOf('<table>'));
-employeeButtons[10].onclick();
-assert.equal(vm.runInContext('selected', context), 'ACT-011');
-previewHtml = element('#main').innerHTML;
-assert.match(previewHtml.slice(previewHtml.indexOf('aria-label="Selected employee"'),previewHtml.indexOf('</section>')), /ACT-011/);
-assert.ok(previewHtml.indexOf('aria-label="Selected employee"') < previewHtml.indexOf('<h2>54 employees</h2>'));
+const previewHtml = element('#main').innerHTML;
+assert.doesNotMatch(previewHtml, /aria-label="Selected employee"|select-row/);
 const navigationRequests = requests.length;
 context.location.hash = '#setup';
 vm.runInContext('route()', context);
@@ -100,17 +88,17 @@ const sampleRequests = requests.length;
 element('#refresh').onclick();
 assert.equal(requests.length, sampleRequests);
 assert.match(element('#main').innerHTML, /Sample data is static; no files were reloaded/);
-assert.match(element('#main').innerHTML, /Inspect employee/);
-employeeButtons[0].onclick();
-assert.equal(context.location.hash, '#detail/Mara%20Voss');
+assert.match(element('#main').innerHTML, /Top five signals/);
+assert.match(element('#main').innerHTML, /href="#detail\/Mara%20Voss"/);
+assert.doesNotMatch(element('#main').innerHTML, /select-row/);
+context.location.hash = '#detail/Mara%20Voss';
+vm.runInContext('route()', context);
 assert.equal(vm.runInContext('page', context), 'detail');
 assert.match(element('#main').innerHTML, /312 customer records/);
 context.location.hash = '#alerts';
 vm.runInContext('route()', context);
-employeeButtons[1].onclick();
-assert.equal(vm.runInContext('page', context), 'alerts');
-assert.equal(vm.runInContext('selected', context), 'Eli Park');
-assert.match(element('#main').innerHTML, /data-person="Eli Park" aria-pressed="true">Selected/);
+assert.doesNotMatch(element('#main').innerHTML, />Select<|Selected/);
+assert.match(element('#main').innerHTML, /href="#detail\/Eli%20Park"/);
 context.location.hash = '#overview';
 vm.runInContext('route()', context);
 choose('runner');
@@ -139,8 +127,9 @@ assert.match(element('#main').innerHTML, /<details class="panel pipeline" open/)
 assert.doesNotMatch(element('#main').innerHTML, /Highest-ranked detector scores/);
 context.location.hash = '#overview';
 vm.runInContext('route()', context);
-employeeButtons[0].onclick();
-assert.equal(context.location.hash, '#detail/U-0001');
+assert.match(element('#main').innerHTML, /href="#detail\/U-0001"/);
+context.location.hash = '#detail/U-0001';
+vm.runInContext('route()', context);
 assert.match(element('#main').innerHTML, /Saved Granite response validated/);
 vm.runInContext("remote.workspace.cases[0].status='Fallback';render()", context);
 assert.match(element('#main').innerHTML, /Showing the deterministic evidence-based fallback/);
@@ -186,4 +175,4 @@ assert.doesNotMatch(element('#main').innerHTML, /id="refresh" disabled/);
 element('#attempt').onchange({target: {value: 'attempt-1'}});
 assert.match(requests[0].url, /attempt=attempt-1/);
 await reply(requests.shift(), empty);
-console.log('UI tests passed: System setup tab, activity selection placement, proxy paths, employee actions, saved results, refresh feedback and failures, and attempt selection.');
+console.log('UI tests passed: System setup tab, proxy paths, employee actions, saved results, refresh feedback and failures, and attempt selection.');
