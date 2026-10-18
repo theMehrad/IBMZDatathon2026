@@ -18,9 +18,11 @@ F9 = ["n_logon", "n_logon_ah", "n_usb", "n_usb_ah", "n_file", "n_file_ah", "n_ht
 K, HALF_LIFE = 20, 7                                           # daily list size; running score halves every 7 days
 
 # ------------------------------------------------------------------ load
-daily = pd.read_parquet(f"{WORK}/daily"); daily["day"] = pd.to_datetime(daily.day)
-pcs = pd.read_parquet(f"{WORK}/pc_pairs"); pcs["day"] = pd.to_datetime(pcs.day)
-dom = pd.read_parquet(f"{WORK}/dom_pairs"); dom["day"] = pd.to_datetime(dom.day)
+from table_io import read_table
+
+daily = read_table(WORK, "daily"); daily["day"] = pd.to_datetime(daily.day)
+pcs = read_table(WORK, "pc_pairs"); pcs["day"] = pd.to_datetime(pcs.day)
+dom = read_table(WORK, "dom_pairs"); dom["day"] = pd.to_datetime(dom.day)
 ins = pd.read_csv(f"{ANS}/insiders.csv"); ins = ins[ins.dataset.astype(str) == REL].set_index("user")
 users = np.sort(daily.user.unique()); U = {u: i for i, u in enumerate(users)}; normal = ~np.isin(users, ins.index)
 days = pd.date_range(daily.day.min(), daily.day.max()); t0 = days.get_loc(CUT); T = len(days) - t0
