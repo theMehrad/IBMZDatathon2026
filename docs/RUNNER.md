@@ -92,6 +92,27 @@ python3 code/runner.py infer --run-dir /absolute/container/path/to/run --model /
 
 Run this inside the same notebook container/environment. Each `infer` creates a separate attempt, preserving old outputs. Source hashes must match the preparation snapshot by default. `--allow-runner-update` explicitly permits **only runner.py, label_guide.py and evidence_policy.py** to differ and records the prepared and current hashes; scorer, table loader and structural validator changes still require fresh preparation. This includes adding the new inference-only adapter to an older snapshot. The selected policy/guide and their versions are recorded; the saved pack and manifest are never rewritten. A model-only retry or generation-limit change does not require scoring again.
 
+### Exact cache-path compatibility exception (inference only)
+
+`infer --allow-cache-path-update` permits only the reviewed scorer SHA-256 transition
+`fb122cdf35128976f9e2580824a1e4ebdd807d1812b024898a39c3cac633767c` →
+`5bf0b02ff118d1837bfc9d9b97e5468ba5787fe7c287c73904a2e9821c703a80`.
+That change adds an `OUTOFROLE_CACHE` override without changing scoring formulas.
+Inference does not execute the scorer, so existing saved packs can be reused without
+repeating scoring. This flag is unavailable on `run` and `prepare`.
+
+The runner records the exception, reason, and both scorer hashes in
+`config.json` under `cache_path_compatibility`, alongside the unchanged prepared
+source hashes and actual current source hashes. Saved packs and their manifest
+are never rewritten. All other scorer, loader, validator, and unknown-file changes
+remain errors. Inference-file differences independently require
+`--allow-runner-update`. Do not expand this hash pair to accommodate an unreviewed change.
+
+For old saved packs on the new main, add **both** flags to the normal bounded
+`infer` command. A single-case diagnostic still needs explicit `--max-cases 1`,
+`--structured-output`, and the desired guide/policy options; this compatibility
+flag does not change model defaults or bypass pack-integrity checks.
+
 To export packs without starting Granite, use `prepare --release 4.2 --day 2010-08-02`. The CLI requires a model path only for `run` and `infer`.
 
 ## Constrain JSON and test only one case

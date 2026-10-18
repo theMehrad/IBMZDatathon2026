@@ -276,8 +276,25 @@ def infer(args):
     current_hashes = code_hashes()
     changed = {name for name in set(bundle['code_sha256']) | set(current_hashes)
                if bundle['code_sha256'].get(name) != current_hashes.get(name)}
-    if changed and not (args.allow_runner_update and changed <= {'runner.py', 'label_guide.py', 'evidence_policy.py'}):
-        raise ValueError('Code changed since pack export; prepare again or explicitly allow runner/guide/policy updates')
+    cache_path_compatibility = None
+    remaining_changes = changed.copy()
+    if (getattr(args, 'stage', None) == 'infer'
+            and getattr(args, 'allow_cache_path_update', False)
+            and 'outofrole_minimal.py' in changed
+            and bundle['code_sha256'].get('outofrole_minimal.py') ==
+                'fb122cdf35128976f9e2580824a1e4ebdd807d1812b024898a39c3cac633767c'
+            and current_hashes.get('outofrole_minimal.py') ==
+                '5bf0b02ff118d1837bfc9d9b97e5468ba5787fe7c287c73904a2e9821c703a80'):
+        cache_path_compatibility = dict(
+            file='outofrole_minimal.py',
+            prepared_sha256=bundle['code_sha256']['outofrole_minimal.py'],
+            current_sha256=current_hashes['outofrole_minimal.py'],
+            reason='Reviewed cache-root override only; inference reuses saved packs without scoring')
+        remaining_changes.remove('outofrole_minimal.py')
+    if remaining_changes and not (args.allow_runner_update and remaining_changes <= {'runner.py', 'label_guide.py', 'evidence_policy.py'}):
+        raise ValueError('Code changed since pack export; changed files: ' + ', '.join(sorted(remaining_changes)) +
+                         '. Only inference updates (--allow-runner-update) and the exact reviewed cache-path update '
+                         '(infer --allow-cache-path-update) can be explicitly permitted')
     cases = bundle['cases']
     if [c['rank'] for c in cases] != list(range(1, len(cases) + 1)):
         raise ValueError('Review ranks are not consecutive')
@@ -296,8 +313,12 @@ def infer(args):
                   evidence_policy=args.evidence_policy,
                   evidence_policy_version=POLICY_VERSION if args.evidence_policy == 'v2' else 'none',
                   prepared_code_sha256=bundle['code_sha256'],
-                  allowed_runner_update=bool(changed),
+                  allowed_runner_update=bool(remaining_changes),
+                  cache_path_compatibility=cache_path_compatibility,
                   created_at=datetime.now(timezone.utc).isoformat(), code_sha256=current_hashes)
+    if cache_path_compatibility:
+        print('Provenance exception: exact reviewed scorer cache-path update; '
+              'saved packs unchanged, no scoring. Recorded in config.json.', flush=True)
     # Missing model/runtime and startup failure become explicit fallbacks for every name.
     problem = None
     if not args.model.is_file():
@@ -432,6 +453,9 @@ def cli():
                                  help='Diagnostic limit; retain other names as not inferred')
                 sub.add_argument('--allow-runner-update', action='store_true',
                                  help='Reuse packs if only inference runner/guide/policy changed; record both revisions')
+        if name == 'infer':
+            sub.add_argument('--allow-cache-path-update', action='store_true',
+                             help='Allow only the exact reviewed scorer cache-root change when reusing saved packs; record both hashes')
     args = parser.parse_args()
     os.umask(0o077)
     if hasattr(args, 'model'):
