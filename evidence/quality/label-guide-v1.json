@@ -1,0 +1,68 @@
+{
+  "version": "outofrole-quality-v1",
+  "guide_version": "outofrole-label-guide-v1",
+  "provenance": "Hand-authored synthetic development fixtures, frozen before model execution. Not CERT records, attack labels, or a held-out accuracy benchmark.",
+  "cases": [
+    {
+      "id": "leak-with-neutral-distractor",
+      "description": "Leak-destination visit should outrank neutral context. It is not a proven upload.",
+      "expected_label": "possible data leak",
+      "required_fact_ids": ["E1"], "forbidden_fact_ids": ["E2"], "max_cited_facts": 2,
+      "pack": {"person": "SYNTH-001", "strength": "strong", "facts": [
+        {"id": "E1", "what": "visited website", "item": "wikileaks.org", "date": "2010-08-02", "new_to_person": true, "staff_share": 0.0},
+        {"id": "E2", "what": "logged on to computer", "item": "PC-OWN", "date": "2010-08-02", "new_to_person": false, "staff_share": 0.02},
+        {"id": "E3", "what": "logged on after hours", "item": "AH", "date": "2010-08-02", "new_to_person": true, "staff_share": 0.15}
+      ]}
+    },
+    {
+      "id": "usb-without-copy-observation",
+      "description": "USB use is not an observed copy. Weak label is not forced by the strong-pack grammar.",
+      "expected_label": "weak evidence",
+      "required_fact_ids": ["E1"], "forbidden_fact_ids": [], "max_cited_facts": 2,
+      "pack": {"person": "SYNTH-002", "strength": "strong", "facts": [
+        {"id": "E1", "what": "used a USB device", "item": "USB", "date": "2010-08-02", "new_to_person": true, "staff_share": 0.005}
+      ]}
+    },
+    {
+      "id": "explicit-copy-without-leak",
+      "description": "Synthetic richer observation explicitly states copying. Current M3 does not yet emit this fact kind.",
+      "expected_label": "possible data theft",
+      "required_fact_ids": ["E1"], "forbidden_fact_ids": ["E2"], "max_cited_facts": 2,
+      "pack": {"person": "SYNTH-003", "strength": "strong", "facts": [
+        {"id": "E1", "what": "copied files to removable media", "item": "synthetic-document-set", "date": "2010-08-02", "new_to_person": true, "staff_share": 0.005},
+        {"id": "E2", "what": "logged on to computer", "item": "PC-OWN", "date": "2010-08-02", "new_to_person": false, "staff_share": 0.02}
+      ]}
+    },
+    {
+      "id": "after-hours-main-concern",
+      "description": "Synthetic organization where new after-hours logons are rare. No leak/copy observation.",
+      "expected_label": "unusual after-hours activity",
+      "required_fact_ids": ["E1"], "forbidden_fact_ids": ["E2"], "max_cited_facts": 2,
+      "pack": {"person": "SYNTH-004", "strength": "strong", "facts": [
+        {"id": "E1", "what": "logged on after hours", "item": "AH", "date": "2010-08-02", "new_to_person": true, "staff_share": 0.005},
+        {"id": "E2", "what": "logged on to computer", "item": "PC-OWN", "date": "2010-08-02", "new_to_person": false, "staff_share": 0.02}
+      ]}
+    },
+    {
+      "id": "novel-documentation-site",
+      "description": "Novelty and rarity alone do not establish wrongdoing. No other suspicious behavior is supplied.",
+      "expected_label": "weak evidence",
+      "required_fact_ids": ["E1"], "forbidden_fact_ids": ["E2"], "max_cited_facts": 2,
+      "pack": {"person": "SYNTH-005", "strength": "strong", "facts": [
+        {"id": "E1", "what": "visited website", "item": "docs.python.org", "date": "2010-08-02", "new_to_person": true, "staff_share": 0.005},
+        {"id": "E2", "what": "logged on to computer", "item": "PC-OWN", "date": "2010-08-02", "new_to_person": false, "staff_share": 0.02}
+      ]}
+    },
+    {
+      "id": "mixed-leak-and-explicit-copy",
+      "description": "Synthetic richer copy observation plus leak site: the declared overlap priority is leak first.",
+      "expected_label": "possible data leak",
+      "required_fact_ids": ["E1"], "forbidden_fact_ids": ["E3"], "max_cited_facts": 2,
+      "pack": {"person": "SYNTH-006", "strength": "strong", "facts": [
+        {"id": "E1", "what": "visited website", "item": "wikileaks.org", "date": "2010-08-02", "new_to_person": true, "staff_share": 0.0},
+        {"id": "E2", "what": "copied files to removable media", "item": "synthetic-document-set", "date": "2010-08-02", "new_to_person": true, "staff_share": 0.005},
+        {"id": "E3", "what": "logged on to computer", "item": "PC-OWN", "date": "2010-08-02", "new_to_person": false, "staff_share": 0.02}
+      ]}
+    }
+  ]
+}
