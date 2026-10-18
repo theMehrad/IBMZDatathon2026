@@ -1,0 +1,81 @@
+// Run with: node tests/dashboard_ui.mjs (no packages required).
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import vm from 'node:vm';
+
+const source = await readFile(new URL('../web/dashboard/pipeline.js', import.meta.url), 'utf8') + '\n' +
+  await readFile(new URL('../web/dashboard/app.js', import.meta.url), 'utf8');
+const elements = new Map();
+const element = selector => {
+  if (!elements.has(selector)) elements.set(selector, {
+    innerHTML: '', textContent: '', insertAdjacentHTML(where, html) { this.notice = html; },
+  });
+  return elements.get(selector);
+};
+const requests = [];
+const context = vm.createContext({
+  document: {querySelector: element, querySelectorAll: () => []},
+  window: {addEventListener() {}}, location: {hash: ''},
+  sessionStorage: {getItem: () => null}, URLSearchParams, setTimeout,
+  fetch: url => new Promise(resolve => requests.push({url, resolve})),
+});
+const empty = {runs: [], workspace: null, activity_dates: []};
+const activity = {
+  runs: [], activity_dates: ['2010-01-02'],
+  workspace: {id: 'CERT r4.2 preview', mode: 'activity', day: '2010-01-02',
+    cases: [], metrics: {employees: 0, events: 0, note: 'Test preview'}, warnings: []},
+};
+async function reply(request, data) {
+  request.resolve({ok: true, json: async () => JSON.parse(JSON.stringify(data))});
+  await new Promise(resolve => setTimeout(resolve, 0));
+}
+function choose(value) {
+  element('#source').onchange({target: {value}});
+}
+
+vm.runInContext(source, context);
+await reply(requests.shift(), activity);
+assert.equal(vm.runInContext('activity()', context), true);
+
+choose('runner');
+assert.match(requests[0].url, /source=runner/);
+assert.equal(vm.runInContext('activity()', context), false);
+await reply(requests.shift(), empty);
+assert.match(element('#main').innerHTML, /No prepared runner outputs found/);
+assert.match(element('#main').innerHTML, /value="runner" selected/);
+
+element('#refresh').onclick();
+assert.match(requests[0].url, /source=runner/);
+const staleRefresh = requests.shift();
+choose('activity');
+await reply(requests.shift(), activity);
+await reply(staleRefresh, empty);
+assert.equal(vm.runInContext('activity()', context), true);
+assert.ok(vm.runInContext('remote.workspace', context), element('#main').notice);
+assert.equal(element('#dataset-name').textContent, 'CERT r4.2 preview');
+
+choose('runner');
+const staleRunner = requests.shift();
+choose('sample');
+await reply(staleRunner, empty);
+assert.equal(vm.runInContext('sample', context), true);
+assert.match(element('#main').innerHTML, /24,816/);
+choose('runner');
+await reply(requests.shift(), {
+  runs: [{id: 'synthetic-test', day: '2010-08-02'}],
+  pipeline: {release: '4.2', scoring_ready: false, granite_ready: false,
+    scoring_blockers: ['Test tables unavailable'], granite_blockers: ['Test model unavailable'], tables: []},
+  workspace: {id: 'synthetic-test', day: '2010-08-02', cases: [{person: 'U-0001',
+    rank: 1, score: 7.25, strength: 'strong', status: 'Accepted', facts: [], cited: [], problems: []}],
+    metrics: {employees: null, events: null}, attempts: ['attempt-1'], attempt: 'attempt-1',
+    progress: {Accepted: 1, Fallback: 0, 'Not inferred': 0},
+    model: {name: 'Synthetic test adapter', sha256: 'test-digest', mode: 'chat', structured_output: true}},
+});
+assert.match(element('#main').innerHTML, /7.25/);
+assert.match(element('#main').innerHTML, /1 Accepted/);
+assert.match(element('#main').innerHTML, /Synthetic test adapter/);
+assert.match(element('#main').innerHTML, /Test model unavailable/);
+element('#attempt').onchange({target: {value: 'attempt-1'}});
+assert.match(requests[0].url, /attempt=attempt-1/);
+await reply(requests.shift(), empty);
+console.log('Dataset selection tests passed: empty runner, Refresh, request races, sample isolation.');

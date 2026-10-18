@@ -11,7 +11,8 @@ import numpy as np, pandas as pd
 
 REL = sys.argv[1]
 import pathlib; BASE = str(pathlib.Path(__file__).resolve().parents[1])
-WORK, ANS = f"{BASE}/data/cache/r{REL}", f"{BASE}/data/answers/answers"
+WORK = str(pathlib.Path(os.environ.get("OUTOFROLE_CACHE", f"{BASE}/data/cache")) / f"r{REL}")
+ANS = f"{BASE}/data/answers/answers"
 CUT = pd.Timestamp({"4.2": "2010-06-01", "5.2": "2010-04-01"}[REL])
 TRAIN_END = CUT - pd.Timedelta(days=CUT.weekday())            # Monday of the cutoff week (that week is dropped)
 F9 = ["n_logon", "n_logon_ah", "n_usb", "n_usb_ah", "n_file", "n_file_ah", "n_http", "n_http_ah", "n_pcs"]
