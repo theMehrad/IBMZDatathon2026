@@ -132,25 +132,72 @@ tr:target td{animation:flash 1.6s}@keyframes flash{from{background:#fff3c4}to{ba
 .refresh-feedback{margin:0 0 18px}
 
 /* dark mode */
-@media(prefers-color-scheme:dark){
-  :root{--ink:#e4ecee;--muted:#93a6ad;--line:#2b3d44;--bg:#0e1a20;--mint:#173b3a;--teal:#4cc2b2;--hover:#17282f}
-  body{color:var(--ink)}
-  .panel,.stepper,.pal-card,button,select,input,.button{background:#14252c;color:var(--ink);border-color:var(--line)}
-  button.primary,.button.primary,.chip.on{background:#2a9c8f;border-color:#2a9c8f;color:#04110f}
-  .chip b{color:var(--teal)}.chip.on b{color:#04110f}
-  th,kbd{background:#1a2e36;color:var(--muted)}
-  .guide{background:linear-gradient(135deg,#14252c,#16332f);border-color:#24463f}
-  .steps,.steps{border-color:#24463f}
-  .ring{background:conic-gradient(var(--teal) calc(var(--p)*1%),#24383f 0)}.ring span{background:#112027}
-  .high{background:#3a1d19;color:#ff9b8a}.medium{background:#3a3117;color:#e8c26a}.low{background:#1f2f36;color:#9fb4bc}
-  .badge.rv-Unreviewed{background:#1f2f36;color:#9fb4bc}.badge.rv-Inreview{background:#3a3117;color:#e8c26a}.badge.rv-Reviewed{background:#173a29;color:#6fd6a0}
-  .notice{background:#3a3117;color:#e8c26a}.step b{background:#1f2f36}
-  #disclosure{background:#173b3a;color:#7fd8c9}.track,.signals .track{background:#24383f}
-  .selected,.metric:last-child .value{color:#ff9b8a}
-  a{color:#5fd0c0}.pipeline pre{background:#0e1a20}.jump{background:#223a43;color:#cfe0e5}
-  .bar i{background:#3b5560}.bar:last-child i{background:var(--teal)}
-}
+html[data-theme=dark]{--ink:#e4ecee;--muted:#93a6ad;--line:#2b3d44;--bg:#0e1a20;--mint:#173b3a;--teal:#4cc2b2;--hover:#17282f}
+html[data-theme=dark] body{color:var(--ink)}
+html[data-theme=dark] .panel,html[data-theme=dark] .stepper,html[data-theme=dark] .pal-card,html[data-theme=dark] button,html[data-theme=dark] select,html[data-theme=dark] input,html[data-theme=dark] .button{background:#14252c;color:var(--ink);border-color:var(--line)}
+html[data-theme=dark] button.primary,html[data-theme=dark] .button.primary,html[data-theme=dark] .chip.on{background:#2a9c8f;border-color:#2a9c8f;color:#04110f}
+html[data-theme=dark] .chip b{color:var(--teal)}
+html[data-theme=dark] .chip.on b{color:#04110f}
+html[data-theme=dark] th,html[data-theme=dark] kbd{background:#1a2e36;color:var(--muted)}
+html[data-theme=dark] .guide{background:linear-gradient(135deg,#14252c,#16332f);border-color:#24463f}
+html[data-theme=dark] .steps,html[data-theme=dark] .steps{border-color:#24463f}
+html[data-theme=dark] .ring{background:conic-gradient(var(--teal) calc(var(--p)*1%),#24383f 0)}
+html[data-theme=dark] .ring span{background:#112027}
+html[data-theme=dark] .high{background:#3a1d19;color:#ff9b8a}
+html[data-theme=dark] .medium{background:#3a3117;color:#e8c26a}
+html[data-theme=dark] .low{background:#1f2f36;color:#9fb4bc}
+html[data-theme=dark] .badge.rv-Unreviewed{background:#1f2f36;color:#9fb4bc}
+html[data-theme=dark] .badge.rv-Inreview{background:#3a3117;color:#e8c26a}
+html[data-theme=dark] .badge.rv-Reviewed{background:#173a29;color:#6fd6a0}
+html[data-theme=dark] .notice{background:#3a3117;color:#e8c26a}
+html[data-theme=dark] .step b{background:#1f2f36}
+html[data-theme=dark] #disclosure{background:#173b3a;color:#7fd8c9}
+html[data-theme=dark] .track,html[data-theme=dark] .signals .track{background:#24383f}
+html[data-theme=dark] .selected,html[data-theme=dark] .metric:last-child .value{color:#ff9b8a}
+html[data-theme=dark] a{color:#5fd0c0}
+html[data-theme=dark] .pipeline pre{background:#0e1a20}
+html[data-theme=dark] .jump{background:#223a43;color:#cfe0e5}
+html[data-theme=dark] .bar i{background:#3b5560}
+html[data-theme=dark] .bar:last-child i{background:var(--teal)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media(max-width:1000px){.stepper p{margin-left:0;flex-basis:100%}.jump kbd{display:none}}
 .chart{gap:18px}.bar{max-width:110px}.chart:has(.bar:only-child){justify-content:center}
 .notice{padding:9px 16px;margin-bottom:10px;border-radius:6px;font-size:12px}
+
+/* ---- Lighter chrome (light theme): white header/sidebar, teal stays the accent ---- */
+html:not([data-theme=dark]){--soft:#f0f7f5}
+html:not([data-theme=dark]) body{background:#f6f8f8}
+html:not([data-theme=dark]) header{background:rgba(255,255,255,.88);backdrop-filter:blur(12px);color:var(--muted);border-bottom:1px solid var(--line);box-shadow:0 1px 8px rgba(20,39,47,.05)}
+html:not([data-theme=dark]) .brand strong{color:var(--ink)}
+html:not([data-theme=dark]) .brand span{border-color:var(--line)}
+html:not([data-theme=dark]) .brand img{filter:brightness(0) saturate(100%) invert(31%) sepia(60%) saturate(700%) hue-rotate(131deg)}
+html:not([data-theme=dark]) .avatar{background:var(--teal);color:#fff}
+html:not([data-theme=dark]) .jump{background:#f3f6f6;border-color:var(--line);color:var(--muted)}
+html:not([data-theme=dark]) .jump kbd{background:#fff}
+@media(hover:hover){html:not([data-theme=dark]) .jump:hover{background:var(--mint)!important;color:var(--ink)}}
+html:not([data-theme=dark]) aside{background:#fff;border-right:1px solid var(--line);color:var(--muted)}
+html:not([data-theme=dark]) nav a{border-radius:8px}
+html:not([data-theme=dark]) nav a img,html:not([data-theme=dark]) .dataset img{filter:brightness(0);opacity:.5}
+html:not([data-theme=dark]) nav a.active{background:var(--mint);color:var(--teal);box-shadow:none}
+html:not([data-theme=dark]) nav a.active img{filter:brightness(0) saturate(100%) invert(31%) sepia(60%) saturate(700%) hue-rotate(131deg);opacity:1}
+@media(hover:hover){html:not([data-theme=dark]) nav a[href]:hover{background:#f0f4f4;color:var(--ink)} html:not([data-theme=dark]) nav a.active:hover{background:#dcece8}}
+html:not([data-theme=dark]) .dataset{margin:20px 4px;padding:14px;background:#f6f8f8;border-radius:10px;border:1px solid var(--line)}
+html:not([data-theme=dark]) .dataset a{color:var(--teal)}
+html:not([data-theme=dark]) hr{border-color:var(--line)}
+html:not([data-theme=dark]) #disclosure{background:#eef6f3;border-bottom:1px solid #d7e8e3}
+html:not([data-theme=dark]) .panel{border-radius:10px;box-shadow:0 1px 2px rgba(20,39,47,.04),0 6px 18px -8px rgba(20,39,47,.10)}
+html:not([data-theme=dark]) .dark{background:linear-gradient(160deg,#17303a,#1d4a4a)}
+html:not([data-theme=dark]) .selection{background:#17303a}
+html:not([data-theme=dark]) button img,html:not([data-theme=dark]) .button img,html:not([data-theme=dark]) .toolbar img,html:not([data-theme=dark]) .event img{filter:brightness(0);opacity:.55}
+html:not([data-theme=dark]) button.primary img{filter:brightness(0) invert(1);opacity:1}
+html:not([data-theme=dark]) .event img{background:none;padding:3px}
+html:not([data-theme=dark]) .jump kbd{border-color:var(--line);color:var(--muted)}
+
+/* keep hover feedback visible in dark theme */
+@media(hover:hover){
+  html[data-theme=dark] button:enabled:hover,html[data-theme=dark] a.button:hover,html[data-theme=dark] select:enabled:hover{background-color:#1d3a42;border-color:#3f6a70}
+  html[data-theme=dark] button.primary:enabled:hover,html[data-theme=dark] a.button.primary:hover,html[data-theme=dark] .chip.on:enabled:hover{background-color:#35b0a2;border-color:#35b0a2;color:#04110f}
+}
+#theme{width:36px;min-height:36px;padding:0;font-size:15px;margin-right:12px}
+html[data-theme=dark] .step.now b{background:#2a9c8f;color:#04110f;box-shadow:0 0 0 4px rgba(76,194,178,.2)}
+html[data-theme=dark] .step.done b{background:#173a29;color:#6fd6a0}
