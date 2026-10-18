@@ -60,6 +60,8 @@ The daily-window selector lists available saved runs, not pages or all dates in 
 
 Overview is a briefing: metric tiles, volume and priority panels, and the top five signals as a compact ranked list with score bars. Daily alerts is the full working queue with search, filters and export. In both, click an employee's name (or fact ID) to open their detail screen. There is no separate Select step.
 
+Guidance and shortcuts: Overview opens with a “next step” card, three-step guide and review-progress ring. In Daily alerts, whole rows are clickable, quick chips filter by review state, and `/` search, `j`/`k` move, `Enter` open work from the keyboard. On an employee, `←`/`→` (or the ‹ › buttons) move between alerts, `m` marks reviewed, and the review stepper shows what to do next. `Ctrl/⌘+K` opens a jump-to-employee palette anywhere. Light and dark themes follow the system setting. All of this is browser-only and reads the same data.
+
 **System setup** is a separate navigation tab (`#setup`) containing administrator readiness checks and optional new-run commands. These requirements are absent from Overview, Daily alerts, Activity preview, and Employee detail. Opening System setup only displays already-loaded readiness information; it does not start analysis. A missing model configuration does not prevent reading saved Granite responses. Actual data-loading errors and evidence warnings remain visible on the main screens.
 
 ## Detector and Granite integration
