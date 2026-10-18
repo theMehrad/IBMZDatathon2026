@@ -58,7 +58,9 @@ Refresh rereads saved files; it does not execute the runner or generate another 
 
 The daily-window selector lists available saved runs, not pages or all dates in the raw dataset. One saved run means one choice; four inference attempts within that run are selected separately in the inference-attempt selector. With `--run-dir`, the dashboard is pinned to that one run. To browse several prepared days, launch using `--runs /path/to/data/runs` instead of `--run-dir`; Refresh can then discover additional saved runs in that folder without starting analysis.
 
-On Overview, **Inspect employee** opens that employee's detail screen. In the daily queue, **Select** updates the highlighted employee and selection summary; the chosen row reads **Selected**. Use **Inspect employee** in the summary to open details. When saved runner results are loaded, the dashboard states that explicitly and keeps requirements for generating new results in a collapsed optional setup panel. A missing model configuration does not prevent reading saved Granite responses.
+On Overview, **Inspect employee** opens that employee's detail screen. In the daily queue, **Select** updates the highlighted employee and selection summary; the chosen row reads **Selected**. Use **Inspect employee** in the summary to open details. In Activity preview, the selected-employee bar sits above the employee count and list so it is visible without scrolling past the full table. The count comes from the loaded data, not a fixed number.
+
+**System setup** is a separate navigation tab (`#setup`) containing administrator readiness checks and optional new-run commands. These requirements are absent from Overview, Daily alerts, Activity preview, and Employee detail. Opening System setup only displays already-loaded readiness information; it does not start analysis. A missing model configuration does not prevent reading saved Granite responses. Actual data-loading errors and evidence warnings remain visible on the main screens.
 
 ## Detector and Granite integration
 

@@ -9,7 +9,7 @@ function pipelinePanel() {
   const accepted = saved ? w.cases.filter(c => c.status === 'Accepted').length : 0;
   const savedNotice = saved ? `<section class="panel"><div class="panel-head"><h2>Saved runner results loaded</h2>${badge('READ ONLY')}</div><div class="note"><p>${scores} saved detector score${scores === 1 ? '' : 's'} · ${accepted} accepted Granite assessment${accepted === 1 ? '' : 's'}${w.attempt ? ` · attempt ${esc(w.attempt)}` : ''}.</p><p>Viewing these results does not require a configured model or a new analysis run. The optional setup below applies only to generating new results.</p></div></section>` : '';
   const setupBadges = `${badge(p.scoring_ready ? 'NEW SCORING READY' : 'NEW SCORING NOT READY')} ${badge(p.granite_ready ? 'NEW INFERENCE READY' : 'NEW INFERENCE NOT CONFIGURED')}`;
-  return `${savedNotice}<details class="panel pipeline" ${!saved ? 'open' : ''}>
+  return `${savedNotice}<details class="panel pipeline" ${page === 'setup' || !saved ? 'open' : ''}>
     <summary>${saved ? 'Setup for new analysis (optional)' : `Setup for generating scored results ${setupBadges}`}</summary>
     ${saved ? `<div class="note">${setupBadges}<p>These checks do not affect the saved results already displayed.</p></div>` : ''}
     <div class="two-col note"><div><h2>Generate new detector scores</h2>
